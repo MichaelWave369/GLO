@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { CRISIS_CONTACTS, TEXT } from './fieldKit.js'
 import { makeScopedSharedPin, scopedShareUrl } from './scopedShare.js'
 import { renderQrDataUrl } from './shareQr.js'
@@ -24,6 +24,7 @@ export function CrisisCard({ language }) {
 export function SharePanel({ pin, language, onClose }) {
   const t=TEXT[language]
   const spanish=language==='es'
+  const revision=useRef(0)
   const [scope,setScope]=useState('area')
   const [includeName,setIncludeName]=useState(false)
   const [confirmed,setConfirmed]=useState(false)
@@ -35,9 +36,11 @@ export function SharePanel({ pin, language, onClose }) {
   // No shareable link is even generated until the person reviews and approves the chosen fields.
   const link=confirmed?scopedShareUrl(pin,window.location.origin+import.meta.env.BASE_URL,{scope,includeName}):''
   function changeScope(value) {
+    revision.current+=1
     setScope(value);setConfirmed(false);setCopied('');setQr('');setError('')
   }
   function changeName(value) {
+    revision.current+=1
     setIncludeName(value);setConfirmed(false);setCopied('');setQr('');setError('')
   }
   function approve() {
@@ -50,15 +53,26 @@ export function SharePanel({ pin, language, onClose }) {
   }
   async function copy() {
     if(!confirmed)return
+    const currentRevision=revision.current
     try {
       await navigator.clipboard.writeText(link)
-      setCopied(spanish?'Enlace copiado. No se puede revocar después de enviarlo.':'Link copied. Sharing it is irreversible; GLO cannot revoke it.')
-    } catch {setCopied(t.shareFail)}
+      // Clipboard may already contain old content; never claim the new scope has been copied.
+      if(currentRevision===revision.current)
+        setCopied(spanish?'Enlace copiado. No se puede revocar después de enviarlo.':'Link copied. Sharing it is irreversible; GLO cannot revoke it.')
+    } catch {if(currentRevision===revision.current)setCopied(t.shareFail)}
   }
   async function showQr() {
     if(!confirmed)return
-    try {setError('');setQr(await renderQrDataUrl(link))}
-    catch {setError(spanish?'No se pudo crear el QR.':'Unable to create QR offline.')}
+    const currentRevision=revision.current
+    try {
+      setError('')
+      const dataUrl=await renderQrDataUrl(link)
+      // A pending QR from the previous grant MUST NOT reappear after a change.
+      if(currentRevision===revision.current)setQr(dataUrl)
+    } catch {
+      if(currentRevision===revision.current)
+        setError(spanish?'No se pudo crear el QR.':'Unable to create QR offline.')
+    }
   }
   return <section className="share-dialog handoff-dialog" role="region" aria-label={spanish?'Revisar lo que compartes':'Review shared information'}>
     <div className="header-row"><strong>{spanish?'Compartir con control':'Choose what you disclose'}</strong><button className="secondary compact" onClick={onClose}>{spanish?'Cerrar':'Close'}</button></div>
