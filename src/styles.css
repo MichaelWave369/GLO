@@ -49,3 +49,29 @@ html{scroll-behavior:smooth}
   .sidebar .access-fields{gap:9px}
   .masthead-right,.status{font-size:11px}
 }
+
+
+/* Scout phone audit #2: accessible remaining targets and icon fallback. */
+.pin-editor .close {
+  width: 48px; height: 48px; min-width: 48px; min-height: 48px;
+  display: inline-grid; place-items: center; font-size: 27px; line-height: 1;
+  flex-shrink: 0; cursor: pointer;
+}
+.map-actions .switch {
+  display: inline-flex; align-items: center; gap: 10px;
+  min-height: 48px; padding: 10px 14px; border-radius: 10px;
+  border: 1px solid #bdd7c5; background: #f1f7f1;
+  color: #1b5039; font-size: 14px; line-height: 1.35; cursor: pointer;
+  touch-action: manipulation;
+}
+.map-actions .switch input {
+  flex: 0 0 auto; width: 28px; height: 28px;
+  margin: 0; accent-color: #27694a; cursor: pointer;
+}
+.map-actions .switch:has(input:disabled) {opacity: .65; cursor: not-allowed}
+.map-actions .switch:focus-within {outline: 3px solid #cba348; outline-offset: 2px}
+.empty-symbol {display: flex; align-items: center; justify-content: center; min-height: 50px}
+@media(max-width:570px){
+  .map-actions .switch {flex: 1; min-width: 190px; justify-content: center}
+  .pin-editor .header-row {align-items: center}
+}
