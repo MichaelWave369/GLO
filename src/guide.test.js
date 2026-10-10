@@ -14,6 +14,9 @@ test('queries are geographically bounded and based on explicit category tags', (
   assert.match(query, /covered/)
   assert.match(query, /out center meta/)
   assert.ok(query.includes('around:' + SCOUT_RADIUS_M))
+  assert.ok(query.includes('40.986,-75.194'))
+  assert.ok(!buildScoutQuery({ lat: 40.986432, lon: -75.194876 }).includes('40.986432'))
+  assert.ok(buildScoutQuery({ lat: 40.986432, lon: -75.194876 }).includes('40.986,-75.195'))
   assert.throws(() => buildScoutQuery({ lat: 200, lon: 1 }), /valid/)
 })
 test('scout results have provenance, age, and uncertain condition', () => {
