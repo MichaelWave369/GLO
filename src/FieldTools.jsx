@@ -89,7 +89,7 @@ export function SharePanel({ pin, language, onClose }) {
       <span>{spanish?'Incluir el nombre del recurso':'Include the resource name'}</span></label>
     <div className="handoff-preview" aria-live="polite">
       <strong>{spanish?'Vista previa de lo que saldrá del dispositivo':'Preview of outgoing data'}</strong>
-      <p>{spanish?'Tipo de recurso':'Resource category'}: {t.type}: {preview.category}</p>
+      <p>{spanish?'Tipo de recurso':'Resource category'}: {preview.category}</p>
       <p>{spanish?'Nombre revelado':'Disclosed title'}: {preview.title} {preview.nameShared?'':(spanish?'(sin nombre privado)':'(generic label only)')}</p>
       <p>{scope==='area'?(spanish?'Zona aproximada':'Approximate area'):(spanish?'Coordenadas exactas':'Exact coordinates')}: {preview.lat.toFixed(scope==='area'?2:6)}, {preview.lon.toFixed(scope==='area'?2:6)}</p>
       <p>{spanish?'Nunca se incluyen notas privadas, IDs del dispositivo ni historial de ubicación.':'Private notes, device IDs and location history are never included.'}</p>
