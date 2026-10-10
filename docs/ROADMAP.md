@@ -86,3 +86,18 @@ The project must not become a surveillance network, user-profile service, or a m
 - [ ] Readable text, adequate visual contrast, translated main Spanish heading, shortened hours prompt
 - [ ] Real favicon.ico and SVG link resolve without 404
 - [ ] Android, iOS, keyboard/screen reader, and low-power acceptance runs are recorded separately from unit CI
+
+
+## P1-A: first real offline street sketch (current candidate)
+
+- [x] Bounded, explicit Overpass \`way[highway]\` / \`way[waterway]\` geometry query; no bulk requests to the OSM public raster tile server
+- [x] Save up to 4 small source-attributed street/footpath/waterway packs in isolated local IndexedDB
+- [x] Render local geometry underneath GLO pins even without internet or online street tiles
+- [x] Restore last saved sketch without network permission, preserve existing private observations on v3 migration
+- [x] Atomic panic-clear of sketch store with existing app-owned data
+- [ ] Verify road completeness at Stroudsburg and bounds of extract on low-end devices
+- [ ] Test click-download / reload / airplane-mode road and pin visibility on real Android and iOS
+- [ ] Prove no Overpass or tile calls on app startup; validate screen-reader support and data budgets
+- [ ] Add optional full licensed region vector tiles with labels and rendering, if real field testing requires it
+
+**Do not promote P1-A as a full offline street map, route engine, or safety-verification system.** This is a bounded linework baseline that users may download, save, and view next to known resource pins without connectivity.
