@@ -48,3 +48,17 @@ Invite a small group of testers to try the prototype without collecting personal
 Publicly published weather/conditions cameras, more public-resource categories (restrooms, free Wi-Fi, official food programs), accessibility data, independent community mirrors, and sustainable multi-maintainer governance.
 
 The project must not become a surveillance network, user-profile service, or a misleading food-safety rating system.
+
+
+## P0.3 field-essentials pilot (Scout suggestions)
+
+- Add more categories as private notes, not unverified public-feed claims.
+- Add timestamped working-status observations, hours and narrowly defined accessibility/access details.
+- Cache U.S. 911/988/211 reference card in the PWA application shell with accurate network limitations.
+- Provide a list-only dark mode that unmounts the map and agent dock.
+- Ship a Spanish beta for key interactions and document untranslated areas.
+- Add explicit opt-in peer pin links and locally generated QR codes with coordinate disclosure.
+- Add a panic cover and destructive private-record clearing with honest scope and data-loss warning.
+- Explicitly exclude personal sleeping spots, demographic safety labels without publisher consent or evidence, and public sharps/needle claims without trusted-source policy.
+
+**Acceptance:** automated tests/build pass; browser tests for sharing and import, low-battery map unmount and offline crisis copy; human mobile/a11y testing; demonstrate panic clears local IndexedDB and does not claim deletion of exported or third-party data.

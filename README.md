@@ -70,3 +70,19 @@ See [the roadmap](docs/ROADMAP.md) and [contribution guidance](CONTRIBUTING.md).
 Source code: [MIT License](LICENSE), copyright GLO contributors. Any future community resource database needs a separately agreed open-data license and documented OpenStreetMap ODbL attribution/compatibility requirements. Code being MIT-licensed does not automatically license external mapping data.
 
 GLO Pin is designed to be useful without knowing who created it. The long-term goal is a community-maintained, independently mirrorable public resource commons.
+
+
+## Field essentials (P0.3 candidate)
+
+Following resource-user suggestions from Scout, the new private-report UI supports more categories: public bathrooms, verified-by-organization food programs (NOT discarded-food safety claims), showers, laundry, warming/cooling centers, Wi-Fi, sharps disposal, pet support, and official overnight shelters. Extra categories are currently **local note categories**. Public Overpass Scout coverage is still limited to water, designated shelter/covered seating, and explicit USB-charging tags.
+
+Local notes now include self-reported hours, a time-stamped "worked when observed" status, and unknown/yes/no accessibility/access fields. The values describe a person's observation, not current operational status or official provider policy. Demographic "safe space" classifications are deliberately absent pending a proper source and safety policy.
+
+Other additions:
+- Offline-readable U.S. crisis contacts 911/988/211. Calling/texting requires a usable connection.
+- Low-battery dark/list-only mode: map and agent dock are unmounted to save rendering and data use.
+- English/Spanish toggle for critical tools and the private-pin form (agent panel translation is still incomplete).
+- Accountless peer-sharing by URL fragment, with *explicit exact-location disclosure*; QR codes are generated on-device after approval.
+- Panic clear covers the screen immediately, requests confirmation, then clears GLO's local reports and hides in-memory map data. It **cannot erase** already shared links, downloaded backups, browser history, OS screenshots, hosting logs, or other devices.
+
+There is no claim that an offline app cache equals an offline street basemap.
