@@ -12,3 +12,31 @@
 .crisis-note{font-size:12px;color:#665027}
 .low-battery .crisis-contact span{color:#edf4ed}
 .low-battery .crisis-contact a{background:#346e4b;color:#fff}
+
+
+/* FamilyVault-inspired reviewed data disclosure: no anonymous-link revocation claims. */
+.handoff-dialog{display:grid;gap:13px}
+.handoff-dialog .header-row{gap:10px;flex-wrap:wrap;align-items:center}
+.handoff-dialog>p{font-size:13px;line-height:1.65;margin:0;color:#355c47}
+.handoff-choices{border:1px solid #c0d8c9;border-radius:12px;padding:10px;display:grid;gap:8px;min-width:0}
+.handoff-choices legend{font-size:14px;font-weight:800;padding:0 6px;color:#23503c}
+.handoff-choices label{display:flex;gap:13px;align-items:center;min-height:64px;cursor:pointer;border:1px solid #d5e7d9;background:#f7faf7;border-radius:10px;padding:10px 12px}
+.handoff-choices label:has(input:checked){background:#e8f4ea;border-color:#70ac86}
+.handoff-choices input,.handoff-name input{width:24px;height:24px;flex:0 0 24px;accent-color:#236849;cursor:pointer}
+.handoff-choices label span{display:grid;gap:5px}
+.handoff-choices label strong{font-size:14px;color:#1e553a}
+.handoff-choices label small{font-size:12px;color:#455f4d;line-height:1.4}
+.handoff-name{display:flex;align-items:center;gap:12px;min-height:48px;font-size:14px;color:#204f3a;font-weight:700;cursor:pointer}
+.handoff-preview{background:#edf6ef;border:1px solid #bedbc7;border-radius:10px;padding:12px;display:grid;gap:5px;overflow-wrap:anywhere}
+.handoff-preview strong{font-size:14px;color:#1f513a}
+.handoff-preview p{margin:0;font-size:13px;color:#315b41;line-height:1.4}
+.handoff-warning{padding:12px;background:#fff8e8;border:1px solid #e6cea0;border-radius:10px;color:#684e24!important}
+.handoff-approve,.handoff-dialog .actions button{min-height:48px}
+.handoff-dialog .shared-link{padding:12px;border:1px solid #cfe0d2;border-radius:8px;background:#f8faf8;font-size:12px}
+.low-battery .handoff-dialog{background:#111c15;color:#f4f8f0;border-color:#41634b}
+.low-battery .handoff-dialog>p,.low-battery .handoff-choices legend,.low-battery .handoff-preview strong,.low-battery .handoff-choices label strong,.low-battery .handoff-name,.low-battery .handoff-preview p{color:#edf4e9}
+.low-battery .handoff-choices label,.low-battery .handoff-preview,.low-battery .handoff-dialog .shared-link{background:#1a2b1f;border-color:#4a6e54;color:#edf4e9}
+.low-battery .handoff-choices label:has(input:checked){background:#28452e}
+.low-battery .handoff-choices label small{color:#d7e5d3}
+.low-battery .handoff-warning{background:#3d3220;color:#ffe5b4!important;border-color:#9b7d47}
+@media(max-width:590px){.handoff-dialog{padding:13px}.handoff-choices label{min-height:70px}.handoff-dialog .actions{display:grid;grid-template-columns:1fr}.handoff-dialog .actions button{width:100%}}
