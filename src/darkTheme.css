@@ -1,0 +1,280 @@
+/*
+ * GLO Pin · Charcoal / Mint
+ *
+ * Original visual theme based on the approved dark mockup.
+ * All public, private, offline and emergency interfaces use the same palette.
+ * Rendered OSM map tiles (optional, off by default) are dimmed only visually.
+ * No service worker, local reports, GPS, sharing semantics or data model changes.
+ */
+
+:root{
+  color-scheme:dark;
+  --glo-bg:#0c1419;
+  --glo-panel:#111d23;
+  --glo-panel-2:#17262c;
+  --glo-panel-3:#1b302d;
+  --glo-input:#0d1a21;
+  --glo-line:#2a4546;
+  --glo-line-strong:#3d7160;
+  --glo-text:#edf5f4;
+  --glo-soft:#b4cec5;
+  --glo-muted:#98b6ad;
+  --glo-mint:#7bdbaa;
+  --glo-mint-bright:#9cf2c1;
+  --glo-mint-dark:#163c32;
+  --glo-gold:#f4d397;
+  --glo-red:#ffc1b5;
+  color:var(--glo-text);
+  background:var(--glo-bg);
+}
+html{background:var(--glo-bg);scrollbar-color:#3b6259 #101c22}
+body{
+  background:
+    radial-gradient(ellipse 1100px 590px at 47% -170px,#18342f99 0%,transparent 71%),
+    linear-gradient(180deg,#0d171c 0%,#0b1318 60%,#0b1419 100%);
+  color:var(--glo-text);
+  min-height:100vh;
+}
+::selection{background:#358966;color:#fff}
+html .shell{color:var(--glo-text)}
+html .masthead,html footer{border-color:#28383e}
+html .brand,html .brand strong,html .brand strong span{color:var(--glo-text)}
+html .brand small{color:var(--glo-mint)}
+html .status{color:var(--glo-soft)}
+html .status-dot{background:#81e5ac;box-shadow:0 0 0 3px #1b4a32}
+html .chip,html .counter,html .agent-local-pill,
+html .agent-mini-count,html .offline-counter,html .street-pack-count{
+  background:#214134;color:var(--glo-mint-bright)
+}
+html .hero h1,html h1,html h2,html h3{color:var(--glo-text)}
+html h1 em,html .hero em{color:var(--glo-mint)}
+html .eyebrow{color:var(--glo-mint)}
+html .hero p,html .help,html .map-top small,html .map-footnote,html .backup p,
+html .principles p,html footer,html .pin-note,html .pin-info small,
+html .local-observation{color:var(--glo-soft)}
+html a{color:var(--glo-mint-bright)}
+html .primary{
+  background:var(--glo-mint);
+  border-color:#6acb99;
+  color:#08251a;
+  box-shadow:0 3px 12px #06140f44;
+}
+html .primary:hover{background:#a5f4c5;border-color:#a5f4c5}
+html .primary:active{background:#56c98e}
+html .secondary{
+  background:#132329;
+  color:var(--glo-text);
+  border-color:#486d65;
+}
+html .secondary:hover{background:#234139;border-color:#7cdcab}
+html .secondary:active{background:#315348}
+html .filter,html .pin-actions button,html .pin-actions a,
+html .candidate-links button,html .candidate-links a,
+html .agent-show-more,html .quick-questions button,
+html .guide-match button,html .plain-link{
+  background:#16282c;border-color:#385250;color:var(--glo-text)
+}
+html .filter:hover,html .quick-questions button:hover,
+html .agent-show-more:hover{background:#244038}
+html .filter.active{background:var(--glo-mint);color:#0a291c;border-color:#7ce7b2}
+html .pin-actions .delete,html .offline-delete,html .street-pack-remove{
+  background:#3d2429;color:#ffd4c8;border-color:#83565a
+}
+html .pin-actions .delete:hover,html .offline-delete:hover,
+html .street-pack-remove:hover{background:#593137}
+
+/* GLO's real phone forms: no light panels, tiny black text, or flash-white inputs. */
+html :is(.sidebar,.map-column,.agent-dock,.agent-panel,.offline-panel,.street-pack,
+.pocket-details,.pin-card,.candidate,.agent-person,.guide-response,
+.guide-match,.offline-entry,.street-pack-area,.empty,.share-dialog,
+.shared-preview,.handoff-choices,.ai-options,.ai-answer){
+  background:var(--glo-panel);
+  border-color:var(--glo-line);
+  color:var(--glo-text);
+}
+html .sidebar,html .map-column,html .agent-dock,html .offline-panel{
+  box-shadow:0 14px 32px #01060840
+}
+html .sidebar label:not(.switch),html .sidebar .header-row,
+html .pocket-fields label,html .pocket-preview label,
+html .guide-form label{color:var(--glo-text)}
+html :is(.sidebar input,.sidebar textarea,.sidebar select,.guide-form textarea,
+.pocket-fields input:not([type="checkbox"]),.pocket-fields select,.pocket-preview textarea){
+  background:var(--glo-input);border-color:#44625b;
+  color:var(--glo-text);outline-color:var(--glo-mint);
+}
+html :is(input,textarea)::placeholder{color:#a2b7b1}
+html :is(input,textarea,select):focus-visible{
+  outline:2px solid var(--glo-mint);outline-offset:2px
+}
+html .pin-card{background:#16252a}
+html .pin-card.selected{background:#1f3f35;border-color:#73d49f}
+html .pin-card-main{color:var(--glo-text)}
+html .category-icon,html .agent-avatar{background:#234237;color:var(--glo-mint-bright)}
+html .close{background:#213d37;color:var(--glo-text);border:1px solid #4b7b69}
+html .empty{background:#112026;border-style:dashed}
+html .empty-symbol,html .plain-link{color:var(--glo-mint)}
+html .empty p{color:var(--glo-soft)}
+html .backup{border-top-color:var(--glo-line)}
+html .notice,html .saved-feedback,html .location-hint{
+  background:#17342c;color:#d9f8e4;border-color:#386f53
+}
+html .warning,html .inline-error{
+  background:#402829;color:#ffd1bd;border-color:#87534b
+}
+
+/* Crisis information remains prominent and legible even in battery-save mode. */
+html .crisis-strip{
+  background:#142b28;border-color:#2b684f;box-shadow:0 0 0 1px #153e2f40
+}
+html .crisis-strip summary{color:var(--glo-mint-bright)}
+html .crisis-strip p,html .crisis-note{color:#d2e5d8}
+html .crisis-contact{background:#122329;border-color:#315349;color:var(--glo-text)}
+html .crisis-contact span{color:var(--glo-soft)}
+html .crisis-contact a{background:#2a7655;color:#fff}
+html .crisis-contact a:hover{background:#3c9470}
+html .panic-btn{color:#ffb8ab;border-color:#aa625b;background:#241a20}
+html .panic-btn:hover{background:#48252a}
+
+/* Map canvas is a dark grid when the user has not explicitly enabled tiles. */
+html .map-top{background:#121e24}
+html .map-actions .switch{
+  background:#17282b;border-color:#456b5f;color:var(--glo-text)
+}
+html .map-actions .switch input{accent-color:var(--glo-mint)}
+html .map-frame{background:#0d1a20}
+html .leaflet-container,
+html .leaflet-map{
+  background-color:#0e1c22;
+  background-image:
+    linear-gradient(#72b49d12 1px,transparent 1px),
+    linear-gradient(90deg,#72b49d12 1px,transparent 1px);
+  background-size:42px 42px;
+}
+html .leaflet-tile-pane img.leaflet-tile{
+  filter:brightness(.65) invert(1) hue-rotate(185deg) saturate(.55) contrast(.94)
+}
+html .leaflet-control-zoom a,html .leaflet-bar a,html .leaflet-bar a:hover{
+  background:#182a31;color:var(--glo-text);border-color:#39534e
+}
+html .leaflet-control-zoom a:hover{background:#285043;color:var(--glo-mint-bright)}
+html .leaflet-control-attribution{background:#112127e8;color:#bdd8cb}
+html .leaflet-control-attribution a{color:var(--glo-mint-bright)}
+html .leaflet-popup-content-wrapper{
+  background:#152a2c;color:#edf6f4;box-shadow:0 8px 32px #0009
+}
+html .leaflet-popup-content{color:var(--glo-text);line-height:1.5}
+html .leaflet-popup-tip{background:#152a2c}
+html .leaflet-popup-close-button{color:var(--glo-mint-bright)!important}
+html .map-label{background:#1b3d36eb;color:#dbf7e3;border:1px solid #477b63}
+html .map-tip{background:#234235;color:#fff;border:1px solid #477b63}
+html .map-footnote{background:#142228;color:var(--glo-soft)}
+
+/* Scout, local helpers, and optional on-device AI: no blinding subpanels. */
+html .agent-dock{background:#101c22}
+html .agent-dock-head p,html .agent-desc small,html .agent-desc>span,
+html .agent-paragraph,html .agent-disclosure,html .agent-ai-note,
+html .agent-offline,html .scan-summary span,html .audit-strip,
+html .agent-dock-footer,html .candidate-body small,html .candidate-body>span,
+html .guide-response,html .guide-match small,html .guide-response-ask p{
+  color:var(--glo-soft)
+}
+html .agent-panel{background:#142328}
+html .agent-person,html .candidate,html .guide-response,html .ai-answer{
+  background:#182a2e;border-color:#334f4d
+}
+html .agent-avatar.avatar-freshness{background:#2c4031;color:#d5e3ad}
+html .agent-avatar.avatar-guard{background:#253e4b;color:#b5dcee}
+html .agent-avatar.avatar-bro{background:#483c2d;color:#ffe1ac}
+html .crew-roster>summary{
+  background:#172e29;color:var(--glo-mint-bright);border-color:#396850
+}
+html .crew-roster>summary:hover{background:#214139}
+html .audit-strip,html .scan-summary,html .scan-coordinates{
+  background:#1c3330;border-color:#315948;color:var(--glo-soft)
+}
+html .audit-strip strong{color:var(--glo-mint-bright)}
+html .audit-strip span{border-color:#42655a}
+html .agent-ai-note{border-color:#62b992}
+html .scan-summary .scan-stale,html .agent-offline{color:var(--glo-gold)}
+html .agent-error{color:#ffb0a5}
+html .guide-form textarea{min-height:88px}
+html .guide-response-ask{border-color:var(--glo-line)}
+html .guide-response-ask>span,html .guide-response-title,
+html .guide-response-ask p{color:var(--glo-mint-bright)}
+html .guide-match{background:#203b34}
+html .guide-match button{color:var(--glo-mint-bright);background:transparent}
+html .agent-dock-footer{border-color:var(--glo-line)}
+html .ai-options{background:#1a302c;border-color:#31594c}
+html .ai-options strong,html .ai-state{color:var(--glo-mint-bright)}
+html .ai-options p,html .ai-answer p,html .ai-answer small{color:var(--glo-soft)}
+html .ai-answer strong{color:var(--glo-gold)}
+
+/* Region packs, street sketches, first-aid plans and controlled sharing. */
+html .street-pack{background:#142229;border-color:var(--glo-line)}
+html .street-pack-head strong{color:var(--glo-text)}
+html .street-pack-current,html .street-pack-caveat,html .street-pack-message,
+html .street-pack-head p{color:var(--glo-soft)}
+html .street-pack-count,html .offline-counter{background:#244536;color:var(--glo-mint-bright)}
+html .street-pack-area{background:#1b2f2e}
+html .street-pack-caveat{border-color:var(--glo-line)}
+html .street-pack-caveat a,html .offline-disclaimer a{color:var(--glo-mint-bright)}
+html .street-pack-error,html .offline-error{color:#ffbcb0}
+html .offline-entry,html .offline-empty{background:#182b2c;border-color:#36564d}
+html .offline-top p,html .offline-entry small,html .offline-disclaimer,
+html .offline-empty,html .offline-panel p{color:var(--glo-soft)}
+html .offline-age,html .offline-loaded{color:var(--glo-mint-bright)}
+html .offline-age.aging,html .offline-age.old,html .offline-warn{color:var(--glo-gold)}
+html .packs-fold>summary{
+  background:#182e29;color:var(--glo-mint-bright);border-color:#3b6b52
+}
+html .packs-fold>summary:hover{background:#244339}
+html .pocket-details{background:#121f24;border-color:#355f4b}
+html .pocket-details>summary{
+  background:#17372f;color:var(--glo-mint-bright);border-color:#3b7155
+}
+html .pocket-details>summary span,html .pocket-intro,html .pocket-note,
+html .pocket-privacy,html .pocket-message{color:var(--glo-soft)}
+html .pocket-fields label,html .pocket-preview label{color:var(--glo-text)}
+html .pocket-fields .pocket-option{color:var(--glo-text)}
+html .pocket-body{background:#132127}
+html .pocket-fields input:not([type="checkbox"]),html .pocket-fields select,
+html .pocket-preview textarea{background:#0e1b22;border-color:#47645e;color:var(--glo-text)}
+html .pocket-preview textarea{color-scheme:dark}
+html .pocket-print{color:#000}
+html .shared-preview,html .share-dialog{background:#17292a;border-color:#3f665c}
+html .shared-preview p,html .share-dialog>p,html .shared-link{color:var(--glo-soft)}
+html .handoff-choices{background:#15242a;border-color:#355b51}
+html .handoff-choices legend,html .handoff-name,
+html .handoff-choices label strong{color:var(--glo-text)}
+html .handoff-choices label,html .handoff-preview{
+  background:#192c2f;border-color:#375a52;color:var(--glo-text)
+}
+html .handoff-choices label:has(input:checked){background:#254638;border-color:var(--glo-mint)}
+html .handoff-choices label small,html .handoff-preview p{color:var(--glo-soft)}
+html .handoff-preview strong{color:var(--glo-mint-bright)}
+html .handoff-dialog .shared-link{background:#0b1b21;border-color:#416357;color:var(--glo-soft)}
+html .handoff-warning{background:#3c301f;border-color:#806542;color:#fff0c7!important}
+html .version-banner{background:#19342c;border-color:#4c936c;color:var(--glo-text)}
+html .version-banner strong{color:var(--glo-mint-bright)}
+html .version-banner p{color:var(--glo-soft)}
+html .principles>div{background:#14272b;border:1px solid #294940}
+html .principles b{color:var(--glo-mint)}
+html footer{color:var(--glo-soft)}
+
+/* Keep low-battery's special screen and printed Pocket Plan readable. */
+html .shell.low-battery{background:#0b120f}
+html .low-battery .sidebar,html .low-battery .crisis-strip,
+html .low-battery .pin-card{border-color:#42654c}
+html .low-battery .secondary{background:#142219;color:#edf5ec;border-color:#6f8d74}
+html .low-battery .crisis-contact a{background:#347352;color:#fff}
+:focus-visible{outline-color:#d9e9a1}
+@media (prefers-contrast:more) {
+  :root{--glo-muted:#d3e6df;--glo-soft:#d8e9e2;--glo-line:#668f7b}
+  html .filter{border-color:#709c8a}
+}
+@media print{
+  :root{color-scheme:light}
+  body{background:white!important;color:#000!important}
+  html .pocket-print,html .pocket-print *{color:#000!important;background:white!important}
+}
