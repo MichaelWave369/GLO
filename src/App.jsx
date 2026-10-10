@@ -5,6 +5,7 @@ import { listReports, saveReport, removeReport, clearAllReports } from './storag
 import GloAgentDock from './GloAgentDock.jsx'
 import OfflinePacksPanel from './OfflinePacksPanel.jsx'
 import { sourcesFromPack } from './offlinePack.js'
+import { initialDraft, localDateTime } from './pinDraft.js'
 import { TEXT, accessText, parseSharedPin } from './fieldKit.js'
 import { CrisisCard, SharePanel, SharedPreview } from './FieldTools.jsx'
 
@@ -26,15 +27,6 @@ function MapCenterTracker({ onMove }) {
 function fmtDate(value) {
   const time = new Date(value)
   return Number.isNaN(time.getTime()) ? 'Unknown time' : time.toLocaleString()
-}
-function localDateTime() {
-  const now = new Date()
-  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-  return local.toISOString().slice(0, 16)
-}
-function initialDraft() {
-  return { observedAtLocal: localDateTime(), category: 'water', title: '', note: '', lat: '', lon: '',
-    visitStatus: 'unknown', reportedHours: '', accessibility: { wheelchair:'unknown', stepFree:'unknown', idRequired:'unknown', petsAllowed:'unknown' } }
 }
 export default function App() {
   const [reports, setReports] = useState([])
