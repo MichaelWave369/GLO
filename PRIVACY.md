@@ -62,3 +62,12 @@ Map linework is OSM data made available under the ODbL. It does not represent a 
 ## GLO Pocket Plan (P1-C)
 
 Pocket Plan text is generated from bundled, deterministic first-step templates entirely on device. Optional organization names and personal next-step text exist only in component memory; they are not written to storage, uploaded or passed to cloud AI. No location permission is requested. The selected resource's name and local-note/OSM provenance appear only if the user explicitly chooses to include them. The plan never includes selected resource coordinates, private notes or IDs. A person can copy or print a plan; clipboard history, external print systems, browser/OS retained data and paper are outside GLO panic clear. Plans do not establish provider hours, eligibility, fees or operational status.
+
+
+## P1-D: Peer handoffs are not authenticated grants
+
+The FamilyVault-inspired sharing controls implement a **local export preflight**, not account authentication, encryption, time-limited access or revocation. A new shared URL is created only after the person selects a location precision and confirms the field preview; by default it carries a rounded public **area** and generic category rather than custom resource titles and precise coordinates.
+
+An approximate area may still reveal sensitive context. Name-sharing and precise coordinates are separate voluntary choices. Shared links and QR codes are effectively bearer disclosures: a reader who receives or copies them can retain and forward them. **GLO cannot revoke their access or reliably erase any copy**. Some devices retain URL history, clipboard contents, screenshots and downloads outside GLO. Old v1 links may already contain exact coordinates and remain valid.
+
+No FamilyVault vault credentials, session cookies, database tables, medical records or encryption keys are used by GLO.
