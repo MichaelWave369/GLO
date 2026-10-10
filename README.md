@@ -166,3 +166,16 @@ When a person explicitly chooses **Share location**, GLO now proposes a **limite
 - No automatic sharing, accounts, tracking, external backend, resource verification or private note upload.
 
 **Important limitation:** GLO peer links are not FamilyVault permission grants. Once copied, scanned, forwarded or captured, **they cannot be revoked by GLO**. A recipient may keep the full URL, name, and coordinates. Browser history, clipboard contents, screenshots and external copies are not cleared by GLO's panic-clear function. The URL fragment is handled locally by GLO, but anyone who receives it can read it.
+
+
+## P1-E: Scout's post-sharing field audit
+
+Scout independently decoded handoff JSON and QR payloads across default, exact-only, name-only and rapid permission toggles. Scout reported all scoped-data privacy checks passing. Follow-up hardening:
+
+- Deleting a private pin closes any open share panel immediately. The panel also derives its target from the current private/OSM data, so stale objects do not retain approval controls after removal.
+- Saving a pin shows **one** local-only receipt near the pin list instead of duplicating it in the top notification banner.
+- The reviewed export preview now has one concise "Resource category" label.
+- Adds a service-worker **new version available → Update now** notice through the existing VitePWA prompt registration. Checks are foreground/online-only and throttled to 20 minutes; changes do not silently reload a half-written private note.
+- After an update is found, a tap applies it and reloads the app. Offline resources already saved on the device remain in the app's IndexedDB, which is not cleared by service-worker activation.
+
+The update banner requires a device to load this version at least once. A device still running an older cached build without the update detector cannot retroactively display the new notice; after one manual cache refresh the notice can handle future releases. A browser's cache, service-worker lifecycle and device settings can delay discovery. This is **not** a promise of immediate updates, automatic installation, or offline-to-online connectivity.

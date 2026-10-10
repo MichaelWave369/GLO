@@ -71,3 +71,10 @@ The FamilyVault-inspired sharing controls implement a **local export preflight**
 An approximate area may still reveal sensitive context. Name-sharing and precise coordinates are separate voluntary choices. Shared links and QR codes are effectively bearer disclosures: a reader who receives or copies them can retain and forward them. **GLO cannot revoke their access or reliably erase any copy**. Some devices retain URL history, clipboard contents, screenshots and downloads outside GLO. Old v1 links may already contain exact coordinates and remain valid.
 
 No FamilyVault vault credentials, session cookies, database tables, medical records or encryption keys are used by GLO.
+
+
+## P1-E cached-version and share lifecycle policy
+
+An orphaned private pin must not leave a share-approval UI accessible. Deletion invalidates its in-memory sharing state and the UI independently checks for the record's continuing presence. This does not recall previously copied/sent hash links, screenshot QR codes or browser history.
+
+PWA update detection contacts the application's own GitHub Pages origin only when the browser is online, visible, and a registered worker is present; foreground checks are throttled. Nothing in this update process sends private report data, GPS coordinates or notes. Choosing **Update now** reloads the application, which may discard unsaved form text. The user is warned before the choice. Saved IndexedDB entries are not intentionally modified by service-worker activation. Very old cached app versions may still require a manual reload/cache reset once, because code already cached cannot acquire new functionality without being replaced.

@@ -16,3 +16,12 @@ export function listRowsForMode(privateRows = [], publicRows = [], lowBattery = 
 export function visibleSaveReceipt(receipt, reports = []) {
   return receipt && reports.some(r => r.id === receipt.id) ? receipt : null
 }
+
+
+// Never render a share approval for a report that no longer exists.
+// Return the current record rather than holding a potentially stale object.
+export function activeShareTarget(requested, privateRows = [], publicRows = []) {
+  if (!requested?.id) return null
+  return privateRows.find(row=>row.id===requested.id) ||
+    publicRows.find(row=>row.id===requested.id) || null
+}

@@ -3,12 +3,13 @@ import { MapContainer, TileLayer, Circle, CircleMarker, Polyline, Popup, useMap,
 import { CATEGORIES, PILOT_CENTER, distanceKm, normalizeReport, privateBackup } from './domain.js'
 import { listReports, saveReport, removeReport, clearAllReports } from './storage.js'
 import GloAgentDock from './GloAgentDock.jsx'
+import UpdateNotice from './UpdateNotice.jsx'
 import PocketPlan from './PocketPlan.jsx'
 import OfflinePacksPanel from './OfflinePacksPanel.jsx'
 import StreetSketchPanel from './StreetSketchPanel.jsx'
 import { sourcesFromPack } from './offlinePack.js'
 import { initialDraft, localDateTime } from './pinDraft.js'
-import { listRowsForMode, visibleSaveReceipt } from './resourceView.js'
+import { listRowsForMode, visibleSaveReceipt, activeShareTarget } from './resourceView.js'
 import MapPinIcon from './MapPinIcon.jsx'
 import { TEXT, accessText, parseSharedPin } from './fieldKit.js'
 import { CrisisCard, SharePanel, SharedPreview } from './FieldTools.jsx'
@@ -94,6 +95,8 @@ export default function App() {
   const displayedReceipt = visibleSaveReceipt(savedFeedback, reports)
   const chosenRecord = reports.find(r=>r.id===selectedId) || publicCandidates.find(r=>r.id===selectedId)
   const selectedResource = chosenRecord ? { title: chosenRecord.title, from: reports.some(r=>r.id===selectedId)?'private':'osm' } : null
+  // The share panel is tied to a live report, not to a stale copied React object.
+  const activeSharingPin = activeShareTarget(sharingPin, reports, publicCandidates)
 
   function onScoutRecords(records, metadata = null) {
     setPublicCandidates(records)
@@ -201,7 +204,7 @@ export default function App() {
       setEditing(false)
       setSavedFeedback({ id:report.id, title:report.title })
       jumpTo(report)
-      setNotice('Saved only on this device. Nothing was published.')
+      setNotice('') // The accessible, contextual receipt below is the only save confirmation.
       window.requestAnimationFrame(() => savedFeedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
     } catch (err) {
       setFormError(err.message || 'Unable to save this observation.')
@@ -209,7 +212,16 @@ export default function App() {
   }
   async function erase(r) {
     if (!confirm('Permanently delete this private observation?')) return
-    try { await removeReport(r.id); setSavedFeedback(current => current?.id === r.id ? null : current); await refresh(); if (selectedId === r.id) setSelectedId(''); setNotice('Local observation deleted.') }
+    try {
+      // Revoke any still-visible approval UI before performing deletion.
+      // Previously copied links/QRs remain beyond GLO's control.
+      setSharingPin(current => current?.id === r.id ? null : current)
+      await removeReport(r.id)
+      setSavedFeedback(current => current?.id === r.id ? null : current)
+      await refresh()
+      if (selectedId === r.id) setSelectedId('')
+      setNotice('Local observation deleted.')
+    }
     catch (err) { setNotice(err.message || 'Unable to delete') }
   }
   function panicClear() {
@@ -281,6 +293,7 @@ export default function App() {
         <button type="button" className="secondary" onClick={changeLowBattery}>{lowBattery ? t.batteryOff : t.battery}</button>
         <button type="button" className="panic-btn" onClick={panicClear}>{t.panic}</button>
       </div>
+      <UpdateNotice language={language}/>
       <CrisisCard language={language}/>
       <section className="hero">
         <div className="eyebrow">{t.heroEyebrow}</div>
@@ -290,7 +303,7 @@ export default function App() {
       </section>
       <PocketPlan language={language} resource={selectedResource}/>
       <SharedPreview pin={sharedPreview} language={language} onView={() => { if (lowBattery) changeLowBattery(); jumpTo(sharedPreview) }} onDismiss={closeShared}/>
-      <div className="notice" role="status" aria-live="polite">{notice}</div>
+      {notice && <div className="notice" role="status" aria-live="polite">{notice}</div>}
       {error && <div className="warning" role="alert">Storage error: {error}. Your observations may not be saved.</div>}
       <section className="workspace" aria-label="GLO resource map">
         <aside className="sidebar">
@@ -362,7 +375,7 @@ export default function App() {
                 </div>
               </article>) : <div className="empty"><span className="empty-symbol"><MapPinIcon size={42}/></span><strong>{language === 'es' ? 'No hay puntos que mostrar' : lowBattery ? 'No resources to show' : 'No private pins yet'}</strong><p>{t.noPins}</p><button className="plain-link" onClick={begin}>Add a pin →</button></div>}
             </div>
-            <SharePanel key={sharingPin?.id || "none"} pin={sharingPin} language={language} onClose={() => setSharingPin(null)}/>
+            <SharePanel key={activeSharingPin?.id || "none"} pin={activeSharingPin} language={language} onClose={() => setSharingPin(null)}/>
             <div className="backup"><strong>Keep your own data</strong><p>Download a private JSON backup. This file contains your coordinates and notes; it does not upload.</p><button className="secondary compact" disabled={!reports.length} onClick={backup}>{t.backup}</button></div>
           </>}
         </aside>

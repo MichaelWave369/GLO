@@ -143,3 +143,17 @@ Acceptance: test small pure functions, no automatic persistence/network requests
 - [ ] Accessibility, link-forwarding and approximate-geography tests on real phones
 
 Do not import FamilyVault auth/RBAC/medical APIs into GLO. This is a design-pattern adaptation, not interoperability with private family records.
+
+
+## P1-E: Scout field audit cleanups
+
+- [x] Source-level regression: a deleted pin cannot still resolve to an approved share target
+- [x] Share UI closes upon deletion and cannot be fed a stale report after list refresh
+- [x] One local-only save receipt, no duplicate top-of-page success banner
+- [x] Correct "Resource category" duplicate label
+- [x] User-approved VitePWA update notice; online, foreground-only checking with 20-minute throttling
+- [ ] Real mobile delete-during-share test, including rapid approval/QR generation
+- [ ] Real device update test across two deployed revisions, offline then online, and unsaved draft protection
+- [ ] Accessibility audit of update alert and per-field sharing approvals
+
+Field report from Scout: scoped shares and decoded QR payloads passed default, precision-only, title-only and rapid-toggle checks. Do not convert that into a claim of an independent security audit.
