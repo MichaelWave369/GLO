@@ -7,7 +7,7 @@ const privatePin={id:'device-secret-id',category:'water',title:'My private spot 
 test('default handoff shares category and approximate area only',()=>{
   const result=makeScopedSharedPin(privatePin)
   assert.deepEqual({scope:result.scope,lat:result.lat,lon:result.lon,title:result.title,nameShared:result.nameShared},
-    {scope:'area',lat:40.99,lon:-75.19,title:'Drinking water',nameShared:false})
+    {scope:'area',lat:40.99,lon:-75.19,title:'Water',nameShared:false})
   const url=scopedShareUrl(privatePin,'https://example.org/GLO/')
   for(const secret of ['My private spot','device-secret-id','Person sleeps here','40.986123','-75.194567','private person'])assert.ok(!url.includes(secret))
   const parsed=parseSharedPin(new URL(url).hash)
