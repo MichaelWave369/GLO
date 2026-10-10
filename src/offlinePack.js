@@ -2,6 +2,7 @@
 import { CATEGORIES, distanceKm, validCoordinates } from './domain.js'
 
 export const PACK_FORMAT = 'glo-public-osm-pack'
+export const PACK_CATEGORIES = Object.freeze(['water','power','shelter','restroom','food','shower'])
 export const MAX_PACK_RECORDS = 160
 export const MAX_PACK_BYTES = 150_000
 const ALLOWED_PACK_FIELDS = ['format','version','id','center','scannedAt','savedAt','source','license','incomplete','records']
@@ -17,7 +18,7 @@ export function normalizePublicRecord(record, center) {
   if (!/^osm:(node|way|relation)\/[1-9][0-9]*$/.test(record.id || '')) throw new Error('Invalid OSM record identifier.')
   const expectedUrl = 'https://www.openstreetmap.org/' + record.id.slice(4)
   if (record.sourceUrl !== expectedUrl) throw new Error('Unexpected source link.')
-  if (!Object.hasOwn(CATEGORIES, record.category)) throw new Error('Unknown source category.')
+  if (!PACK_CATEGORIES.includes(record.category) || !Object.hasOwn(CATEGORIES, record.category)) throw new Error('Unsupported public Scout category.')
   if (!validCoordinates(record.lat, record.lon)) throw new Error('Invalid public coordinates.')
   if (!bounded(record.title, 110) || !record.title?.trim()) throw new Error('Invalid source label.')
   if (record.source !== 'OpenStreetMap via Overpass' || record.provenance !== 'mapped-record' ||

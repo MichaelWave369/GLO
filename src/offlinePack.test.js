@@ -32,6 +32,7 @@ test('reject malicious, private, forged, oversized and duplicate packs',()=>{
   assert.throws(()=>validatePublicPack({...pack,privateReports:[]},now),/Invalid pack fields/)
   assert.throws(()=>validatePublicPack({...pack,records:[{...pack.records[0],note:'secret'}]},now),/unexpected or private/)
   assert.throws(()=>validatePublicPack({...pack,records:[{...pack.records[0],condition:'verified'}]},now),/cannot claim/)
+  assert.throws(()=>validatePublicPack({...pack,records:[{...pack.records[0],category:'overnight'}]},now),/Unsupported public Scout category/)
   assert.throws(()=>validatePublicPack({...pack,records:[{...pack.records[0],sourceUrl:'https://evil.test/steal'}]},now),/Unexpected source/)
   assert.throws(()=>validatePublicPack({...pack,records:[pack.records[0],pack.records[0]]},now),/Duplicate/)
   assert.throws(()=>parsePublicPack('x'.repeat(MAX_PACK_BYTES+1)),/small public/)
