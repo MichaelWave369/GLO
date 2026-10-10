@@ -33,6 +33,7 @@ export function normalizeReport(input, clock = new Date()) {
   const category = String(input.category || '')
   const title = String(input.title || '').trim()
   const note = String(input.note || '').trim()
+  if ([input.lat, input.lon].some(value => value === null || value === undefined || String(value).trim() === '')) throw new Error('Choose an actual location before saving. Coordinates cannot be blank.')
   const lat = Number(input.lat)
   const lon = Number(input.lon)
   if (!Object.hasOwn(CATEGORIES, category)) throw new Error('Select one of the three resource types.')

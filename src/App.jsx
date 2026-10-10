@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import { CATEGORIES, PILOT_CENTER, distanceKm, normalizeReport, privateBackup } from './domain.js'
 import { listReports, saveReport, removeReport, clearAllReports } from './storage.js'
@@ -33,7 +33,7 @@ function localDateTime() {
   return local.toISOString().slice(0, 16)
 }
 function initialDraft() {
-  return { observedAtLocal: localDateTime(), category: 'water', title: '', note: '', lat: String(PILOT_CENTER.lat), lon: String(PILOT_CENTER.lon),
+  return { observedAtLocal: localDateTime(), category: 'water', title: '', note: '', lat: '', lon: '',
     visitStatus: 'unknown', reportedHours: '', accessibility: { wheelchair:'unknown', stepFree:'unknown', idRequired:'unknown', petsAllowed:'unknown' } }
 }
 export default function App() {
@@ -61,6 +61,14 @@ export default function App() {
   const [target, setTarget] = useState(null)
   const [notice, setNotice] = useState('No account needed. Your observations stay on this device.')
   const [error, setError] = useState('')
+  const [locationHint, setLocationHint] = useState('')
+  const [formError, setFormError] = useState('')
+  const [savedFeedback, setSavedFeedback] = useState('')
+  const editorRef = useRef(null)
+  const savedFeedbackRef = useRef(null)
+  const mapFrameRef = useRef(null)
+  const packsDetailsRef = useRef(null)
+  const locationRequest = useRef(0)
 
   async function refresh() {
     try { setReports(await listReports()); setError('') }
@@ -128,21 +136,75 @@ export default function App() {
       enableHighAccuracy: false, maximumAge: 60000, timeout: 12000
     })
   }
+  function startPinLocation() {
+    // This runs directly from an explicit Add/Use-my-location tap. No background permission request.
+    const token = ++locationRequest.current
+    setLocationHint(language === 'es'
+      ? 'Buscando tu ubicación con permiso. Si no está disponible, elige un punto en el mapa o escribe las coordenadas.'
+      : 'Requesting your location. If unavailable, tap the map or enter coordinates. Nothing is prefilled from Stroudsburg.')
+    if (!navigator.geolocation) {
+      setLocationHint(language === 'es' ? 'Ubicación no disponible. Elige el lugar manualmente.' : 'Location unavailable. Choose the location manually.')
+      return
+    }
+    navigator.geolocation.getCurrentPosition(({ coords }) => {
+      if (locationRequest.current !== token) return
+      const point = { lat: coords.latitude, lon: coords.longitude }
+      setDraft(d => ({ ...d, lat: point.lat.toFixed(6), lon: point.lon.toFixed(6) }))
+      setReference(point)
+      setTarget({ ...point, zoom: 16 })
+      setLocationHint(language === 'es' ? 'Ubicación del dispositivo seleccionada. Confirma el lugar antes de guardar.' : 'Device location selected. Check the coordinates before saving.')
+    }, () => {
+      if (locationRequest.current !== token) return
+      setLocationHint(language === 'es'
+        ? 'No se obtuvo la ubicación. Toca el mapa o escribe la latitud y longitud antes de guardar.'
+        : 'Location denied or unavailable. Tap the map or enter latitude and longitude before saving.')
+    }, { enableHighAccuracy: false, maximumAge: 60000, timeout: 12000 })
+  }
   function begin() {
-    setDraft({ ...initialDraft(), lat: reference.lat.toFixed(6), lon: reference.lon.toFixed(6) })
+    setDraft(initialDraft()) // Never silently use Stroudsburg or the last map view for a new report.
+    setSavedFeedback('')
+    setFormError('')
     setEditing(true)
-    setNotice('Tap the map to choose coordinates or type them below. Save keeps this pin private.')
+    startPinLocation()
+    window.requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
+  function cancelEdit() {
+    locationRequest.current += 1
+    setEditing(false)
+    setFormError('')
+    setLocationHint('')
+  }
+  function chooseOnMap() {
+    if (lowBattery) setLowBattery(false)
+    window.requestAnimationFrame(() => mapFrameRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+  }
+  function pickCoordinates({ lat, lng }) {
+    locationRequest.current += 1 // A manual map tap must win over a delayed geolocation callback.
+    setDraft(d => ({ ...d, lat: lat.toFixed(6), lon: lng.toFixed(6) }))
+    setLocationHint(language === 'es' ? 'Lugar seleccionado en el mapa. Comprueba las coordenadas.' : 'Location selected from map. Review coordinates before saving.')
+    window.requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
+  function openPacks() {
+    if (packsDetailsRef.current) packsDetailsRef.current.open = true
+    window.requestAnimationFrame(() => packsDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
   async function save(e) {
     e.preventDefault()
+    setFormError('')
     try {
       const report = normalizeReport(draft)
       await saveReport(report)
+      locationRequest.current += 1
       await refresh()
       setEditing(false)
+      setSavedFeedback((language === 'es' ? 'Guardado solo en este dispositivo: ' : 'Saved on this device only: ') + report.title +
+        (language === 'es' ? '. No se publicó.' : '. Nothing was published.'))
       jumpTo(report)
       setNotice('Saved only on this device. Nothing was published.')
-    } catch (err) { setNotice(err.message || 'Unable to save') }
+      window.requestAnimationFrame(() => savedFeedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+    } catch (err) {
+      setFormError(err.message || 'Unable to save this observation.')
+    }
   }
   async function erase(r) {
     if (!confirm('Permanently delete this private observation?')) return
@@ -157,6 +219,7 @@ export default function App() {
       const approved = window.confirm(t.panicConfirm)
       if (!approved) { setPanicCovered(false); return }
       try {
+      locationRequest.current += 1
       await clearAllReports()
       setReports([])
       setPublicCandidates([])
@@ -217,8 +280,8 @@ export default function App() {
       </div>
       <CrisisCard language={language}/>
       <section className="hero">
-        <div className="eyebrow">A MAP THAT LOOKS OUT FOR EVERYBODY</div>
-        <h1>Find what you need.<br/><em>Share what you know.</em></h1>
+        <div className="eyebrow">{t.heroEyebrow}</div>
+        <h1>{t.heroFirst}<br/><em>{t.heroSecond}</em></h1>
         <p>{t.description}</p>
         <div className="actions"><button className="primary" onClick={begin}>+ {t.add}</button><button className="secondary" onClick={locate}>◎ {t.locate}</button></div>
       </section>
@@ -227,9 +290,14 @@ export default function App() {
       {error && <div className="warning" role="alert">Storage error: {error}. Your observations may not be saved.</div>}
       <section className="workspace" aria-label="GLO resource map">
         <aside className="sidebar">
-          {editing ? <form onSubmit={save}>
+          {editing ? <form ref={editorRef} className="pin-editor" onSubmit={save}>
             <div className="eyebrow">PRIVATE · DEVICE ONLY</div>
-            <div className="header-row"><h2>Add an observation</h2><button type="button" className="close" onClick={() => setEditing(false)} aria-label="Cancel editing">×</button></div>
+            <div className="header-row"><h2>{t.pinFormTitle}</h2><button type="button" className="close" onClick={cancelEdit} aria-label="Cancel editing">×</button></div>
+            <div className="location-hint" role="status" aria-live="polite">{locationHint}</div>
+            <div className="actions location-actions">
+              <button className="secondary" type="button" onClick={startPinLocation}>{t.locate}</button>
+              <button className="secondary" type="button" onClick={chooseOnMap}>{t.pickMap}</button>
+            </div>
             <p className="help">{language === 'es' ? 'Solo registra recursos públicos. Nunca señales dónde duerme una persona, domicilios privados o personas. Son observaciones, no garantía de seguridad.' : 'Record only public resources or official shelter programs. Never pin personal sleeping places, camps, private homes or people. A report is not a safety certification.'}</p>
             <label htmlFor="category">{t.type}</label>
             <select id="category" value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })}>
@@ -240,7 +308,7 @@ export default function App() {
             <label htmlFor="note">{t.note}</label>
             <textarea id="note" rows="4" maxLength="400" value={draft.note} placeholder="Avoid names, identities and sensitive details." onChange={(e) => setDraft({ ...draft, note: e.target.value })}/>
             <label htmlFor="hours">{t.hours}</label>
-            <input id="hours" maxLength="100" value={draft.reportedHours} placeholder={language === 'es' ? 'Horario informado (sin confirmar)' : 'e.g. Mon–Fri 9–5; not independently checked'} onChange={e => setDraft({...draft,reportedHours:e.target.value})}/>
+            <input id="hours" maxLength="100" value={draft.reportedHours} placeholder={language === 'es' ? 'Ej.: lun–vie 9–17' : 'e.g. Mon–Fri 9–5'} onChange={e => setDraft({...draft,reportedHours:e.target.value})}/>
             <label htmlFor="observed-at">{language === 'es' ? 'Fecha y hora de la observación' : 'When did you actually observe this?'}</label>
             <input id="observed-at" type="datetime-local" required value={draft.observedAtLocal} max={localDateTime()} onChange={e => setDraft({...draft, observedAtLocal:e.target.value})}/>
             <label htmlFor="visit-status">{t.status}</label>
@@ -258,12 +326,14 @@ export default function App() {
                 <option value="unknown">{t.dontKnow}</option><option value="yes">{t.yes}</option><option value="no">{t.no}</option>
               </select></div>)}</div>
             <div className="coordinates">
-              <div><label htmlFor="lat">Latitude</label><input id="lat" type="number" min="-90" max="90" step="any" required value={draft.lat} onChange={(e) => setDraft({ ...draft, lat: e.target.value })}/></div>
-              <div><label htmlFor="lon">Longitude</label><input id="lon" type="number" min="-180" max="180" step="any" required value={draft.lon} onChange={(e) => setDraft({ ...draft, lon: e.target.value })}/></div>
+              <div><label htmlFor="lat">{language === 'es' ? 'Latitud' : 'Latitude'}</label><input id="lat" type="number" min="-90" max="90" step="any" required placeholder="40.986" value={draft.lat} onChange={(e) => setDraft({ ...draft, lat: e.target.value })}/></div>
+              <div><label htmlFor="lon">{language === 'es' ? 'Longitud' : 'Longitude'}</label><input id="lon" type="number" min="-180" max="180" step="any" required placeholder="-75.194" value={draft.lon} onChange={(e) => setDraft({ ...draft, lon: e.target.value })}/></div>
             </div>
-            <p className="help">Tap the map to choose a location. You can also enter coordinates or press “Use my location.”</p>
-            <div className="actions"><button type="button" className="secondary" onClick={() => setEditing(false)}>{t.cancel}</button><button type="submit" className="primary" disabled={!!error}>{t.save}</button></div>
+            <p className="help">{t.locationRequired}</p>
+            {formError && <p className="warning inline-error" role="alert">{formError}</p>}
+            <div className="actions"><button type="button" className="secondary" onClick={cancelEdit}>{t.cancel}</button><button type="submit" className="primary" disabled={!!error}>{t.save}</button></div>
           </form> : <>
+            {savedFeedback && <div ref={savedFeedbackRef} className="saved-feedback" role="status" aria-live="polite">{savedFeedback}</div>}
             <div className="header-row"><div><div className="eyebrow">RESOURCE EXPLORER</div><h2>{t.resources}</h2></div><span className="counter">{reports.length} private + {publicCandidates.length} mapped</span></div>
             <p className="help">{t.private} {publicCandidates.length ? (language === 'es' ? 'Los recursos públicos son registros de OpenStreetMap no verificados.' : 'Public OSM candidates are shown separately and are NOT verified open or working.') : ''}</p>
             <label htmlFor="search">{t.search}</label>
@@ -296,12 +366,12 @@ export default function App() {
           <div className="map-top"><div><strong>Explore the map</strong><small>Starting view: Stroudsburg, PA (not your detected position)</small></div>
             <div className="map-actions"><button className="secondary compact" onClick={locate}>◎ Center on me</button><label className="switch"><input type="checkbox" checked={online && tiles} disabled={!online} onChange={(e) => setTiles(e.target.checked)} />Online street tiles</label></div>
           </div>
-          <div className="map-frame">
+          <div className="map-frame" ref={mapFrameRef}>
             <MapContainer className="leaflet-map" center={[PILOT_CENTER.lat, PILOT_CENTER.lon]} zoom={13} scrollWheelZoom={false}>
               {online && tiles && <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'/>}
               <MapNavigator target={target}/>
               <MapCenterTracker onMove={setMapCenter}/>
-              <MapPicker enabled={editing} onPick={({ lat, lng }) => setDraft((d) => ({ ...d, lat: lat.toFixed(6), lon: lng.toFixed(6) }))}/>
+              <MapPicker enabled={editing} onPick={pickCoordinates}/>
               {visiblePublic.map((r) => <CircleMarker key={r.id} center={[r.lat, r.lon]} radius={selectedId === r.id ? 12 : 9} pathOptions={{ color: '#457695', fillColor: r.category === 'water' ? '#83d4e4' : r.category === 'power' ? '#eec575' : '#a9cfa1', fillOpacity: 0.85, weight: 2, dashArray: '4 3' }} eventHandlers={{ click: () => setSelectedId(r.id) }}>
                 <Popup><strong>{r.title}</strong><br/>{CATEGORIES[r.category].label}<br/>OpenStreetMap record · Not verified<br/><a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">View OSM record</a></Popup>
               </CircleMarker>)}
@@ -316,9 +386,12 @@ export default function App() {
           <div className="map-footnote"><strong>Map privacy:</strong> Street tiles are off by default. If enabled, OpenStreetMap tile servers may receive your viewed map area and IP address. Offline street navigation and downloadable regional maps are future work. The tileless view is not a navigable map.</div>
         </div>}
       </section>
-      <OfflinePacksPanel scan={sourceScan} onUse={useOfflinePack} onRemove={removeOfflinePack} onNotice={setNotice}/>
       {!lowBattery && <GloAgentDock center={mapCenter} localReports={reports} online={online}
-        onSourcesChange={onScoutRecords} sourceRecords={publicCandidates} packRevision={packRevision} onNavigate={jumpTo}/>} 
+        onSourcesChange={onScoutRecords} sourceRecords={publicCandidates} packRevision={packRevision} onNavigate={jumpTo} onOpenPacks={openPacks}/>}
+      <details className="packs-fold" ref={packsDetailsRef}>
+        <summary>{language === 'es' ? 'Guardar o abrir recursos sin conexión' : 'Save or open offline resource packs'}</summary>
+        <OfflinePacksPanel scan={sourceScan} onUse={useOfflinePack} onRemove={removeOfflinePack} onNotice={setNotice}/>
+      </details>
       <div className="principles"><div><b>◇</b><strong>No accounts</strong><p>Use GLO Pin without creating a profile.</p></div><div><b>⌁</b><strong>Local first</strong><p>Saved reports stay on-device; public sharing is not yet available.</p></div><div><b>✓</b><strong>Evidence over guesses</strong><p>Reports are marked self-reported, never certified safe.</p></div></div>
     </main>
     <footer>GLO Pin · Good Lookin' Out · <a href="https://github.com/MichaelWave369/GLO">Open-source repository</a><span>v0.1 prototype · Not an emergency service · No community sync</span></footer>
