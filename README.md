@@ -86,3 +86,16 @@ Other additions:
 - Panic clear covers the screen immediately, requests confirmation, then clears GLO's local reports and hides in-memory map data. It **cannot erase** already shared links, downloaded backups, browser history, OS screenshots, hosting logs, or other devices.
 
 There is no claim that an offline app cache equals an offline street basemap.
+
+
+## P0.4: offline public Scout resource packs
+
+The Public Scout now searches carefully scoped additional OpenStreetMap tags for **public restrooms** (\`amenity=toilets\`), **food banks and soup kitchens** (\`amenity=social_facility\` plus \`social_facility=food_bank/soup_kitchen\`), and **mapped shower facilities** (\`amenity=shower\`). A tag is a mapped claim, NOT proof of a free, safe, accessible, currently operating service. Other categories still depend on private notes or future official source adapters.
+
+After clicking **Search public map**, you may explicitly **Save this Scout search offline**. It saves up to 160 public map records in a small local IndexedDB snapshot with OSM IDs, map edit timestamps, source links, source scan timestamps, and limited provenance metadata. The app accepts at most 10 saved regions. No personal observations, device ID, author or location history are included in the pack. The latest saved public pack is restored locally on the next launch without network access. You can load, delete, import or export a pack without a server or account.
+
+Importing an untrusted JSON pack is restricted to the GLO public OSM schema, size limits, exact OSM source links, a bounded record count, and non-verified status. The importer refuses unknown/private fields and does not replace personal observations. Exports carry OpenStreetMap attribution and ODbL metadata.
+
+**Important:** this is *offline resource record storage*, **not an offline street-map package or guaranteed offline navigation**. Records can go stale, hours and fees may be wrong, and missing resources do not mean no services exist. Use the snapshot age warnings. There is no automatic background refresh or claim of verified safety/availability.
+
+Panic clear removes both personal GLO reports and local saved public packs in one app-owned IndexedDB transaction. It cannot erase shared files, previously shared links, browser history, or other devices.

@@ -38,3 +38,13 @@ Never document private sleeping spots, encampment locations, private homes, or i
 - The Spanish UI is currently partial. Important crisis and reporting controls are translated, but the entire agent/research panel is not.
 
 - The observation timestamp is explicitly user-entered and may be wrong. GLO records a separate save timestamp for provenance; neither timestamp proves the facility currently operates.
+
+
+## Offline public pack boundary (P0.4)
+
+- Public Scout snapshots are saved to a separate \`publicPacks\` IndexedDB store only when requested (or manually imported). Saving and importing never upload private reports.
+- A public pack contains coarse search-center coordinates, exact OSM *public resource* coordinates, source links/ID, edit time, bounded source descriptions, and scanned/saved timestamps. It contains NO local observations, report notes, device identifier, or private location history.
+- The last saved pack is reopened locally on app startup, including when offline; it does not trigger an Overpass request. No automatic background refresh.
+- Imported packs must pass strict format, public-origin, OSM source-link, record-count and size validation. Import does not grant the content authoritative verification.
+- Public packs may expose the map region the user chose to save if a user explicitly exports or shares the file. Treat sensitive selections as personal context.
+- Panic clear erases both GLO-owned local stores atomically, but cannot remove exports or other copies.

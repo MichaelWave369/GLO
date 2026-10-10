@@ -3,6 +3,8 @@ import { MapContainer, TileLayer, CircleMarker, Popup, useMap, useMapEvents } fr
 import { CATEGORIES, PILOT_CENTER, distanceKm, normalizeReport, privateBackup } from './domain.js'
 import { listReports, saveReport, removeReport, clearAllReports } from './storage.js'
 import GloAgentDock from './GloAgentDock.jsx'
+import OfflinePacksPanel from './OfflinePacksPanel.jsx'
+import { sourcesFromPack } from './offlinePack.js'
 import { TEXT, accessText, parseSharedPin } from './fieldKit.js'
 import { CrisisCard, SharePanel, SharedPreview } from './FieldTools.jsx'
 
@@ -53,6 +55,9 @@ export default function App() {
   const [reference, setReference] = useState(PILOT_CENTER)
   const [mapCenter, setMapCenter] = useState(PILOT_CENTER)
   const [publicCandidates, setPublicCandidates] = useState([])
+  const [sourceScan, setSourceScan] = useState(null)
+  const [activePackId, setActivePackId] = useState('')
+  const [packRevision, setPackRevision] = useState(0)
   const [target, setTarget] = useState(null)
   const [notice, setNotice] = useState('No account needed. Your observations stay on this device.')
   const [error, setError] = useState('')
@@ -75,8 +80,36 @@ export default function App() {
     (r.title + ' ' + r.note).toLowerCase().includes(query.trim().toLowerCase())
   ).sort((a, b) => distanceKm(reference, a) - distanceKm(reference, b)), [reports, filter, query, reference])
 
-  const visiblePublic = useMemo(() => publicCandidates.filter((r) => filter === 'all' || r.category === filter), [publicCandidates, filter])
+  const visiblePublic = useMemo(() => publicCandidates.filter((r) =>
+    (filter === 'all' || r.category === filter) &&
+    (r.title + ' ' + (r.accessNote || '')).toLowerCase().includes(query.trim().toLowerCase())
+  ).sort((a,b)=>distanceKm(reference,a)-distanceKm(reference,b)), [publicCandidates, filter, query, reference])
   const batteryList = useMemo(() => [...visible.map(r => ({...r, from: 'private'})), ...visiblePublic.map(r => ({...r, from: 'osm'}))].sort((a,b) => distanceKm(reference,a) - distanceKm(reference,b)),[visible,visiblePublic,reference])
+
+  function onScoutRecords(records, metadata = null) {
+    setPublicCandidates(records)
+    setSourceScan(metadata ? { ...metadata, sources: records } : null)
+    setActivePackId('')
+  }
+  function useOfflinePack(pack, { restored = false } = {}) {
+    const sources = sourcesFromPack(pack)
+    setPublicCandidates(sources)
+    setSourceScan(null)
+    setActivePackId(pack.id)
+    setPackRevision(v => v + 1)
+    setReference(pack.center)
+    setTarget({ ...pack.center, zoom:14 })
+    setNotice((restored ? 'Restored' : 'Loaded') + ' offline public Scout pack (' + sources.length +
+      ' records). Last queried: ' + new Date(pack.scannedAt).toLocaleString() +
+      '. Records are unverified, and no street map was downloaded.')
+  }
+  function removeOfflinePack(id) {
+    if (id !== activePackId) return
+    setPublicCandidates([])
+    setSourceScan(null)
+    setActivePackId('')
+    setPackRevision(v => v + 1)
+  }
 
   function jumpTo(r) {
     setSelectedId(r.id)
@@ -127,6 +160,8 @@ export default function App() {
       await clearAllReports()
       setReports([])
       setPublicCandidates([])
+      setSourceScan(null)
+      setActivePackId('')
       setSharingPin(null)
       setSharedPreview(null)
       setSelectedId('')
@@ -229,8 +264,8 @@ export default function App() {
             <p className="help">Tap the map to choose a location. You can also enter coordinates or press “Use my location.”</p>
             <div className="actions"><button type="button" className="secondary" onClick={() => setEditing(false)}>{t.cancel}</button><button type="submit" className="primary" disabled={!!error}>{t.save}</button></div>
           </form> : <>
-            <div className="header-row"><div><div className="eyebrow">RESOURCE EXPLORER</div><h2>{t.resources}</h2></div><span className="counter">{reports.length}</span></div>
-            <p className="help">{t.private}</p>
+            <div className="header-row"><div><div className="eyebrow">RESOURCE EXPLORER</div><h2>{t.resources}</h2></div><span className="counter">{reports.length} private + {publicCandidates.length} mapped</span></div>
+            <p className="help">{t.private} {publicCandidates.length ? (language === 'es' ? 'Los recursos públicos son registros de OpenStreetMap no verificados.' : 'Public OSM candidates are shown separately and are NOT verified open or working.') : ''}</p>
             <label htmlFor="search">{t.search}</label>
             <input id="search" type="search" placeholder={t.search} value={query} onChange={(e) => setQuery(e.target.value)}/>
             <div className="filters" role="group" aria-label="Filter by resource type">
@@ -238,7 +273,7 @@ export default function App() {
               {Object.entries(CATEGORIES).map(([key, value]) => <button key={key} className={filter === key ? 'filter active' : 'filter'} onClick={() => setFilter(key)}>{value.icon} {value.label}</button>)}
             </div>
             <div className="results">
-              {(lowBattery ? batteryList : visible).length ? (lowBattery ? batteryList : visible).map((r) => <article className={'pin-card' + (selectedId === r.id ? ' selected' : '')} key={r.id}>
+              {batteryList.length ? batteryList.map((r) => <article className={'pin-card' + (selectedId === r.id ? ' selected' : '')} key={r.id}>
                 <button className="pin-card-main" onClick={() => jumpTo(r)}>
                   <span className="category-icon">{CATEGORIES[r.category].icon}</span>
                   <span className="pin-info"><strong>{r.title}</strong><small>{CATEGORIES[r.category].label} · {distanceKm(reference, r).toFixed(1)} km from map search center</small>{r.note && <span className="pin-note">{r.note}</span>}<small>{r.from === 'osm' ? 'OpenStreetMap · ' + (r.checkedAt || '') : t.seen + ': ' + fmtDate(r.lastSeenWorkingAt || r.observedAt)} · {t.noteStatus}</small>
@@ -281,7 +316,9 @@ export default function App() {
           <div className="map-footnote"><strong>Map privacy:</strong> Street tiles are off by default. If enabled, OpenStreetMap tile servers may receive your viewed map area and IP address. Offline street navigation and downloadable regional maps are future work. The tileless view is not a navigable map.</div>
         </div>}
       </section>
-      {!lowBattery && <GloAgentDock center={mapCenter} localReports={reports} online={online} onSourcesChange={setPublicCandidates} onNavigate={jumpTo}/>} 
+      <OfflinePacksPanel scan={sourceScan} onUse={useOfflinePack} onRemove={removeOfflinePack} onNotice={setNotice}/>
+      {!lowBattery && <GloAgentDock center={mapCenter} localReports={reports} online={online}
+        onSourcesChange={onScoutRecords} sourceRecords={publicCandidates} packRevision={packRevision} onNavigate={jumpTo}/>} 
       <div className="principles"><div><b>◇</b><strong>No accounts</strong><p>Use GLO Pin without creating a profile.</p></div><div><b>⌁</b><strong>Local first</strong><p>Saved reports stay on-device; public sharing is not yet available.</p></div><div><b>✓</b><strong>Evidence over guesses</strong><p>Reports are marked self-reported, never certified safe.</p></div></div>
     </main>
     <footer>GLO Pin · Good Lookin' Out · <a href="https://github.com/MichaelWave369/GLO">Open-source repository</a><span>v0.1 prototype · Not an emergency service · No community sync</span></footer>

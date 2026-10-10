@@ -29,7 +29,7 @@ function CrewCard({ agent, scan, audit }) {
   </div>
 }
 
-export default function GloAgentDock({ center, localReports, online, onSourcesChange, onNavigate }) {
+export default function GloAgentDock({ center, localReports, online, onSourcesChange, sourceRecords = [], packRevision = 0, onNavigate }) {
   const [scan, setScan] = useState(null)
   const [loading, setLoading] = useState(false)
   const [scanError, setScanError] = useState('')
@@ -42,7 +42,8 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
   const controllerRef = useRef(null)
 
   useEffect(() => () => controllerRef.current?.abort(), [])
-  const candidates = scan?.sources || []
+  useEffect(() => { setScan(null) }, [packRevision])
+  const candidates = sourceRecords
   const audit = useMemo(() => freshnessAudit(localReports, candidates), [localReports, candidates])
   const changedViewport = scan ? distanceKm(center, scan.center) > 0.4 : false
   const counts = useMemo(() => Object.fromEntries(Object.keys(CATEGORIES).map((key) => [
@@ -60,7 +61,7 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
       const next = await scoutPublicMap(center, controller.signal)
       if (controller.signal.aborted) return
       setScan(next)
-      onSourcesChange(next.sources)
+      onSourcesChange(next.sources, { center: next.center, checkedAt: next.checkedAt, mayBeIncomplete: next.mayBeIncomplete })
     } catch (error) {
       if (!controller.signal.aborted) setScanError(error.name === 'AbortError'
         ? 'The public map request timed out. Please try later.'
@@ -126,18 +127,18 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
     <div className="agent-panels">
       <section className="agent-panel" aria-labelledby="public-scout-title">
         <div className="agent-panel-title"><div><span className="eyebrow">SOURCE SCOUT</span><h3 id="public-scout-title">Check the public map</h3></div><span className="agent-mini-count">{candidates.length} found</span></div>
-        <p className="agent-paragraph">Search OpenStreetMap for mapped drinking water, shelters, covered benches and explicitly USB-tagged charging candidates within 1.8 km of the selected map center. This is not a live facilities-status check.</p>
+        <p className="agent-paragraph">Search mapped drinking water, sheltered seating, USB-tagged charging, public restrooms, food banks, meal services and showers within 1.8 km. Fees, eligibility, safety, opening times and live availability remain unverified.</p>
         <div className="scan-coordinates">Map center: {center.lat.toFixed(3)}, {center.lon.toFixed(3)} · Search radius: 1.8 km</div>
         <p className="agent-disclosure">Only when you press Search, a query with this approximate center is sent to the public <a href={SOURCE_ENDPOINT} target="_blank" rel="noreferrer noopener">Overpass service</a>. Its servers may receive your IP address. Your private observations, device location history, and GLO Bro questions are NOT included.</p>
         <div className="agent-buttons">
           <button className="primary" disabled={!online || loading} onClick={runScout}>{loading ? 'Checking public map…' : '⌖ Search public map'}</button>
           {scan && <button className="secondary" onClick={clearScan}>Clear source results</button>}
         </div>
-        {!online && <p className="agent-offline">Offline: public searches are unavailable. Your own saved pins and GLO Bro local guidance remain usable.</p>}
+        {!online && <p className="agent-offline">Offline: no live source requests. Saved public Scout packs, your private notes, and local GLO Bro guidance remain usable.</p>}
         {scanError && <p className="agent-error" role="alert">{scanError}</p>}
         {scan && <div className="scan-summary" role="status">
           <strong>Public map queried {dateText(scan.checkedAt)}</strong>
-          <span>{counts.water} water · {counts.power} USB charging · {counts.shelter} shelter/covered seating</span>
+          <span>{counts.water} water · {counts.power} USB · {counts.shelter} cover · {counts.restroom} toilets · {counts.food} food services · {counts.shower} showers</span>
           {changedViewport && <span className="scan-stale">Map moved since this search. These results belong to the previous center. Search again for the new area.</span>}
           {scan.mayBeIncomplete && <span className="scan-stale">Source returned its query cap. Results may be incomplete.</span>}
           {!candidates.length && <span>Nothing mapped in this limited query. That does NOT mean no resources exist here.</span>}
@@ -145,7 +146,7 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
         {candidates.length > 0 && <div className="candidate-list" aria-label="Public map resource candidates">
           {candidates.slice(0, 30).map((r) => <article key={r.id} className="candidate">
             <span className="candidate-icon" aria-hidden="true">{CATEGORIES[r.category].icon}</span>
-            <div className="candidate-body"><strong>{r.title}</strong><small>{CATEGORIES[r.category].label} · {r.distanceKm.toFixed(1)} km from last scan center</small><small>{mappedAge(r).label} · Last queried {dateText(r.checkedAt)}</small><span>{r.accessNote}</span><div className="candidate-links">
+            <div className="candidate-body"><strong>{r.title}</strong><small>{CATEGORIES[r.category].label} · {r.distanceKm.toFixed(1)} km from last scan center</small><small>{mappedAge(r).label} · Last queried {dateText(r.checkedAt)} · Unverified now</small><span>{r.accessNote}</span><div className="candidate-links">
               <button onClick={() => onNavigate(r)}>View on map</button>
               <a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">OSM source ↗</a>
             </div></div>

@@ -17,6 +17,9 @@ export function buildScoutQuery(center, radius = SCOUT_RADIUS_M) {
     'nwr' + around + '["amenity"="fountain"]["drinking_water"="yes"];' +
     'nwr' + around + '["amenity"="shelter"]["access"!="private"];' +
     'nwr' + around + '["amenity"="bench"]["covered"="yes"];' +
+    'nwr' + around + '["amenity"="toilets"];' +
+    'nwr' + around + '["amenity"="social_facility"]["social_facility"~"^(food_bank|soup_kitchen)$"];' +
+    'nwr' + around + '["amenity"="shower"];' +
     'nwr' + around + '["amenity"="charging_station"]["socket:usb"~"^(yes|[1-9][0-9]*)$"];' +
     'nwr' + around + '["amenity"="charging_station"]["socket:usb_c"~"^(yes|[1-9][0-9]*)$"];' +
     ');out center meta ' + MAX_OVERPASS_ELEMENTS + ';'
@@ -26,6 +29,9 @@ function categoryOf(tags = {}) {
   if (tags.amenity === 'drinking_water' || (tags.amenity === 'fountain' && tags.drinking_water === 'yes')) return 'water'
   if ((tags.amenity === 'shelter' && tags.access !== 'private') || (tags.amenity === 'bench' && tags.covered === 'yes')) return 'shelter'
   if (tags.amenity === 'charging_station' && (tags['socket:usb'] || tags['socket:usb_c'])) return 'power'
+  if (tags.amenity === 'toilets') return 'restroom'
+  if (tags.amenity === 'social_facility' && ['food_bank', 'soup_kitchen'].includes(tags.social_facility)) return 'food'
+  if (tags.amenity === 'shower') return 'shower'
   return null
 }
 function safeName(tags, category) {
@@ -33,6 +39,9 @@ function safeName(tags, category) {
   if (name) return name
   if (category === 'water') return 'Mapped public drinking water'
   if (category === 'shelter') return tags.amenity === 'bench' ? 'Mapped covered bench' : 'Mapped shelter'
+  if (category === 'restroom') return 'Mapped restroom (fee/access unknown)'
+  if (category === 'food') return tags.social_facility === 'soup_kitchen' ? 'Mapped community meal service' : 'Mapped food bank'
+  if (category === 'shower') return 'Mapped shower (fee/access unknown)'
   return 'USB charging candidate (access unverified)'
 }
 export function normalizeScoutResults(elements, center, checkedAt = new Date()) {
@@ -64,8 +73,12 @@ export function normalizeScoutResults(elements, center, checkedAt = new Date()) 
       provenance: 'mapped-record',
       condition: 'not-verified',
       availability: 'unknown',
+      reportedHours: typeof tags.opening_hours === 'string' ? tags.opening_hours.slice(0, 120) : '',
       accessNote: category === 'power' ? 'OSM advertises USB charging; public phone access is not confirmed.' :
         category === 'water' ? 'OSM says drinking water; present availability and potability are not independently confirmed.' :
+        category === 'food' ? 'OSM maps a food bank or meal service; eligibility, cost, supply and current hours are unknown.' :
+        category === 'restroom' ? 'OSM maps a restroom; current access, fees and operating hours are unverified.' :
+        category === 'shower' ? 'OSM maps a shower; public entry, fees and current availability are unknown.' :
           'OSM describes cover or shelter; accessibility, seating, and opening times are not confirmed.'
     }]
   }).sort((a, b) => a.distanceKm - b.distanceKm).slice(0, MAX_RESULTS)

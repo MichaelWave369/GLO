@@ -12,6 +12,10 @@ test('queries are geographically bounded and based on explicit category tags', (
   assert.match(query, /drinking_water/)
   assert.match(query, /socket:usb/)
   assert.match(query, /covered/)
+  assert.match(query, /amenity\"=\"toilets/)
+  assert.match(query, /food_bank/)
+  assert.match(query, /soup_kitchen/)
+  assert.match(query, /amenity\"=\"shower/)
   assert.match(query, /out center meta/)
   assert.ok(query.includes('around:' + SCOUT_RADIUS_M))
   assert.ok(query.includes('40.986,-75.194'))
@@ -42,7 +46,7 @@ test('guide remains private and avoids making availability claims', () => {
   assert.match(answer.lines.join(' '), /offline/)
 })
 test('guide handles unsupported food and urgent help without fictitious resources', () => {
-  assert.match(guideReply('where can I get food').lines.join(' '), /public map Scout does not yet check/)
+  assert.match(guideReply('where can I get food').lines.join(' '), /mapped food banks/)
   assert.equal(guideReply('someone cannot breathe').kind, 'urgent')
 })
 
@@ -61,4 +65,21 @@ test('extended categories are locally searchable without fabricated online listi
   const answer=guideReply('I need food',{reports:[note],sources:[],center:{lat:40,lon:-75},online:false})
   assert.equal(answer.matches[0].id,'local-food')
   assert.equal(detectNeed('looking for a restroom').categories[0],'restroom')
+})
+
+test('public Scout adds only specifically tagged restrooms, social meal programs and showers', () => {
+  const center={lat:40.986,lon:-75.194}
+  const candidate=(id,tags)=>({type:'node',id,lat:40.986,lon:-75.194,timestamp:'2026-08-01T00:00:00Z',tags})
+  const results=normalizeScoutResults([
+    candidate(91,{amenity:'toilets',fee:'yes'}),
+    candidate(92,{amenity:'social_facility',social_facility:'food_bank',opening_hours:'Mo-Fr 09:00-16:00'}),
+    candidate(93,{amenity:'social_facility',social_facility:'soup_kitchen'}),
+    candidate(94,{amenity:'shower',access:'yes'}),
+    candidate(95,{amenity:'social_facility',social_facility:'nursing_home'}),
+    candidate(96,{amenity:'toilets',access:'private'})
+  ],center,new Date('2026-10-10T00:00:00Z'))
+  assert.deepEqual(results.map(r=>r.category),['restroom','food','food','shower'])
+  assert.equal(results[1].reportedHours,'Mo-Fr 09:00-16:00')
+  for(const r of results) assert.equal(r.availability,'unknown')
+  assert.match(results[0].accessNote,/fees/)
 })

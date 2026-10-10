@@ -62,3 +62,15 @@ The project must not become a surveillance network, user-profile service, or a m
 - Explicitly exclude personal sleeping spots, demographic safety labels without publisher consent or evidence, and public sharps/needle claims without trusted-source policy.
 
 **Acceptance:** automated tests/build pass; browser tests for sharing and import, low-battery map unmount and offline crisis copy; human mobile/a11y testing; demonstrate panic clears local IndexedDB and does not claim deletion of exported or third-party data.
+
+
+## P0.4 offline public Scout records (separate from street maps)
+
+- Use conservative OSM tags for publicly mapped toilets, food-bank/meal services and showers; do not imply fees/availability.
+- Preserve verified-versus-mapped distinctions with explicit OSM links and scan/edit dates.
+- User-triggered local snapshot saving, bounded IndexedDB storage, explicit import/export of strictly validated **public-only** JSON packs.
+- Make saved public records visible to GLO Bro and the low-battery list while offline.
+- Panic clear must erase both app-owned private observations and locally saved public packs without touching other apps on GitHub Pages.
+- Include OSM attribution, ODbL metadata, unknown access/hours warnings and source staleness thresholds.
+
+**Acceptance:** CI tests/build pass, manual airplane-mode reload demonstrates offline saved records and local GLO Bro results; strict import rejection of private fields; successful v1-to-v2 IndexedDB upgrade preserves reports; Android battery/accessibility checks; no automatic Overpass calls on startup. Note that this is **not** the P1 licensed offline street-basemap deliverable.
