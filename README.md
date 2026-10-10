@@ -137,3 +137,17 @@ Scout confirmed nine prior issues fixed and called out five remaining rough edge
 - Collapses the optional four-agent roster; increases the remaining close-button and online-tiles toggle hit areas (48 px), and keeps important search/help controls visible.
 
 Existing offline source pack, downloaded road sketches, crisis actions and panic-clear paths are preserved. Phone interaction and permission-denial paths still require manual testing with Scout; CI cannot verify human ergonomics.
+
+
+## P1-C: GLO Pocket Plan — cross-repo design reuse
+
+The **GLO Pocket Plan** is an offline, no-account, user-initiated mini checklist inspired by [KindBridge369's Pocket Plan](https://github.com/MichaelWave369/kindbridge369/blob/main/docs/v0.4-pocket-plan.md) and local resource worksheet. It gives a plain-language first step, what to ask/check, and an optional place and personal next step for food, water, phone charging, bathrooms, shelter, pets or another essential need.
+
+To keep the user in control:
+- The plan is not sent to GLO Bro, an API, or public Scout. It is not saved to IndexedDB, a sync feed or a server; the component retains a temporary draft only while mounted.
+- A selected map/resource name is **not** included unless the person checks an explicit opt-in checkbox. Exact coordinates, private report IDs and notes are **never** added to copied/printed plan text.
+- A selected source is labeled either "Personal device note" or "OpenStreetMap map record" and never equated with verified availability. This follows the evidence/source separation used in [Peekaboo](https://github.com/MichaelWave369/Peekaboo).
+- Copy and print are deliberate user actions. Browser clipboard content, print queues, paper, downloads and screenshots cannot be wiped by GLO panic clear. The user must clear those separately.
+- Critical plan topics and control labels are available in English and Spanish; other portions of GLO remain partially translated.
+
+This is an original small GLO feature based on reusable patterns, **not** an installed dependency on KindBridge, Aidora, Peekaboo, Vessie, or OpenField. Future cross-repo work should review each source repo's license and test its fit before pulling code or data.
