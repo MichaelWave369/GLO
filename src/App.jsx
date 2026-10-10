@@ -241,7 +241,7 @@ export default function App() {
                 </div>
               </article>) : <div className="empty"><b className="empty-symbol">⌖</b><strong>No pins to show</strong><p>{t.noPins}</p><button className="plain-link" onClick={begin}>Add a pin →</button></div>}
             </div>
-            <SharePanel pin={sharingPin} language={language} onClose={() => setSharingPin(null)}/>
+            <SharePanel key={sharingPin?.id || "none"} pin={sharingPin} language={language} onClose={() => setSharingPin(null)}/>
             <div className="backup"><strong>Keep your own data</strong><p>Download a private JSON backup. This file contains your coordinates and notes; it does not upload.</p><button className="secondary compact" disabled={!reports.length} onClick={backup}>{t.backup}</button></div>
           </>}
         </aside>
