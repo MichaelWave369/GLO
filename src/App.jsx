@@ -41,6 +41,7 @@ export default function App() {
   const [sharingPin, setSharingPin] = useState(null)
   const [sharedPreview, setSharedPreview] = useState(() => parseSharedPin(window.location.hash))
   const [panicCovered, setPanicCovered] = useState(false)
+  const [panicCleared, setPanicCleared] = useState(false)
   const t = TEXT[language]
   const [selectedId, setSelectedId] = useState('')
   const [filter, setFilter] = useState('all')
@@ -115,12 +116,14 @@ export default function App() {
     try { await removeReport(r.id); await refresh(); if (selectedId === r.id) setSelectedId(''); setNotice('Local observation deleted.') }
     catch (err) { setNotice(err.message || 'Unable to delete') }
   }
-  async function panicClear() {
-    // Cover the entire app before asking for confirmation so private pins are not visible.
+  function panicClear() {
+    // Cover first. Defer confirmation so the shield gets an opportunity to paint.
+    setPanicCleared(false)
     setPanicCovered(true)
-    const approved = window.confirm(t.panicConfirm)
-    if (!approved) { setPanicCovered(false); return }
-    try {
+    window.setTimeout(async () => {
+      const approved = window.confirm(t.panicConfirm)
+      if (!approved) { setPanicCovered(false); return }
+      try {
       await clearAllReports()
       setReports([])
       setPublicCandidates([])
@@ -130,10 +133,12 @@ export default function App() {
       setDraft(initialDraft())
       setQuestionCleared()
       window.history.replaceState(null, '', window.location.pathname + window.location.search)
-    } catch (err) {
-      setPanicCovered(false)
-      setNotice((err?.message || 'Unable to erase data.') + ' Check browser storage settings.')
-    }
+      setPanicCleared(true)
+      } catch (err) {
+        setPanicCovered(false)
+        setNotice((err?.message || 'Unable to erase data.') + ' Check browser storage settings.')
+      }
+    }, 45)
   }
   function setQuestionCleared() { setEditing(false); setTiles(false) }
   function changeLowBattery() {
@@ -158,7 +163,7 @@ export default function App() {
 
   if (panicCovered) return <main style={{ minHeight:'100vh', padding:'32px', background:'#080c08', color:'#f2f4f1', fontFamily:'system-ui', display:'grid', placeContent:'center', textAlign:'center', gap:'18px' }}>
     <h1 style={{color:'#f2f4f1',fontSize:'36px'}}>GLO</h1>
-    <p>{t.cleared}</p>
+    <p>{panicCleared ? t.cleared : language === 'es' ? 'GLO oculto. Confirma para borrar los datos privados.' : 'GLO hidden. Confirm to erase your local records.'}</p>
     <p>{language === 'es' ? 'Cierra esta pestaña. Los archivos exportados y el historial del navegador siguen en tu dispositivo.' : 'Close this tab. Previously exported files and browser history may remain on your device.'}</p>
   </main>
   return <div className={'shell' + (lowBattery ? ' low-battery' : '')}>
