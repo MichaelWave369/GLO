@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import { CATEGORIES, PILOT_CENTER, distanceKm, normalizeReport, privateBackup } from './domain.js'
-import { listReports, saveReport, removeReport } from './storage.js'
+import { listReports, saveReport, removeReport, clearAllReports } from './storage.js'
 import GloAgentDock from './GloAgentDock.jsx'
+import { TEXT, accessText, parseSharedPin } from './fieldKit.js'
+import { CrisisCard, SharePanel, SharedPreview } from './FieldTools.jsx'
 
 function MapNavigator({ target }) {
   const map = useMap()
@@ -24,10 +26,17 @@ function fmtDate(value) {
   return Number.isNaN(time.getTime()) ? 'Unknown time' : time.toLocaleString()
 }
 function initialDraft() {
-  return { category: 'water', title: '', note: '', lat: String(PILOT_CENTER.lat), lon: String(PILOT_CENTER.lon) }
+  return { category: 'water', title: '', note: '', lat: String(PILOT_CENTER.lat), lon: String(PILOT_CENTER.lon),
+    visitStatus: 'unknown', reportedHours: '', accessibility: { wheelchair:'unknown', stepFree:'unknown', idRequired:'unknown', petsAllowed:'unknown' } }
 }
 export default function App() {
   const [reports, setReports] = useState([])
+  const [language, setLanguage] = useState('en')
+  const [lowBattery, setLowBattery] = useState(false)
+  const [sharingPin, setSharingPin] = useState(null)
+  const [sharedPreview, setSharedPreview] = useState(() => parseSharedPin(window.location.hash))
+  const [panicCovered, setPanicCovered] = useState(false)
+  const t = TEXT[language]
   const [selectedId, setSelectedId] = useState('')
   const [filter, setFilter] = useState('all')
   const [query, setQuery] = useState('')
@@ -61,6 +70,7 @@ export default function App() {
   ).sort((a, b) => distanceKm(reference, a) - distanceKm(reference, b)), [reports, filter, query, reference])
 
   const visiblePublic = useMemo(() => publicCandidates.filter((r) => filter === 'all' || r.category === filter), [publicCandidates, filter])
+  const batteryList = useMemo(() => [...visible.map(r => ({...r, from: 'private'})), ...visiblePublic.map(r => ({...r, from: 'osm'}))].sort((a,b) => distanceKm(reference,a) - distanceKm(reference,b)),[visible,visiblePublic,reference])
 
   function jumpTo(r) {
     setSelectedId(r.id)
@@ -100,6 +110,35 @@ export default function App() {
     try { await removeReport(r.id); await refresh(); if (selectedId === r.id) setSelectedId(''); setNotice('Local observation deleted.') }
     catch (err) { setNotice(err.message || 'Unable to delete') }
   }
+  async function panicClear() {
+    // Cover the entire app before asking for confirmation so private pins are not visible.
+    setPanicCovered(true)
+    const approved = window.confirm(t.panicConfirm)
+    if (!approved) { setPanicCovered(false); return }
+    try {
+      await clearAllReports()
+      setReports([])
+      setPublicCandidates([])
+      setSharingPin(null)
+      setSharedPreview(null)
+      setSelectedId('')
+      setDraft(initialDraft())
+      setQuestionCleared()
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    } catch (err) {
+      setPanicCovered(false)
+      setNotice((err?.message || 'Unable to erase data.') + ' Check browser storage settings.')
+    }
+  }
+  function setQuestionCleared() { setEditing(false); setTiles(false) }
+  function changeLowBattery() {
+    if (!lowBattery) setTiles(false)
+    setLowBattery(v => !v)
+  }
+  function closeShared() {
+    setSharedPreview(null)
+    window.history.replaceState(null,'',window.location.pathname + window.location.search)
+  }
   function backup() {
     if (!reports.length) return
     const blob = new Blob([JSON.stringify(privateBackup(reports), null, 2)], { type: 'application/json' })
@@ -112,7 +151,12 @@ export default function App() {
     setNotice('A private backup was downloaded. It contains exact coordinates and notes. Keep it secure.')
   }
 
-  return <div className="shell">
+  if (panicCovered) return <main style={{ minHeight:'100vh', padding:'32px', background:'#080c08', color:'#f2f4f1', fontFamily:'system-ui', display:'grid', placeContent:'center', textAlign:'center', gap:'18px' }}>
+    <h1 style={{color:'#f2f4f1',fontSize:'36px'}}>GLO</h1>
+    <p>{t.cleared}</p>
+    <p>{language === 'es' ? 'Cierra esta pestaña. Los archivos exportados y el historial del navegador siguen en tu dispositivo.' : 'Close this tab. Previously exported files and browser history may remain on your device.'}</p>
+  </main>
+  return <div className={'shell' + (lowBattery ? ' low-battery' : '')}>
     <header className="masthead">
       <a href="./" className="brand">
         <img src={import.meta.env.BASE_URL + 'glo-pin.svg'} width="44" height="44" alt="" />
@@ -121,12 +165,19 @@ export default function App() {
       <div className="status"><span className="status-dot" />{online ? 'Browser online' : 'Browser offline'}<span className="chip">LOCAL FIRST</span></div>
     </header>
     <main>
+      <div className="field-controls">
+        <button type="button" className="secondary" onClick={() => setLanguage(v => v === 'en' ? 'es' : 'en')}>{t.language}</button>
+        <button type="button" className="secondary" onClick={changeLowBattery}>{lowBattery ? t.batteryOff : t.battery}</button>
+        <button type="button" className="panic-btn" onClick={panicClear}>{t.panic}</button>
+      </div>
+      <CrisisCard language={language}/>
       <section className="hero">
         <div className="eyebrow">A MAP THAT LOOKS OUT FOR EVERYBODY</div>
         <h1>Find what you need.<br/><em>Share what you know.</em></h1>
-        <p>Water. A place to charge your phone. A sheltered table. Map the useful things around you, without creating an account.</p>
-        <div className="actions"><button className="primary" onClick={begin}>+ Add a private pin</button><button className="secondary" onClick={locate}>◎ Use my location</button></div>
+        <p>{t.description}</p>
+        <div className="actions"><button className="primary" onClick={begin}>+ {t.add}</button><button className="secondary" onClick={locate}>◎ {t.locate}</button></div>
       </section>
+      <SharedPreview pin={sharedPreview} language={language} onView={() => { if (lowBattery) changeLowBattery(); jumpTo(sharedPreview) }} onDismiss={closeShared}/>
       <div className="notice" role="status" aria-live="polite">{notice}</div>
       {error && <div className="warning" role="alert">Storage error: {error}. Your observations may not be saved.</div>}
       <section className="workspace" aria-label="GLO resource map">
@@ -134,43 +185,67 @@ export default function App() {
           {editing ? <form onSubmit={save}>
             <div className="eyebrow">PRIVATE · DEVICE ONLY</div>
             <div className="header-row"><h2>Add an observation</h2><button type="button" className="close" onClick={() => setEditing(false)} aria-label="Cancel editing">×</button></div>
-            <p className="help">Only record public resources. Do not pin private homes, sleeping areas, encampments, or people. This is a report, not a safety certification.</p>
-            <label htmlFor="category">Resource type</label>
+            <p className="help">{language === 'es' ? 'Solo registra recursos públicos. Nunca señales dónde duerme una persona, domicilios privados o personas. Son observaciones, no garantía de seguridad.' : 'Record only public resources or official shelter programs. Never pin personal sleeping places, camps, private homes or people. A report is not a safety certification.'}</p>
+            <label htmlFor="category">{t.type}</label>
             <select id="category" value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })}>
               {Object.entries(CATEGORIES).map(([key, value]) => <option key={key} value={key}>{value.label}</option>)}
             </select>
-            <label htmlFor="title">What did you observe?</label>
+            <label htmlFor="title">{t.observed}</label>
             <input id="title" required maxLength="90" value={draft.title} placeholder="e.g. a public refill fountain" onChange={(e) => setDraft({ ...draft, title: e.target.value })}/>
-            <label htmlFor="note">Optional notes (observations only)</label>
+            <label htmlFor="note">{t.note}</label>
             <textarea id="note" rows="4" maxLength="400" value={draft.note} placeholder="Avoid names, identities and sensitive details." onChange={(e) => setDraft({ ...draft, note: e.target.value })}/>
+            <label htmlFor="hours">{t.hours}</label>
+            <input id="hours" maxLength="100" value={draft.reportedHours} placeholder={language === 'es' ? 'Horario informado (sin confirmar)' : 'e.g. Mon–Fri 9–5; not independently checked'} onChange={e => setDraft({...draft,reportedHours:e.target.value})}/>
+            <label htmlFor="visit-status">{t.status}</label>
+            <select id="visit-status" value={draft.visitStatus} onChange={e => setDraft({...draft,visitStatus:e.target.value})}>
+              <option value="unknown">{t.unknown}</option>
+              <option value="working">{t.worked}</option>
+              <option value="not_working">{t.broken}</option>
+            </select>
+            <p className="help">{language === 'es' ? 'La fecha se registra al guardar; “funcionaba” significa solo que lo viste funcionar entonces.' : 'The timestamp is recorded when you save. “Worked” only means you observed it working at that moment.'}</p>
+            <strong className="input-label">{t.access}</strong>
+            <div className="access-fields">{[
+              ['wheelchair', t.wheelchair],['stepFree',t.stepFree],['idRequired',t.id],['petsAllowed',t.pets]
+            ].map(([key,label])=><div key={key}><label htmlFor={'access-'+key}>{label}</label>
+              <select id={'access-'+key} value={draft.accessibility[key]} onChange={e=>setDraft(d=>({...d,accessibility:{...d.accessibility,[key]:e.target.value}}))}>
+                <option value="unknown">{t.dontKnow}</option><option value="yes">{t.yes}</option><option value="no">{t.no}</option>
+              </select></div>)}</div>
             <div className="coordinates">
               <div><label htmlFor="lat">Latitude</label><input id="lat" type="number" min="-90" max="90" step="any" required value={draft.lat} onChange={(e) => setDraft({ ...draft, lat: e.target.value })}/></div>
               <div><label htmlFor="lon">Longitude</label><input id="lon" type="number" min="-180" max="180" step="any" required value={draft.lon} onChange={(e) => setDraft({ ...draft, lon: e.target.value })}/></div>
             </div>
             <p className="help">Tap the map to choose a location. You can also enter coordinates or press “Use my location.”</p>
-            <div className="actions"><button type="button" className="secondary" onClick={() => setEditing(false)}>Cancel</button><button type="submit" className="primary" disabled={!!error}>Save locally</button></div>
+            <div className="actions"><button type="button" className="secondary" onClick={() => setEditing(false)}>{t.cancel}</button><button type="submit" className="primary" disabled={!!error}>{t.save}</button></div>
           </form> : <>
-            <div className="header-row"><div><div className="eyebrow">RESOURCE EXPLORER</div><h2>Your local pins</h2></div><span className="counter">{reports.length}</span></div>
-            <p className="help">These are private, unverified notes saved in this browser, not an active public directory.</p>
-            <label htmlFor="search">Search saved observations</label>
-            <input id="search" type="search" placeholder="Search your pins..." value={query} onChange={(e) => setQuery(e.target.value)}/>
+            <div className="header-row"><div><div className="eyebrow">RESOURCE EXPLORER</div><h2>{t.resources}</h2></div><span className="counter">{reports.length}</span></div>
+            <p className="help">{t.private}</p>
+            <label htmlFor="search">{t.search}</label>
+            <input id="search" type="search" placeholder={t.search} value={query} onChange={(e) => setQuery(e.target.value)}/>
             <div className="filters" role="group" aria-label="Filter by resource type">
               <button className={filter === 'all' ? 'filter active' : 'filter'} onClick={() => setFilter('all')}>All</button>
               {Object.entries(CATEGORIES).map(([key, value]) => <button key={key} className={filter === key ? 'filter active' : 'filter'} onClick={() => setFilter(key)}>{value.icon} {value.label}</button>)}
             </div>
             <div className="results">
-              {visible.length ? visible.map((r) => <article className={'pin-card' + (selectedId === r.id ? ' selected' : '')} key={r.id}>
+              {(lowBattery ? batteryList : visible).length ? (lowBattery ? batteryList : visible).map((r) => <article className={'pin-card' + (selectedId === r.id ? ' selected' : '')} key={r.id}>
                 <button className="pin-card-main" onClick={() => jumpTo(r)}>
                   <span className="category-icon">{CATEGORIES[r.category].icon}</span>
-                  <span className="pin-info"><strong>{r.title}</strong><small>{CATEGORIES[r.category].label} · {distanceKm(reference, r).toFixed(1)} km from map search center</small>{r.note && <span className="pin-note">{r.note}</span>}<small>Self-reported · Unverified · {fmtDate(r.observedAt)}</small></span>
+                  <span className="pin-info"><strong>{r.title}</strong><small>{CATEGORIES[r.category].label} · {distanceKm(reference, r).toFixed(1)} km from map search center</small>{r.note && <span className="pin-note">{r.note}</span>}<small>{r.from === 'osm' ? 'OpenStreetMap · ' + (r.checkedAt || '') : t.seen + ': ' + fmtDate(r.lastSeenWorkingAt || r.observedAt)} · {t.noteStatus}</small>
+                    {r.reportedHours && <span className="local-observation">{t.reported}: {r.reportedHours}</span>}
+                    {r.visitStatus === 'not_working' && <span className="local-observation">{t.broken}</span>}
+                    {r.visitStatus === 'working' && <span className="local-observation">{t.worked}: {fmtDate(r.lastSeenWorkingAt || r.observedAt)}</span>}
+                    {r.accessibility && Object.entries(r.accessibility).filter(([,v])=>v!=='unknown').map(([key,value])=><span className="local-observation" key={key}>{({wheelchair:t.wheelchair,stepFree:t.stepFree,idRequired:t.id,petsAllowed:t.pets})[key]}: {accessText(key,value,language)}</span>)}</span>
                 </button>
-                <button className="delete" onClick={() => erase(r)} aria-label={'Delete ' + r.title}>Delete local pin</button>
-              </article>) : <div className="empty"><b className="empty-symbol">⌖</b><strong>No pins to show</strong><p>Add your first observation. It stays on this device.</p><button className="plain-link" onClick={begin}>Add a pin →</button></div>}
+                <div className="pin-actions">
+                  <button onClick={() => setSharingPin(r)}>{t.share}</button>
+                  {r.from === 'osm' ? <a href={r.sourceUrl} rel="noopener noreferrer" target="_blank">OSM ↗</a> : <button className="delete" onClick={() => erase(r)} aria-label={'Delete ' + r.title}>{language === 'es' ? 'Borrar punto' : 'Delete local pin'}</button>}
+                </div>
+              </article>) : <div className="empty"><b className="empty-symbol">⌖</b><strong>No pins to show</strong><p>{t.noPins}</p><button className="plain-link" onClick={begin}>Add a pin →</button></div>}
             </div>
-            <div className="backup"><strong>Keep your own data</strong><p>Download a private JSON backup. This file contains your coordinates and notes; it does not upload.</p><button className="secondary compact" disabled={!reports.length} onClick={backup}>Download private backup</button></div>
+            <SharePanel pin={sharingPin} language={language} onClose={() => setSharingPin(null)}/>
+            <div className="backup"><strong>Keep your own data</strong><p>Download a private JSON backup. This file contains your coordinates and notes; it does not upload.</p><button className="secondary compact" disabled={!reports.length} onClick={backup}>{t.backup}</button></div>
           </>}
         </aside>
-        <div className="map-column">
+        {!lowBattery && <div className="map-column">
           <div className="map-top"><div><strong>Explore the map</strong><small>Starting view: Stroudsburg, PA (not your detected position)</small></div>
             <div className="map-actions"><button className="secondary compact" onClick={locate}>◎ Center on me</button><label className="switch"><input type="checkbox" checked={online && tiles} disabled={!online} onChange={(e) => setTiles(e.target.checked)} />Online street tiles</label></div>
           </div>
@@ -183,6 +258,7 @@ export default function App() {
               {visiblePublic.map((r) => <CircleMarker key={r.id} center={[r.lat, r.lon]} radius={selectedId === r.id ? 12 : 9} pathOptions={{ color: '#457695', fillColor: r.category === 'water' ? '#83d4e4' : r.category === 'power' ? '#eec575' : '#a9cfa1', fillOpacity: 0.85, weight: 2, dashArray: '4 3' }} eventHandlers={{ click: () => setSelectedId(r.id) }}>
                 <Popup><strong>{r.title}</strong><br/>{CATEGORIES[r.category].label}<br/>OpenStreetMap record · Not verified<br/><a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">View OSM record</a></Popup>
               </CircleMarker>)}
+              {sharedPreview && <CircleMarker center={[sharedPreview.lat, sharedPreview.lon]} radius={12} pathOptions={{color:'#6636ac',fillColor:'#b68be0',fillOpacity:.9}}><Popup><strong>{sharedPreview.title}</strong><br/>Shared by another person · Unverified</Popup></CircleMarker>}
               {visible.map((r) => <CircleMarker key={r.id} center={[r.lat, r.lon]} radius={selectedId === r.id ? 11 : 8} pathOptions={{ color: '#155d4e', fillColor: r.category === 'water' ? '#4aa9c0' : r.category === 'power' ? '#ecb64e' : '#81b77b', fillOpacity: 0.94, weight: 3 }} eventHandlers={{ click: () => setSelectedId(r.id) }}>
                 <Popup><strong>{r.title}</strong><br/>{CATEGORIES[r.category].label}<br/>Self-reported · Unverified<br/>Private to this device</Popup>
               </CircleMarker>)}
@@ -191,9 +267,9 @@ export default function App() {
             {editing && <div className="map-tip">Tap map to choose pin location</div>}
           </div>
           <div className="map-footnote"><strong>Map privacy:</strong> Street tiles are off by default. If enabled, OpenStreetMap tile servers may receive your viewed map area and IP address. Offline street navigation and downloadable regional maps are future work. The tileless view is not a navigable map.</div>
-        </div>
+        </div>}
       </section>
-      <GloAgentDock center={mapCenter} localReports={reports} online={online} onSourcesChange={setPublicCandidates} onNavigate={jumpTo}/>
+      {!lowBattery && <GloAgentDock center={mapCenter} localReports={reports} online={online} onSourcesChange={setPublicCandidates} onNavigate={jumpTo}/>} 
       <div className="principles"><div><b>◇</b><strong>No accounts</strong><p>Use GLO Pin without creating a profile.</p></div><div><b>⌁</b><strong>Local first</strong><p>Saved reports stay on-device; public sharing is not yet available.</p></div><div><b>✓</b><strong>Evidence over guesses</strong><p>Reports are marked self-reported, never certified safe.</p></div></div>
     </main>
     <footer>GLO Pin · Good Lookin' Out · <a href="https://github.com/MichaelWave369/GLO">Open-source repository</a><span>v0.1 prototype · Not an emergency service · No community sync</span></footer>
