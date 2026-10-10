@@ -9,7 +9,7 @@ import OfflinePacksPanel from './OfflinePacksPanel.jsx'
 import StreetSketchPanel from './StreetSketchPanel.jsx'
 import { sourcesFromPack } from './offlinePack.js'
 import { initialDraft, localDateTime } from './pinDraft.js'
-import { listRowsForMode, visibleSaveReceipt } from './resourceView.js'
+import { listRowsForMode, visibleSaveReceipt, activeShareTarget } from './resourceView.js'
 import MapPinIcon from './MapPinIcon.jsx'
 import { TEXT, accessText, parseSharedPin } from './fieldKit.js'
 import { CrisisCard, SharePanel, SharedPreview } from './FieldTools.jsx'
@@ -96,7 +96,7 @@ export default function App() {
   const chosenRecord = reports.find(r=>r.id===selectedId) || publicCandidates.find(r=>r.id===selectedId)
   const selectedResource = chosenRecord ? { title: chosenRecord.title, from: reports.some(r=>r.id===selectedId)?'private':'osm' } : null
   // The share panel is tied to a live report, not to a stale copied React object.
-  const activeSharingPin = sharingPin && (reports.find(r=>r.id===sharingPin.id) || publicCandidates.find(r=>r.id===sharingPin.id))
+  const activeSharingPin = activeShareTarget(sharingPin, reports, publicCandidates)
 
   function onScoutRecords(records, metadata = null) {
     setPublicCandidates(records)
