@@ -112,6 +112,6 @@ export default function OfflinePacksPanel({ scan, onUse, onRemove, onNotice }) {
         </div>
       </article>) : <p className="offline-empty">No public region saved yet. Search the public map, then save its results. Importing a trusted public pack also works while offline.</p>}
     </div>
-    <p className="offline-disclaimer"><strong>Not an offline street map.</strong> These are last-seen *map records*, not confirmed opening hours or working services. No background refresh occurs. Always check dates and accessibility. Source: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors, ODbL</a>. Do not present peer-shared packs as verified.</p>
+    <p className="offline-disclaimer"><strong>Not an offline street map.</strong> These are last-seen <em>map records</em>, not confirmed opening hours or working services. No background refresh occurs. Always check dates and accessibility. Source: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors, ODbL</a>. Do not present peer-shared packs as verified.</p>
   </section>
 }
