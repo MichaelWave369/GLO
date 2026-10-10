@@ -58,8 +58,8 @@ export function guideReply(message, { reports = [], sources = [], center, online
   } else if (!need.food && !need.other) {
     lines.push('Tell me what you need: water, food, a restroom, charging, a covered place, or another essential service.')
   }
-  if (need.food) lines.push('GLO supports private notes for food pantries and meal programs, but the public map Scout does not yet check them. In the U.S., dialing 211 can connect you to local programs. Confirm hours first.')
-  if (need.other) lines.push('You can save local notes for restrooms, Wi-Fi, showers and laundry, but the public source Scout may not yet search these categories. Do not assume an empty list means no facilities exist.')
+  if (need.food) lines.push('Scout may show mapped food banks and meal services. That is not evidence of eligibility, current food supply, cost or hours. In the U.S., 211 may provide local referrals.')
+  if (need.other) lines.push('Scout now checks tagged public restrooms and showers. Wi-Fi and laundry remain private-note categories until trustworthy public filters are designed. Empty results do not prove there are no services.')
   if (candidates.length) {
     lines.push('I found ' + candidates.length + ' potentially useful ' + (candidates.length === 1 ? 'entry' : 'entries') + ' in the data available to this device. They are NOT confirmed open, safe, or working.')
     if (candidates.some((r) => r.origin === 'osm')) lines.push('Mapped entries came from OpenStreetMap. Their last edit dates do not prove real-world availability.')
