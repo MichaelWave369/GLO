@@ -1,4 +1,5 @@
 import { CATEGORIES, validCoordinates } from './domain.js'
+import { parseScopedSharedPin } from './scopedShare.js'
 
 export const CRISIS_CONTACTS = Object.freeze([
   { number: '911', en: 'Immediate danger or medical emergency', es: 'Peligro inmediato o emergencia médica', call: 'tel:911' },
@@ -63,6 +64,7 @@ export function parseSharedPin(hash) {
     const raw = String(hash || '')
     if (raw.length > 1500 || !raw.startsWith('#pin=')) return null
     const item = JSON.parse(decodeURIComponent(raw.slice(5)))
+    if (item.version === 2) return parseScopedSharedPin(item)
     if (item.version !== 1 || item.type !== 'glo-shared-location' || !CATEGORIES[item.category] || !validCoordinates(item.lat, item.lon)) return null
     if (typeof item.title !== 'string' || !item.title || item.title.length > 90) return null
     return { ...makeSharedPin(item), id: 'shared-preview', provenance: 'peer-shared', condition: 'not-verified' }
