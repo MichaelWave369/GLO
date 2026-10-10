@@ -5,7 +5,7 @@ import { buildScoutQuery, mappedAge, normalizeScoutResults, SCOUT_RADIUS_M } fro
 
 test('guide crew clearly describes capabilities', () => {
   assert.equal(CREW.length, 4)
-  assert.match(CREW.find((a) => a.id === 'bro').detail, /Not connected/)
+  assert.match(CREW.find((a) => a.id === 'bro').detail, /on-device AI/)
 })
 test('queries are geographically bounded and based on explicit category tags', () => {
   const query = buildScoutQuery({ lat: 40.986, lon: -75.194 })

@@ -4,7 +4,7 @@ export const CREW = Object.freeze([
   { id: 'scout', name: 'Scout', role: 'Search public mapped resources', detail: 'Runs only when you request a map scan.' },
   { id: 'freshness', name: 'Freshness', role: 'Check evidence age', detail: 'Distinguishes when OSM data changed from whether a service works.' },
   { id: 'guard', name: 'Guard', role: 'Protect people and private notes', detail: 'Keeps local observations separate from public source lookups.' },
-  { id: 'bro', name: 'GLO Bro', role: 'Explain the next useful step', detail: 'Free local guidance, including when offline. Not connected to an AI model yet.' }
+  { id: 'bro', name: 'GLO Bro', role: 'Explain the next useful step', detail: 'Offline rule-based help, with optional on-device AI on supported browsers.' }
 ])
 
 const KEYWORDS = Object.freeze({

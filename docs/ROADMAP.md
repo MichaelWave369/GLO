@@ -9,7 +9,7 @@ Deliver a React resource-map shell with three initial resource categories, Index
 ## P0.2: governed source scout and GLO Bro
 
 - Four limited agent roles visible in the app: Scout (user-initiated Overpass discovery), Freshness (OSM last-edit metadata), Guard (private/public separation), and GLO Bro (offline local guide).
-- GLO Bro uses explicit decision rules and locally available records until a consent-based, privacy-reviewed AI model service or lightweight on-device model can be added.
+- GLO Bro uses explicit decision rules by default. Supported desktop Chrome browsers can optionally run real browser-native AI through the Chrome Prompt API. This is user-initiated, requires browser hardware support and potentially a large model download, and is never mandatory. Mobile devices retain the local guide. Cloud AI is not connected.
 - All OSM results are evidence of a mapped record only. Open, safe, or functioning claims remain unsupported without separate verification.
 - No automated background crawlers or agents, no private data uploads, no resource reputation scores in this phase.
 

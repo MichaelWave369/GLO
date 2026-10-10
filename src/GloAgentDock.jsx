@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATEGORIES, distanceKm } from './domain.js'
 import { CREW, guideReply } from './guide.js'
 import { mappedAge, scoutPublicMap, SOURCE_ENDPOINT } from './scout.js'
+import { inspectOnDeviceAI, askOnDeviceAI } from './onDeviceAi.js'
 
 const QUESTIONS = [
   { label: 'I need drinking water', text: 'Where can I find drinking water?' },
@@ -34,6 +35,10 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
   const [scanError, setScanError] = useState('')
   const [question, setQuestion] = useState('')
   const [conversation, setConversation] = useState(null)
+  const [aiStatus, setAiStatus] = useState('unchecked')
+  const [aiBusy, setAiBusy] = useState(false)
+  const [aiText, setAiText] = useState('')
+  const [aiError, setAiError] = useState('')
   const controllerRef = useRef(null)
 
   useEffect(() => () => controllerRef.current?.abort(), [])
@@ -66,9 +71,37 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
     const trimmed = String(message).trim().slice(0, 300)
     if (!trimmed) return
     setQuestion(trimmed)
+    setAiText('')
+    setAiError('')
     setConversation({ asked: trimmed, answer: guideReply(trimmed, {
       reports: localReports, sources: candidates, center, online
     }) })
+  }
+
+  async function checkAi() {
+    setAiError('')
+    setAiText('')
+    setAiStatus('checking')
+    const available = await inspectOnDeviceAI()
+    setAiStatus(available)
+  }
+
+  async function askAi() {
+    const questionToAsk = question.trim().slice(0, 300)
+    if (!questionToAsk || aiBusy) return
+    if (aiStatus === 'downloadable' && !window.confirm('The browser may download a large on-device AI model and use significant storage and battery. Continue?')) return
+    setAiBusy(true)
+    setAiError('')
+    setAiText('')
+    try {
+      const answer = await askOnDeviceAI(questionToAsk, candidates)
+      setAiText(answer)
+      setAiStatus('available')
+    } catch (error) {
+      setAiError(error?.message || 'On-device AI could not provide a response. The free local guide still works.')
+    } finally {
+      setAiBusy(false)
+    }
   }
 
   function clearScan() {
@@ -122,7 +155,7 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
       <section className="agent-panel guide-panel" aria-labelledby="guide-title">
         <div className="agent-panel-title"><div><span className="eyebrow">YOUR LOCAL GUIDE</span><h3 id="guide-title">Ask GLO Bro</h3></div><span className="agent-mini-count">OFFLINE READY</span></div>
         <p className="agent-paragraph">Tell me what you need, brother. I'll use the information this device actually has and help you decide what to check next.</p>
-        <p className="agent-ai-note">Currently a <strong>local decision-tree guide, not a connected AI model</strong>. It never sends your question to a server. Optional consent-based AI assistance can be added later.</p>
+        <p className="agent-ai-note"><strong>Always available:</strong> a local guide with no server requests. On compatible desktop Chrome browsers, optional <strong>real on-device AI</strong> can provide more conversational help after you choose to enable it. Most mobile phones do not support that model today.</p>
         <div className="quick-questions">
           {QUESTIONS.map((q) => <button type="button" key={q.label} onClick={() => ask(q.text)}>{q.label}</button>)}
         </div>
@@ -131,6 +164,23 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
           <textarea id="bro-question" maxLength="300" rows="3" placeholder="I need water and somewhere to charge my phone..." value={question} onChange={(e) => setQuestion(e.target.value)}/>
           <button type="submit" className="primary" disabled={!question.trim()}>Ask GLO Bro →</button>
         </form>
+        <div className="ai-options">
+          <div><strong>Optional on-device AI</strong><p>Checks for a model built into your browser. There is no cloud AI connection, account, or API key. Checking availability does not download a model. Enabling a model that is not installed may require a large download and substantial battery/storage.</p></div>
+          {aiStatus === 'unchecked' && <button type="button" className="secondary compact" onClick={checkAi}>Check my browser for AI</button>}
+          {aiStatus === 'checking' && <span className="ai-state">Checking availability…</span>}
+          {aiStatus === 'unsupported' && <span className="ai-state">Not supported on this browser. The local guide above still works.</span>}
+          {aiStatus === 'unavailable' && <span className="ai-state">Model unavailable on this device. The local guide still works.</span>}
+          {aiStatus === 'downloading' && <span className="ai-state">Browser says its model is downloading. Check again after it finishes.</span>}
+          {['unsupported','unavailable','downloading'].includes(aiStatus) && <button type="button" className="secondary compact" onClick={checkAi}>Recheck AI</button>}
+          {['available','downloadable'].includes(aiStatus) && <div className="ai-actions">
+            <span className="ai-state">{aiStatus === 'available' ? 'On-device model ready' : 'Model download required'}</span>
+            <button type="button" className="secondary compact" disabled={aiBusy || !question.trim()} onClick={askAi}>
+              {aiBusy ? 'Asking local AI…' : aiStatus === 'available' ? 'Ask on-device AI' : 'Download model and ask'}
+            </button>
+          </div>}
+          {aiError && <p className="agent-error" role="alert">{aiError}</p>}
+          {aiText && <div className="ai-answer" role="status"><strong>ON-DEVICE AI SUGGESTION · NOT VERIFIED</strong><p>{aiText}</p><small>The language model can make mistakes. Only the separately linked source records are evidence of a mapped resource.</small></div>}
+        </div>
         {conversation && <div className="guide-response" role="status" aria-live="polite">
           <div className="guide-response-ask"><span>YOU ASKED</span><p>{conversation.asked}</p></div>
           <strong className="guide-response-title">{conversation.answer.title}</strong>

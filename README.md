@@ -28,7 +28,7 @@ This is an early prototype, NOT a verified community resource directory. Reports
 
 **Full offline street maps do not exist in P0.** With internet disabled or external map tiles not enabled, local pins remain visible against a coordinate grid, but roads and other geographical details are absent. That is not navigable offline map coverage. The PWA app shell also requires an initial successful load and depends on browser installation/caching support.
 
-Video, photos, public camera views, live community databases, and food-safety verification are not included. **GLO Bro currently uses local decision rules, not a remotely hosted or on-device language model.** Actual model-driven AI remains a separately reviewed integration, with clear consent and a no-account fallback.
+Video, photos, public camera views, live community databases, and food-safety verification are not included. **GLO Bro's default is a free local decision-tree guide**. Compatible desktop Chrome browsers can optionally use Chrome's on-device Prompt API for real model-generated text if a model is available or the user explicitly approves the model download. Most phone browsers cannot use it. No cloud AI endpoint, accounts, or app-provided downloads are required for the default guide.
 
 ## Run locally
 
