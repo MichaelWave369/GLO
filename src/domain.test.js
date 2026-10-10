@@ -2,8 +2,8 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { CATEGORIES, distanceKm, normalizeReport, privateBackup, publicReady, validCoordinates } from './domain.js'
 
-test('the first pilot ships exactly the three promised categories', () => {
-  assert.deepEqual(Object.keys(CATEGORIES), ['water', 'power', 'shelter'])
+test('community-oriented categories extend the original pilot', () => {
+  for (const key of ['water','power','shelter','restroom','food','shower','laundry','warming','cooling','wifi','sharps','pet_support','overnight']) assert.ok(CATEGORIES[key], key)
 })
 test('validate geographic bounds and calculate distances', () => {
   assert.equal(validCoordinates(40.986, -75.194), true)
@@ -25,7 +25,8 @@ test('new observations are private and never certified as safe', () => {
   assert.equal(saved, globalThis.crypto)
 })
 test('reject invalid reports and text limits', () => {
-  assert.throws(() => normalizeReport({ category: 'food', title: 'Pizza', lat: 40, lon: -75 }), /Select/)
+  assert.throws(() => normalizeReport({ category: 'unknown', title: 'X', lat: 40, lon: -75 }), /Select/)
+  assert.equal(normalizeReport({category:'food', title:'Pantry', lat:40, lon:-75}).visitStatus, 'unknown')
   assert.throws(() => normalizeReport({ category: 'water', title: '', lat: 40, lon: -75 }), /title/)
   assert.throws(() => normalizeReport({ category: 'water', title: 'X', lat: 100, lon: -75 }), /location/)
   assert.throws(() => normalizeReport({ category: 'power', title: 'X', note: 'a'.repeat(401), lat: 40, lon: -75 }), /400/)
@@ -36,4 +37,15 @@ test('backup stays user-directed and contains no imposed device identifier', () 
   assert.equal(backup.reports.length, 0)
   assert.equal(Object.hasOwn(backup, 'deviceId'), false)
   assert.equal(publicReady(), false)
+})
+
+test('reported hours and observed function never create a verified resource', () => {
+  const report = normalizeReport({category:'restroom', title:'Public restroom',lat:40,lon:-75,visitStatus:'working',reportedHours:'Mon-Fri 9-5',accessibility:{wheelchair:'yes',idRequired:'no'}},new Date('2026-10-10T21:00:00Z'))
+  assert.equal(report.lastSeenWorkingAt,'2026-10-10T21:00:00.000Z')
+  assert.equal(report.visitStatus,'working')
+  assert.equal(report.condition,'not-verified')
+  assert.equal(report.accessibility.wheelchair,'yes')
+  assert.equal(report.accessibility.stepFree,'unknown')
+  assert.equal(report.reportedHours,'Mon-Fri 9-5')
+  assert.throws(()=>normalizeReport({category:'water',title:'Test',lat:40,lon:-75,reportedHours:'x'.repeat(101)}),/100/)
 })

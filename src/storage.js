@@ -43,3 +43,9 @@ export function saveReport(report) {
 export function removeReport(id) {
   return transact('readwrite', (table) => table.delete(id))
 }
+
+
+// Clear only GLO Pin's report table, not unrelated apps on the shared Pages origin.
+export function clearAllReports() {
+  return transact('readwrite', (table) => table.clear())
+}
