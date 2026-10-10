@@ -125,3 +125,15 @@ Up to four small neighborhood sketches can be stored; schema and size limits pre
 **This is a first useful offline street-and-path sketch, not full-featured offline mapping.** Missing/unlabeled segments, graph routing, elevation, accessibility, address search, complete basemap tiles, and turn-by-turn navigation are NOT implemented. Highways and paths are drawn from OSM as of the download time and may have changed. Test on real Android/iOS devices before relying on the display for travel. Official map tile requests remain opt-in and separate.
 
 The v3 IndexedDB migration is additive: existing \`reports\` and \`publicPacks\` persist, and panic clear now erases \`streetSketches\` in the same app-owned transaction.
+
+
+## Scout's second phone-width review (P1-B usability pass)
+
+Scout confirmed nine prior issues fixed and called out five remaining rough edges. This pass:
+- Prevents stale local-save confirmation when the saved report is deleted, using its private report ID rather than a persistent message string.
+- Opens the Add Pin editor with blank coordinates and no geolocation permission request. **Only an explicit Use my location action requests device location**. Map/manual selection still works independently.
+- Replaces the missing U+2316-style location glyph with a portable inline SVG in the Scout crew and empty-list state.
+- Eliminates public Scout source duplicates from the main private-pin list. The Scout pane is the sole source-results list in normal mode; the low-battery list deliberately combines saved private pins and mapped public candidates.
+- Collapses the optional four-agent roster; increases the remaining close-button and online-tiles toggle hit areas (48 px), and keeps important search/help controls visible.
+
+Existing offline source pack, downloaded road sketches, crisis actions and panic-clear paths are preserved. Phone interaction and permission-denial paths still require manual testing with Scout; CI cannot verify human ergonomics.

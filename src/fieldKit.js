@@ -10,6 +10,7 @@ export const TEXT = Object.freeze({
   en: {
     heroEyebrow: 'A MAP THAT LOOKS OUT FOR EVERYBODY', heroFirst: 'Find what you need.', heroSecond: 'Share what you know.',
     pinFormTitle: 'Add a private observation', pickMap: 'Pick on map',
+    locationChoice: 'Choose a resource location on the map or enter coordinates. Your phone location is requested only if you tap Use my location.',
     locationRequired: 'Please confirm a real location before saving. Stroudsburg is only the starting map view, never an automatic pin location.',
     add: 'Add a private pin', locate: 'Use my location', emergency: 'Need help right now?', crisisInfo: 'U.S. support numbers. These stay readable offline. Calling or texting still requires a usable phone connection.',
     battery: 'Low-battery list', batteryOff: 'Show map and full view', language: 'Español', panic: 'Panic clear', panicConfirm: 'Erase ALL GLO observations saved on this device? This cannot undo shared links, downloads, browser history or copies outside this app.',
@@ -22,6 +23,7 @@ export const TEXT = Object.freeze({
   es: {
     heroEyebrow: 'UN MAPA PARA AYUDARNOS ENTRE TODOS', heroFirst: 'Encuentra lo que necesitas.', heroSecond: 'Comparte lo que sabes.',
     pinFormTitle: 'Agregar observación privada', pickMap: 'Elegir en el mapa',
+    locationChoice: 'Elige el lugar del recurso en el mapa o escribe las coordenadas. Tu ubicación solo se solicitará si tocas Usar mi ubicación.',
     locationRequired: 'Confirma el lugar real antes de guardar. Stroudsburg es solo la vista inicial, no el lugar de tu punto.',
     add: 'Agregar punto privado', locate: 'Usar mi ubicación', emergency: '¿Necesitas ayuda ahora?', crisisInfo: 'Números de ayuda en EE. UU. Se pueden leer sin conexión. Llamar o enviar mensajes requiere señal.',
     battery: 'Lista de bajo consumo', batteryOff: 'Mostrar mapa', language: 'English', panic: 'Borrar datos', panicConfirm: '¿Borrar TODAS las observaciones de GLO en este dispositivo? No se borran enlaces compartidos, descargas ni historial del navegador.',

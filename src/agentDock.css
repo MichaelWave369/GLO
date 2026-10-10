@@ -29,3 +29,16 @@
   .agent-buttons{display:flex;flex-wrap:wrap}
   .candidate{padding:14px}
 }
+
+
+/* Fold the four static biographies so practical search appears sooner on phones. */
+.crew-roster {margin: 0 0 15px}
+.crew-roster>summary {
+  cursor:pointer; min-height: 48px; display:list-item;
+  border: 1px solid #c6dbc9; border-radius: 10px;
+  background: #edf6ef; color:#20543d;
+  padding: 12px 14px; font-size: 14px; font-weight: 800;
+}
+.crew-roster:focus-within>summary {outline-offset:3px}
+.crew-roster>.agent-grid {margin: 12px 0}
+.crew-roster .agent-avatar svg {display:block; flex-shrink:0}

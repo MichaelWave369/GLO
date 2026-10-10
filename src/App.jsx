@@ -7,6 +7,8 @@ import OfflinePacksPanel from './OfflinePacksPanel.jsx'
 import StreetSketchPanel from './StreetSketchPanel.jsx'
 import { sourcesFromPack } from './offlinePack.js'
 import { initialDraft, localDateTime } from './pinDraft.js'
+import { listRowsForMode, visibleSaveReceipt } from './resourceView.js'
+import MapPinIcon from './MapPinIcon.jsx'
 import { TEXT, accessText, parseSharedPin } from './fieldKit.js'
 import { CrisisCard, SharePanel, SharedPreview } from './FieldTools.jsx'
 
@@ -57,7 +59,7 @@ export default function App() {
   const [error, setError] = useState('')
   const [locationHint, setLocationHint] = useState('')
   const [formError, setFormError] = useState('')
-  const [savedFeedback, setSavedFeedback] = useState('')
+  const [savedFeedback, setSavedFeedback] = useState(null)
   const editorRef = useRef(null)
   const savedFeedbackRef = useRef(null)
   const mapFrameRef = useRef(null)
@@ -86,7 +88,9 @@ export default function App() {
     (filter === 'all' || r.category === filter) &&
     (r.title + ' ' + (r.accessNote || '')).toLowerCase().includes(query.trim().toLowerCase())
   ).sort((a,b)=>distanceKm(reference,a)-distanceKm(reference,b)), [publicCandidates, filter, query, reference])
-  const batteryList = useMemo(() => [...visible.map(r => ({...r, from: 'private'})), ...visiblePublic.map(r => ({...r, from: 'osm'}))].sort((a,b) => distanceKm(reference,a) - distanceKm(reference,b)),[visible,visiblePublic,reference])
+  const displayedRows = useMemo(() => listRowsForMode(visible, visiblePublic, lowBattery)
+    .sort((a,b) => distanceKm(reference,a) - distanceKm(reference,b)), [visible,visiblePublic,lowBattery,reference])
+  const displayedReceipt = visibleSaveReceipt(savedFeedback, reports)
 
   function onScoutRecords(records, metadata = null) {
     setPublicCandidates(records)
@@ -131,7 +135,7 @@ export default function App() {
     })
   }
   function startPinLocation() {
-    // This runs directly from an explicit Add/Use-my-location tap. No background permission request.
+    // This runs ONLY when the user explicitly taps Use my location.
     const token = ++locationRequest.current
     setLocationHint(language === 'es'
       ? 'Buscando tu ubicación con permiso. Si no está disponible, elige un punto en el mapa o escribe las coordenadas.'
@@ -156,10 +160,11 @@ export default function App() {
   }
   function begin() {
     setDraft(initialDraft()) // Never silently use Stroudsburg or the last map view for a new report.
-    setSavedFeedback('')
+    locationRequest.current += 1
+    setSavedFeedback(null)
     setFormError('')
+    setLocationHint(t.locationChoice)
     setEditing(true)
-    startPinLocation()
     window.requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
   function cancelEdit() {
@@ -191,8 +196,7 @@ export default function App() {
       locationRequest.current += 1
       await refresh()
       setEditing(false)
-      setSavedFeedback((language === 'es' ? 'Guardado solo en este dispositivo: ' : 'Saved on this device only: ') + report.title +
-        (language === 'es' ? '. No se publicó.' : '. Nothing was published.'))
+      setSavedFeedback({ id:report.id, title:report.title })
       jumpTo(report)
       setNotice('Saved only on this device. Nothing was published.')
       window.requestAnimationFrame(() => savedFeedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
@@ -202,7 +206,7 @@ export default function App() {
   }
   async function erase(r) {
     if (!confirm('Permanently delete this private observation?')) return
-    try { await removeReport(r.id); await refresh(); if (selectedId === r.id) setSelectedId(''); setNotice('Local observation deleted.') }
+    try { await removeReport(r.id); setSavedFeedback(current => current?.id === r.id ? null : current); await refresh(); if (selectedId === r.id) setSelectedId(''); setNotice('Local observation deleted.') }
     catch (err) { setNotice(err.message || 'Unable to delete') }
   }
   function panicClear() {
@@ -216,6 +220,7 @@ export default function App() {
       locationRequest.current += 1
       await clearAllReports()
       setReports([])
+      setSavedFeedback(null)
       setPublicCandidates([])
       setStreetSketch(null)
       setSourceScan(null)
@@ -328,9 +333,9 @@ export default function App() {
             {formError && <p className="warning inline-error" role="alert">{formError}</p>}
             <div className="actions"><button type="button" className="secondary" onClick={cancelEdit}>{t.cancel}</button><button type="submit" className="primary" disabled={!!error}>{t.save}</button></div>
           </form> : <>
-            {savedFeedback && <div ref={savedFeedbackRef} className="saved-feedback" role="status" aria-live="polite">{savedFeedback}</div>}
-            <div className="header-row"><div><div className="eyebrow">RESOURCE EXPLORER</div><h2>{t.resources}</h2></div><span className="counter">{reports.length} private + {publicCandidates.length} mapped</span></div>
-            <p className="help">{t.private} {publicCandidates.length ? (language === 'es' ? 'Los recursos públicos son registros de OpenStreetMap no verificados.' : 'Public OSM candidates are shown separately and are NOT verified open or working.') : ''}</p>
+            {displayedReceipt && <div ref={savedFeedbackRef} className="saved-feedback" role="status" aria-live="polite">{language === 'es' ? 'Guardado solo en este dispositivo: ' : 'Saved on this device only: '}{displayedReceipt.title}{language === 'es' ? '. No se publicó.' : '. Nothing was published.'}</div>}
+            <div className="header-row"><div><div className="eyebrow">RESOURCE EXPLORER</div><h2>{t.resources}</h2></div><span className="counter">{reports.length} {language === 'es' ? 'privados' : 'private'}{lowBattery ? ` + ${publicCandidates.length} ${language === 'es' ? 'públicos' : 'mapped'}` : ''}</span></div>
+            <p className="help">{t.private} {publicCandidates.length && !lowBattery ? (language === 'es' ? 'Los resultados públicos están abajo, en Scout, y aparecen como puntos separados en el mapa.' : 'Public map results are listed once in Scout below and shown as separate map markers.') : ''}</p>
             <label htmlFor="search">{t.search}</label>
             <input id="search" type="search" placeholder={t.search} value={query} onChange={(e) => setQuery(e.target.value)}/>
             <div className="filters" role="group" aria-label="Filter by resource type">
@@ -338,7 +343,7 @@ export default function App() {
               {Object.entries(CATEGORIES).map(([key, value]) => <button key={key} className={filter === key ? 'filter active' : 'filter'} onClick={() => setFilter(key)}>{value.icon} {value.label}</button>)}
             </div>
             <div className="results">
-              {batteryList.length ? batteryList.map((r) => <article className={'pin-card' + (selectedId === r.id ? ' selected' : '')} key={r.id}>
+              {displayedRows.length ? displayedRows.map((r) => <article className={'pin-card' + (selectedId === r.id ? ' selected' : '')} key={r.id}>
                 <button className="pin-card-main" onClick={() => jumpTo(r)}>
                   <span className="category-icon">{CATEGORIES[r.category].icon}</span>
                   <span className="pin-info"><strong>{r.title}</strong><small>{CATEGORIES[r.category].label} · {distanceKm(reference, r).toFixed(1)} km from map search center</small>{r.note && <span className="pin-note">{r.note}</span>}<small>{r.from === 'osm' ? 'OpenStreetMap · ' + (r.checkedAt || '') : t.seen + ': ' + fmtDate(r.lastSeenWorkingAt || r.observedAt)} · {t.noteStatus}</small>
@@ -351,7 +356,7 @@ export default function App() {
                   <button onClick={() => setSharingPin(r)}>{t.share}</button>
                   {r.from === 'osm' ? <a href={r.sourceUrl} rel="noopener noreferrer" target="_blank">OSM ↗</a> : <button className="delete" onClick={() => erase(r)} aria-label={'Delete ' + r.title}>{language === 'es' ? 'Borrar punto' : 'Delete local pin'}</button>}
                 </div>
-              </article>) : <div className="empty"><b className="empty-symbol">⌖</b><strong>No pins to show</strong><p>{t.noPins}</p><button className="plain-link" onClick={begin}>Add a pin →</button></div>}
+              </article>) : <div className="empty"><span className="empty-symbol"><MapPinIcon size={42}/></span><strong>{language === 'es' ? 'No hay puntos que mostrar' : lowBattery ? 'No resources to show' : 'No private pins yet'}</strong><p>{t.noPins}</p><button className="plain-link" onClick={begin}>Add a pin →</button></div>}
             </div>
             <SharePanel key={sharingPin?.id || "none"} pin={sharingPin} language={language} onClose={() => setSharingPin(null)}/>
             <div className="backup"><strong>Keep your own data</strong><p>Download a private JSON backup. This file contains your coordinates and notes; it does not upload.</p><button className="secondary compact" disabled={!reports.length} onClick={backup}>{t.backup}</button></div>

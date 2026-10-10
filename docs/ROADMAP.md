@@ -101,3 +101,16 @@ The project must not become a surveillance network, user-profile service, or a m
 - [ ] Add optional full licensed region vector tiles with labels and rendering, if real field testing requires it
 
 **Do not promote P1-A as a full offline street map, route engine, or safety-verification system.** This is a bounded linework baseline that users may download, save, and view next to known resource pins without connectivity.
+
+
+## Scout second pass: targeted phone UX (P1-B)
+
+- [x] Clear saved confirmation when its exact private report is deleted
+- [x] Require explicit tap of **Use my location** before geolocation prompt when editing a new pin
+- [x] Replace unsupported glyphs with portable SVG map-pin icons
+- [x] Show public Scout results once in normal view; retain combined public/private list in low-battery mode
+- [x] Increase remaining × and online-tiles switch effective tap areas to 48 px
+- [x] Fold optional crew roster to reduce vertical scrolling
+- [ ] Scout to validate permission denied → manually choose coordinates → save → delete while in low-battery mode
+- [ ] Scout to verify no duplicates in a five-result public source scan
+- [ ] Phone accessibility audit for 320–430 px widths and VoiceOver/TalkBack
