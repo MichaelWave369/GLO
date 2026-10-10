@@ -57,3 +57,8 @@ GLO only requests road/path/waterway features when the user explicitly presses *
 Data is stored in a dedicated \`streetSketches\` IndexedDB store (up to 4 entries) under the GLO app's database. The most recent sketch is reloaded from on-device storage without networking, even if the device is offline. Selected map regions themselves may reveal sensitive context to anyone accessing this device; a successful panic-clear operation deletes saved sketches together with private reports and public-source snapshots. Browser caches, downloaded files, OS data, external network logs, and already-shared data remain outside that guarantee.
 
 Map linework is OSM data made available under the ODbL. It does not represent a complete offline basemap, road legality, accessibility, safety, or navigation directions.
+
+
+## GLO Pocket Plan (P1-C)
+
+Pocket Plan text is generated from bundled, deterministic first-step templates entirely on device. Optional organization names and personal next-step text exist only in component memory; they are not written to storage, uploaded or passed to cloud AI. No location permission is requested. The selected resource's name and local-note/OSM provenance appear only if the user explicitly chooses to include them. The plan never includes selected resource coordinates, private notes or IDs. A person can copy or print a plan; clipboard history, external print systems, browser/OS retained data and paper are outside GLO panic clear. Plans do not establish provider hours, eligibility, fees or operational status.
