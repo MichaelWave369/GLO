@@ -9,7 +9,7 @@ const MAX_OVERPASS_ELEMENTS = 450
 export function buildScoutQuery(center, radius = SCOUT_RADIUS_M) {
   if (!validCoordinates(center?.lat, center?.lon)) throw new Error('Choose a valid map center.')
   if (!Number.isInteger(radius) || radius < 500 || radius > 3000) throw new Error('Search radius must be 500 to 3000 meters.')
-  const around = '(around:' + radius + ',' + center.lat.toFixed(6) + ',' + center.lon.toFixed(6) + ')'
+  const around = '(around:' + radius + ',' + center.lat.toFixed(3) + ',' + center.lon.toFixed(3) + ')'
   // The only charging candidates included explicitly advertise USB sockets.
   // Generic amenity=charging_station is usually about cars, not phone charging.
   return '[out:json][timeout:18];(' +
