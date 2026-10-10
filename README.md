@@ -151,3 +151,18 @@ To keep the user in control:
 - Critical plan topics and control labels are available in English and Spanish; other portions of GLO remain partially translated.
 
 This is an original small GLO feature based on reusable patterns, **not** an installed dependency on KindBridge, Aidora, Peekaboo, Vessie, or OpenField. Future cross-repo work should review each source repo's license and test its fit before pulling code or data.
+
+
+## P1-D: FamilyVault-inspired least-privilege peer handoff
+
+Adapted the **principle** from [FamilyVault](https://github.com/MichaelWave369/FamilyVault): confidential data should be private by default, with an explicit, scoped access decision before anything is revealed. FamilyVault itself uses authenticated accounts, user roles and revocable database grants; **GLO does not copy any of that server architecture**.
+
+When a person explicitly chooses **Share location**, GLO now proposes a **limited public handoff**:
+- Default **approximate area**: latitude/longitude rounded to two decimal places, plus generic resource category. No personal/custom name, author, note, private ID or precise source position.
+- Optional **include name**, separately checked by the person who shares. The custom title can still reveal sensitive details, so it is off by default.
+- Optional **exact location**, requiring an explicit precision change. Exact coordinates are up to six decimals; use only for publicly accessible resources that need precise wayfinding.
+- Each choice resets approval and clears previously displayed QR/copy status. Before creating a link, a preview spells out the outgoing fields and a confirm dialog describes the consequences.
+- Receiving approximate shared URLs render as a **900 m approximate region**, not an exact pin or confirmed entrance. Incoming v1 exact-location links remain readable for backward compatibility, with unverified provenance labels.
+- No automatic sharing, accounts, tracking, external backend, resource verification or private note upload.
+
+**Important limitation:** GLO peer links are not FamilyVault permission grants. Once copied, scanned, forwarded or captured, **they cannot be revoked by GLO**. A recipient may keep the full URL, name, and coordinates. Browser history, clipboard contents, screenshots and external copies are not cleared by GLO's panic-clear function. The URL fragment is handled locally by GLO, but anyone who receives it can read it.

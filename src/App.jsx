@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { MapContainer, TileLayer, CircleMarker, Polyline, Popup, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Circle, CircleMarker, Polyline, Popup, useMap, useMapEvents } from 'react-leaflet'
 import { CATEGORIES, PILOT_CENTER, distanceKm, normalizeReport, privateBackup } from './domain.js'
 import { listReports, saveReport, removeReport, clearAllReports } from './storage.js'
 import GloAgentDock from './GloAgentDock.jsx'
@@ -122,7 +122,7 @@ export default function App() {
 
   function jumpTo(r) {
     setSelectedId(r.id)
-    setTarget({ lat: r.lat, lon: r.lon, zoom: 16 })
+    setTarget({ lat: r.lat, lon: r.lon, zoom: r.scope === 'area' ? 12 : 16 })
   }
   function locate() {
     if (!navigator.geolocation) { setNotice('Location API unavailable. Pick a location by tapping the map.'); return }
@@ -380,7 +380,7 @@ export default function App() {
               {visiblePublic.map((r) => <CircleMarker key={r.id} center={[r.lat, r.lon]} radius={selectedId === r.id ? 12 : 9} pathOptions={{ color: '#457695', fillColor: r.category === 'water' ? '#83d4e4' : r.category === 'power' ? '#eec575' : '#a9cfa1', fillOpacity: 0.85, weight: 2, dashArray: '4 3' }} eventHandlers={{ click: () => setSelectedId(r.id) }}>
                 <Popup><strong>{r.title}</strong><br/>{CATEGORIES[r.category].label}<br/>OpenStreetMap record · Not verified<br/><a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">View OSM record</a></Popup>
               </CircleMarker>)}
-              {sharedPreview && <CircleMarker center={[sharedPreview.lat, sharedPreview.lon]} radius={12} pathOptions={{color:'#6636ac',fillColor:'#b68be0',fillOpacity:.9}}><Popup><strong>{sharedPreview.title}</strong><br/>Shared by another person · Unverified</Popup></CircleMarker>}
+              {sharedPreview && (sharedPreview.scope === 'area' ? <Circle center={[sharedPreview.lat, sharedPreview.lon]} radius={900} pathOptions={{color:'#6636ac',fillColor:'#b68be0',fillOpacity:.12,dashArray:'7 7',weight:2}}><Popup><strong>{sharedPreview.title}</strong><br/>Approximate area only · NOT an entrance · Unverified</Popup></Circle> : <CircleMarker center={[sharedPreview.lat, sharedPreview.lon]} radius={12} pathOptions={{color:'#6636ac',fillColor:'#b68be0',fillOpacity:.9}}><Popup><strong>{sharedPreview.title}</strong><br/>Exact peer-shared location · Unverified</Popup></CircleMarker>)}}
               {visible.map((r) => <CircleMarker key={r.id} center={[r.lat, r.lon]} radius={selectedId === r.id ? 11 : 8} pathOptions={{ color: '#155d4e', fillColor: r.category === 'water' ? '#4aa9c0' : r.category === 'power' ? '#ecb64e' : '#81b77b', fillOpacity: 0.94, weight: 3 }} eventHandlers={{ click: () => setSelectedId(r.id) }}>
                 <Popup><strong>{r.title}</strong><br/>{CATEGORIES[r.category].label}<br/>Self-reported · Unverified<br/>Private to this device</Popup>
               </CircleMarker>)}
@@ -400,7 +400,7 @@ export default function App() {
         <summary>{language === 'es' ? 'Guardar o abrir recursos sin conexión' : 'Save or open offline resource packs'}</summary>
         <OfflinePacksPanel scan={sourceScan} onUse={useOfflinePack} onRemove={removeOfflinePack} onNotice={setNotice}/>
       </details>
-      <div className="principles"><div><b>◇</b><strong>No accounts</strong><p>Use GLO Pin without creating a profile.</p></div><div><b>⌁</b><strong>Local first</strong><p>Saved reports stay on-device; public sharing is not yet available.</p></div><div><b>✓</b><strong>Evidence over guesses</strong><p>Reports are marked self-reported, never certified safe.</p></div></div>
+      <div className="principles"><div><b>◇</b><strong>No accounts</strong><p>Use GLO Pin without creating a profile.</p></div><div><b>⌁</b><strong>Local first</strong><p>Saved reports stay on-device; optional peer links only expose approved fields.</p></div><div><b>✓</b><strong>Evidence over guesses</strong><p>Reports are marked self-reported, never certified safe.</p></div></div>
     </main>
     <footer>GLO Pin · Good Lookin' Out · <a href="https://github.com/MichaelWave369/GLO">Open-source repository</a><span>v0.1 prototype · Not an emergency service · No community sync</span></footer>
   </div>

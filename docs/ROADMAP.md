@@ -129,3 +129,17 @@ Potential, *not yet wired*:
 - **RepoRider:** contributor/developer workflow tools, not a user-facing help feature.
 
 Acceptance: test small pure functions, no automatic persistence/network requests, no private-coordinate inclusion in copied plans, explicit copy/print disclosures, accessible phone and Spanish testing. Keep GLO useful on low-battery phones.
+
+
+## P1-D: FamilyVault privacy-by-default bridge
+
+- [x] Check FamilyVault source: vault entries private to creator by default; grants require explicit, scoped read/write permissions; full family-role backend is not suited for account-free GLO
+- [x] Build bounded **local share preflight** with approximate area / exact point precision and optional resource name, all off/restricted by default
+- [x] Strictly validate v2 shared-link schema; preserve legacy v1 incoming link support
+- [x] Render approximate handoffs as geographical areas, not navigable precise resource locations
+- [x] Acknowledge copied links are **not revocable**, even if GLO's local reports are deleted or panic-cleared
+- [x] Test precise data exclusion and malicious/unknown share fields
+- [ ] Scout phone test: default field preview, switching precision clears approval, name opt-in, QR, map region, legacy v1 links
+- [ ] Accessibility, link-forwarding and approximate-geography tests on real phones
+
+Do not import FamilyVault auth/RBAC/medical APIs into GLO. This is a design-pattern adaptation, not interoperability with private family records.
