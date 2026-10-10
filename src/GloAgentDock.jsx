@@ -3,6 +3,7 @@ import { CATEGORIES, distanceKm } from './domain.js'
 import { CREW, guideReply, freshnessAudit } from './guide.js'
 import { mappedAge, scoutPublicMap, SOURCE_ENDPOINT } from './scout.js'
 import { inspectOnDeviceAI, askOnDeviceAI } from './onDeviceAi.js'
+import MapPinIcon from './MapPinIcon.jsx'
 
 const QUESTIONS = [
   { label: 'I need drinking water', text: 'Where can I find drinking water?' },
@@ -24,7 +25,7 @@ function CrewCard({ agent, scan, audit }) {
   if (agent.id === 'guard') status = 'No private reports uploaded'
   if (agent.id === 'bro') status = 'Local rules · works offline'
   return <div className="agent-person">
-    <span className={'agent-avatar avatar-' + agent.id} aria-hidden="true">{agent.id === 'scout' ? '⌖' : agent.id === 'freshness' ? '↻' : agent.id === 'guard' ? '◇' : '✦'}</span>
+    <span className={'agent-avatar avatar-' + agent.id} aria-hidden="true">{agent.id === 'scout' ? <MapPinIcon size={25}/> : agent.id === 'freshness' ? '↻' : agent.id === 'guard' ? '◇' : '✦'}</span>
     <div className="agent-desc"><strong>{agent.name}</strong><small>{agent.role}</small><span>{status}</span></div>
   </div>
 }
@@ -122,9 +123,12 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
       <div><span className="eyebrow">GOOD LOOKIN' OUT · ASSISTANCE</span><h2 id="glo-bro-heading">Your GLO crew</h2><p>Four clearly defined helpers, one goal: useful information without pretending guesses are facts.</p></div>
       <span className="agent-local-pill">PRIVATE-FIRST</span>
     </div>
-    <div className="agent-grid">
-      {CREW.map((agent) => <CrewCard key={agent.id} agent={agent} scan={scan} audit={audit}/>)}
-    </div>
+    <details className="crew-roster">
+      <summary>Meet the four GLO helpers</summary>
+      <div className="agent-grid">
+        {CREW.map((agent) => <CrewCard key={agent.id} agent={agent} scan={scan} audit={audit}/>)}
+      </div>
+    </details>
 
     <div className="audit-strip" role="status"><strong>Freshness audit</strong><span>{audit.privateRecheck} local observations older than 7 days or undated, needing a human recheck</span><span>{audit.sourceOlderYear} public map records last edited over a year ago</span><span>{audit.sourceAgeUnknown} public map records with unknown edit age</span></div>
     <div className="agent-panels">
