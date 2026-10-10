@@ -10,7 +10,17 @@ export const CREW = Object.freeze([
 const KEYWORDS = Object.freeze({
   water: /\b(water|drink|drinking|hydration|thirst|fountain|refill|bottle)\b/i,
   power: /\b(power|electric|electricity|outlet|socket|charge|charger|charging|battery|phone)\b/i,
-  shelter: /\b(shelter|shade|covered|rain|storm|roof|bench|sit|seating|rest|dry)\b/i
+  shelter: /\b(shelter|shade|covered|rain|storm|roof|bench|sit|seating|rest|dry)\b/i,
+  restroom: /\b(bathroom|toilet|restroom|bathrooms|baño|aseo)\b/i,
+  food: /\b(food|hungry|hunger|meal|eat|pantry|grocer|comida|hambre)\b/i,
+  shower: /\b(shower|showers|ducha)\b/i,
+  laundry: /\b(laundry|wash clothes|lavandería)\b/i,
+  warming: /\b(warming|cold|freeze|freezing|calentarme)\b/i,
+  cooling: /\b(cooling|heat|hot weather|cool off|refrescarme)\b/i,
+  wifi: /\b(wifi|wi-fi|internet|online)\b/i,
+  sharps: /\b(sharps|needles|needle disposal|agujas)\b/i,
+  pet_support: /\b(pets|dog|cat|pet friendly|mascotas)\b/i,
+  overnight: /\b(overnight|night shelter|sleeping program|albergue)\b/i
 })
 const FOOD = /\b(food|hungry|hunger|meal|eat|pantry|grocer)\b/i
 const OTHER = /\b(bathroom|toilet|restroom|bath|wifi|internet|shower|laundry)\b/i
@@ -46,10 +56,10 @@ export function guideReply(message, { reports = [], sources = [], center, online
   if (need.categories.length) {
     lines.push('I can check ' + need.categories.map((c) => CATEGORIES[c].label.toLowerCase()).join(', ') + ' information saved or mapped here.')
   } else if (!need.food && !need.other) {
-    lines.push('Tell me what you need: drinking water, somewhere to charge a phone, or a place to sit out of the weather.')
+    lines.push('Tell me what you need: water, food, a restroom, charging, a covered place, or another essential service.')
   }
-  if (need.food) lines.push('Food listings are not in this pilot yet. If you are in the U.S., 211 may help you find local food programs. Check hours directly before traveling.')
-  if (need.other) lines.push('Restrooms, Wi-Fi and other services are planned, but this pilot does not yet have a reliable directory for them.')
+  if (need.food) lines.push('GLO supports private notes for food pantries and meal programs, but the public map Scout does not yet check them. In the U.S., dialing 211 can connect you to local programs. Confirm hours first.')
+  if (need.other) lines.push('You can save local notes for restrooms, Wi-Fi, showers and laundry, but the public source Scout may not yet search these categories. Do not assume an empty list means no facilities exist.')
   if (candidates.length) {
     lines.push('I found ' + candidates.length + ' potentially useful ' + (candidates.length === 1 ? 'entry' : 'entries') + ' in the data available to this device. They are NOT confirmed open, safe, or working.')
     if (candidates.some((r) => r.origin === 'osm')) lines.push('Mapped entries came from OpenStreetMap. Their last edit dates do not prove real-world availability.')

@@ -26,3 +26,15 @@ We do not promise absolute anonymity. The goal is minimal data collection, expli
 ## Sensitive location and food-safety boundaries
 
 Never document private sleeping spots, encampment locations, private homes, or identifiable persons. Do not place real contact information in notes. Resource reports do not certify opening times, safe drinking water, physical accessibility, or food safety. A later community posting system must remove/minimize personal identifiers, require explicit user-controlled publication, and moderate submissions.
+
+
+## Field essentials, peer links and clearing
+
+- Local notes may include observation timestamps, reportedly working/nonworking status, self-reported hours, and access attributes. None are independently checked. Do not infer a facility is currently open.
+- The crisis directory is shipped with the app so text can be read offline after the PWA shell was successfully cached. Dial and SMS links still depend on available device connectivity.
+- Low-battery mode unmounts the interactive street map and agent dock; the remaining list uses available on-device entries.
+- Peer sharing requires a person to approve disclosing the title, category and exact coordinates. Shared URLs keep the payload after a # fragment. No report ID, note, author identifier or timestamp is included, but exact location may be sensitive and links may appear in browser history, messaging apps, screenshots and clipboard contents. QR generation happens entirely in the browser.
+- Panic clear first covers the screen, then requires confirmation before clearing this app's local report records. Its goal is fast protection from casual visual inspection, not an absolute forensic erasure guarantee. It cannot delete files exported earlier, shared links, browser or OS history, memory outside the app, provider logs, or external copies. It does not intentionally clear unrelated GitHub Pages applications' storage.
+- The Spanish UI is currently partial. Important crisis and reporting controls are translated, but the entire agent/research panel is not.
+
+- The observation timestamp is explicitly user-entered and may be wrong. GLO records a separate save timestamp for provenance; neither timestamp proves the facility currently operates.

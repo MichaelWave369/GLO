@@ -42,7 +42,7 @@ test('guide remains private and avoids making availability claims', () => {
   assert.match(answer.lines.join(' '), /offline/)
 })
 test('guide handles unsupported food and urgent help without fictitious resources', () => {
-  assert.match(guideReply('where can I get food').lines.join(' '), /Food listings are not/)
+  assert.match(guideReply('where can I get food').lines.join(' '), /public map Scout does not yet check/)
   assert.equal(guideReply('someone cannot breathe').kind, 'urgent')
 })
 
@@ -54,4 +54,11 @@ test('freshness is a recheck reminder, not physical-availability verification', 
     now
   )
   assert.deepEqual(audit, { privateRecheck: 1, sourceOlderYear: 1, sourceAgeUnknown: 1 })
+})
+
+test('extended categories are locally searchable without fabricated online listings', () => {
+  const note={id:'local-food',title:'Pantry',category:'food',lat:40,lon:-75,observedAt:'2026-10-10T00:00:00Z'}
+  const answer=guideReply('I need food',{reports:[note],sources:[],center:{lat:40,lon:-75},online:false})
+  assert.equal(answer.matches[0].id,'local-food')
+  assert.equal(detectNeed('looking for a restroom').categories[0],'restroom')
 })
