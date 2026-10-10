@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, CircleMarker, Polyline, Popup, useMap, useMapEvents } from 'react-leaflet'
 import { CATEGORIES, PILOT_CENTER, distanceKm, normalizeReport, privateBackup } from './domain.js'
 import { listReports, saveReport, removeReport, clearAllReports } from './storage.js'
 import GloAgentDock from './GloAgentDock.jsx'
 import OfflinePacksPanel from './OfflinePacksPanel.jsx'
+import StreetSketchPanel from './StreetSketchPanel.jsx'
 import { sourcesFromPack } from './offlinePack.js'
 import { initialDraft, localDateTime } from './pinDraft.js'
 import { TEXT, accessText, parseSharedPin } from './fieldKit.js'
@@ -44,6 +45,7 @@ export default function App() {
   const [draft, setDraft] = useState(initialDraft)
   const [online, setOnline] = useState(navigator.onLine)
   const [tiles, setTiles] = useState(false)
+  const [streetSketch, setStreetSketch] = useState(null)
   const [reference, setReference] = useState(PILOT_CENTER)
   const [mapCenter, setMapCenter] = useState(PILOT_CENTER)
   const [publicCandidates, setPublicCandidates] = useState([])
@@ -215,6 +217,7 @@ export default function App() {
       await clearAllReports()
       setReports([])
       setPublicCandidates([])
+      setStreetSketch(null)
       setSourceScan(null)
       setActivePackId('')
       setSharingPin(null)
@@ -362,6 +365,7 @@ export default function App() {
             <MapContainer className="leaflet-map" center={[PILOT_CENTER.lat, PILOT_CENTER.lon]} zoom={13} scrollWheelZoom={false}>
               {online && tiles && <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'/>}
               <MapNavigator target={target}/>
+              {streetSketch && !(online && tiles) && streetSketch.records.map(way => <Polyline key={way.id} positions={way.coordinates} pathOptions={{color:way.kind==='water'?'#3587b1':way.tag==='footway'||way.tag==='path'||way.tag==='steps'?'#947342':'#627b68',weight:way.kind==='water'?3:way.tag==='footway'?2:4,opacity:.85,dashArray:way.tag==='footway'||way.tag==='path'?'5 6':undefined}}><Popup><strong>{way.name||'Unnamed mapped way'}</strong><p>OpenStreetMap {way.kind==='water'?'waterway':'road/path'} ({way.tag}). Not verified safe or currently accessible.</p></Popup></Polyline>)}
               <MapCenterTracker onMove={setMapCenter}/>
               <MapPicker enabled={editing} onPick={pickCoordinates}/>
               {visiblePublic.map((r) => <CircleMarker key={r.id} center={[r.lat, r.lon]} radius={selectedId === r.id ? 12 : 9} pathOptions={{ color: '#457695', fillColor: r.category === 'water' ? '#83d4e4' : r.category === 'power' ? '#eec575' : '#a9cfa1', fillOpacity: 0.85, weight: 2, dashArray: '4 3' }} eventHandlers={{ click: () => setSelectedId(r.id) }}>
@@ -375,7 +379,10 @@ export default function App() {
             {!(online && tiles) && <div className="map-label">NO STREET BASEMAP · LOCAL MARKERS ONLY</div>}
             {editing && <div className="map-tip">Tap map to choose pin location</div>}
           </div>
-          <div className="map-footnote"><strong>Map privacy:</strong> Street tiles are off by default. If enabled, OpenStreetMap tile servers may receive your viewed map area and IP address. Offline street navigation and downloadable regional maps are future work. The tileless view is not a navigable map.</div>
+          <div className="map-footnote"><strong>Map privacy:</strong> Online street tiles remain OFF by default. You can separately save an offline OSM neighborhood sketch below. It shows real mapped streets and paths but does NOT provide complete offline navigation or current accessibility.</div>
+          <StreetSketchPanel center={mapCenter} online={online} selected={streetSketch}
+            onSelect={(pack,restored)=>{setStreetSketch(pack);setTarget({...pack.center,zoom:15});setNotice((restored?'Restored':'Selected')+' '+pack.records.length+' offline streets, paths and waterways. No directions or live conditions.')}}
+            onDelete={()=>setStreetSketch(null)}/>
         </div>}
       </section>
       {!lowBattery && <GloAgentDock center={mapCenter} localReports={reports} online={online}

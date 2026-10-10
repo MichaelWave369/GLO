@@ -48,3 +48,12 @@ Never document private sleeping spots, encampment locations, private homes, or i
 - Imported packs must pass strict format, public-origin, OSM source-link, record-count and size validation. Import does not grant the content authoritative verification.
 - Public packs may expose the map region the user chose to save if a user explicitly exports or shares the file. Treat sensitive selections as personal context.
 - Panic clear erases both GLO-owned local stores atomically, but cannot remove exports or other copies.
+
+
+## Offline streets (P1-A)
+
+GLO only requests road/path/waterway features when the user explicitly presses **Download roads & paths here** and accepts the disclosure. The selected map center is rounded to 0.001° before it is sent to the public Overpass API; the source can see the request location, timing, IP address, and relevant browser information. This does not include private notes, private report IDs, or the full GPS location history. The app may receive complete OSM way geometry within a bounded neighborhood and retains only validated, small road/waterway sets.
+
+Data is stored in a dedicated \`streetSketches\` IndexedDB store (up to 4 entries) under the GLO app's database. The most recent sketch is reloaded from on-device storage without networking, even if the device is offline. Selected map regions themselves may reveal sensitive context to anyone accessing this device; a successful panic-clear operation deletes saved sketches together with private reports and public-source snapshots. Browser caches, downloaded files, OS data, external network logs, and already-shared data remain outside that guarantee.
+
+Map linework is OSM data made available under the ODbL. It does not represent a complete offline basemap, road legality, accessibility, safety, or navigation directions.

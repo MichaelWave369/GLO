@@ -1,19 +1,22 @@
 // IndexedDB is per-origin; GLO deliberately touches only its own named database.
 import { validatePublicPack } from './offlinePack.js'
+import { validateStreetSketch } from './streetSketch.js'
 
 const NAME = 'glo-pin-local-v1'
 const TABLE = 'reports'
 const PACKS = 'publicPacks'
+const STREETS = 'streetSketches'
 const MAX_SAVED_PACKS = 10
 
 function openDatabase() {
   if (!globalThis.indexedDB) return Promise.reject(new Error('This browser does not support local IndexedDB storage.'))
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(NAME, 2)
+    const request = indexedDB.open(NAME, 3)
     request.onupgradeneeded = () => {
       const db = request.result
       if (!db.objectStoreNames.contains(TABLE)) db.createObjectStore(TABLE, { keyPath: 'id' })
       if (!db.objectStoreNames.contains(PACKS)) db.createObjectStore(PACKS, { keyPath: 'id' })
+      if (!db.objectStoreNames.contains(STREETS)) db.createObjectStore(STREETS, { keyPath: 'id' })
     }
     request.onsuccess = () => resolve(request.result)
     request.onerror = () => reject(request.error || new Error('Local storage unavailable.'))
@@ -81,9 +84,10 @@ export async function clearAllLocalData() {
   const db = await openDatabase()
   try {
     return await new Promise((resolve, reject) => {
-      const tx = db.transaction([TABLE, PACKS], 'readwrite')
+      const tx = db.transaction([TABLE, PACKS, STREETS], 'readwrite')
       tx.objectStore(TABLE).clear()
       tx.objectStore(PACKS).clear()
+      tx.objectStore(STREETS).clear()
       tx.oncomplete = () => resolve()
       tx.onerror = () => reject(tx.error || new Error('Could not clear GLO local data.'))
       tx.onabort = () => reject(tx.error || new Error('GLO clear operation was aborted.'))
@@ -91,3 +95,32 @@ export async function clearAllLocalData() {
   } finally { db.close() }
 }
 export const clearAllReports = clearAllLocalData
+
+
+export async function listStreetSketches() {
+  const rows=await transact('readonly',store=>store.getAll(),STREETS)
+  return rows.map(row=>{try{return validateStreetSketch(row)}catch{return null}})
+    .filter(Boolean).sort((a,b)=>b.savedAt.localeCompare(a.savedAt))
+}
+export async function saveStreetSketch(sketch) {
+  const vetted=validateStreetSketch(sketch)
+  const db=await openDatabase()
+  try {
+    return await new Promise((resolve,reject)=>{
+      const tx=db.transaction(STREETS,'readwrite')
+      const store=tx.objectStore(STREETS)
+      const request=store.getAllKeys()
+      request.onsuccess=()=>{
+        if(!request.result.includes(vetted.id)&&request.result.length>=4){tx.abort();return}
+        store.put(vetted)
+      }
+      request.onerror=()=>reject(request.error||new Error('Unable to count street packs.'))
+      tx.oncomplete=()=>resolve(vetted)
+      tx.onabort=()=>reject(new Error('Street pack limit reached (4 neighborhoods) or storage unavailable. Delete an old area first.'))
+      tx.onerror=()=>reject(tx.error||new Error('Offline street sketch could not be saved.'))
+    })
+  } finally {db.close()}
+}
+export function deleteStreetSketch(id) {
+  return transact('readwrite',store=>store.delete(id),STREETS)
+}

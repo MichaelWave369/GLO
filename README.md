@@ -112,3 +112,16 @@ Panic clear removes both personal GLO reports and local saved public packs in on
 - Automated unit tests enforce that missing coordinates cannot accidentally become (0,0).
 
 The update still needs human validation of accessibility, zoom controls, geolocation-permission denial/retry, Spanish screen-reader output, and actual offline/low-battery behavior on real phones. A green CI build is not that validation.
+
+
+## P1-A: locally saved OSM neighborhood street sketch
+
+GLO Pin can now optionally fetch **actual public road, walkway and waterway geometry** from an OSM Overpass query centered on the currently selected map view (a bounded 1.1 km neighborhood). This renders via Leaflet's own line drawing and continues to display after the device goes offline, because the selected street sketch is stored in the GLO-owned IndexedDB database.
+
+Click **Download roads & paths here** below the map and explicitly consent to a geographically rounded request. This contacts the public Overpass server, which may receive your IP address and approximate map location. The app never sends private notes or a GPS/location history. On startup it reopens the most recently saved sketch **without** contacting Overpass.
+
+Up to four small neighborhood sketches can be stored; schema and size limits prevent unlimited downloads. The app uses **OSM data**, not forbidden bulk downloads from OpenStreetMap's public raster tile server. Source and ODbL attribution appear in the UI. Street lines do not turn a source record into proof of public access.
+
+**This is a first useful offline street-and-path sketch, not full-featured offline mapping.** Missing/unlabeled segments, graph routing, elevation, accessibility, address search, complete basemap tiles, and turn-by-turn navigation are NOT implemented. Highways and paths are drawn from OSM as of the download time and may have changed. Test on real Android/iOS devices before relying on the display for travel. Official map tile requests remain opt-in and separate.
+
+The v3 IndexedDB migration is additive: existing \`reports\` and \`publicPacks\` persist, and panic clear now erases \`streetSketches\` in the same app-owned transaction.
