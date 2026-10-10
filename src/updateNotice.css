@@ -1,0 +1,7 @@
+.version-banner{margin:8px 0 14px;padding:13px 15px;border:2px solid #95be9e;border-radius:12px;background:#e7f4e9;color:#20543b;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.version-banner strong{font-size:15px;color:#194d34}
+.version-banner p{font-size:13px;line-height:1.5;margin:4px 0 0;color:#335b43}
+.version-banner button{min-width:140px;min-height:48px;flex:0 0 auto}
+.low-battery .version-banner{background:#15311c;border-color:#709574;color:#eff7ed}
+.low-battery .version-banner p,.low-battery .version-banner strong{color:#eff7ed}
+@media(max-width:570px){.version-banner{align-items:stretch;flex-direction:column}.version-banner button{width:100%}}
