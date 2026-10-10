@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATEGORIES, distanceKm } from './domain.js'
-import { CREW, guideReply } from './guide.js'
+import { CREW, guideReply, freshnessAudit } from './guide.js'
 import { mappedAge, scoutPublicMap, SOURCE_ENDPOINT } from './scout.js'
 import { inspectOnDeviceAI, askOnDeviceAI } from './onDeviceAi.js'
 
@@ -17,10 +17,10 @@ function dateText(value) {
   return Number.isNaN(date.getTime()) ? 'Unknown' : date.toLocaleString()
 }
 
-function CrewCard({ agent, scan }) {
+function CrewCard({ agent, scan, audit }) {
   let status = 'Ready for local use'
   if (agent.id === 'scout') status = scan ? 'Last requested: ' + dateText(scan.checkedAt) : 'Not run yet'
-  if (agent.id === 'freshness') status = scan ? scan.sources.length + ' mapped entries reviewed' : 'Awaiting mapped sources'
+  if (agent.id === 'freshness') status = audit.privateRecheck + ' local pins due to recheck'
   if (agent.id === 'guard') status = 'No private reports uploaded'
   if (agent.id === 'bro') status = 'Local rules · works offline'
   return <div className="agent-person">
@@ -43,6 +43,7 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
 
   useEffect(() => () => controllerRef.current?.abort(), [])
   const candidates = scan?.sources || []
+  const audit = useMemo(() => freshnessAudit(localReports, candidates), [localReports, candidates])
   const changedViewport = scan ? distanceKm(center, scan.center) > 0.4 : false
   const counts = useMemo(() => Object.fromEntries(Object.keys(CATEGORIES).map((key) => [
     key, candidates.filter((item) => item.category === key).length
@@ -118,9 +119,10 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
       <span className="agent-local-pill">PRIVATE-FIRST</span>
     </div>
     <div className="agent-grid">
-      {CREW.map((agent) => <CrewCard key={agent.id} agent={agent} scan={scan}/>)}
+      {CREW.map((agent) => <CrewCard key={agent.id} agent={agent} scan={scan} audit={audit}/>)}
     </div>
 
+    <div className="audit-strip" role="status"><strong>Freshness audit</strong><span>{audit.privateRecheck} local observations older than 7 days or undated, needing a human recheck</span><span>{audit.sourceOlderYear} public map records last edited over a year ago</span><span>{audit.sourceAgeUnknown} public map records with unknown edit age</span></div>
     <div className="agent-panels">
       <section className="agent-panel" aria-labelledby="public-scout-title">
         <div className="agent-panel-title"><div><span className="eyebrow">SOURCE SCOUT</span><h3 id="public-scout-title">Check the public map</h3></div><span className="agent-mini-count">{candidates.length} found</span></div>

@@ -61,3 +61,23 @@ export function guideReply(message, { reports = [], sources = [], center, online
   lines.push('Please check access, opening hours, and conditions directly when possible.')
   return { title: 'GLO Bro · local guidance', lines, matches: candidates, kind: 'local' }
 }
+
+
+export function freshnessAudit(reports = [], sources = [], now = Date.now()) {
+  const ageDays = (value) => {
+    const date = Date.parse(value)
+    if (!Number.isFinite(date) || date > now + 86400000) return null
+    return Math.max(0, (now - date) / 86400000)
+  }
+  return {
+    privateRecheck: reports.filter((r) => {
+      const age = ageDays(r.observedAt)
+      return age === null || age > 7
+    }).length,
+    sourceOlderYear: sources.filter((r) => {
+      const age = ageDays(r.lastMappedAt)
+      return age !== null && age > 365
+    }).length,
+    sourceAgeUnknown: sources.filter((r) => ageDays(r.lastMappedAt) === null).length
+  }
+}

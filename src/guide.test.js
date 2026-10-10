@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { CREW, detectNeed, guideReply } from './guide.js'
+import { CREW, detectNeed, guideReply, freshnessAudit } from './guide.js'
 import { buildScoutQuery, mappedAge, normalizeScoutResults, SCOUT_RADIUS_M } from './scout.js'
 
 test('guide crew clearly describes capabilities', () => {
@@ -41,4 +41,14 @@ test('guide remains private and avoids making availability claims', () => {
 test('guide handles unsupported food and urgent help without fictitious resources', () => {
   assert.match(guideReply('where can I get food').lines.join(' '), /Food listings are not/)
   assert.equal(guideReply('someone cannot breathe').kind, 'urgent')
+})
+
+test('freshness is a recheck reminder, not physical-availability verification', () => {
+  const now = Date.parse('2026-10-10T00:00:00Z')
+  const audit = freshnessAudit(
+    [{ observedAt: '2026-09-01T00:00:00Z' }, { observedAt: '2026-10-09T00:00:00Z' }],
+    [{ lastMappedAt: '2024-01-01T00:00:00Z' }, { lastMappedAt: null }],
+    now
+  )
+  assert.deepEqual(audit, { privateRecheck: 1, sourceOlderYear: 1, sourceAgeUnknown: 1 })
 })
