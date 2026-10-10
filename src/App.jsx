@@ -25,8 +25,13 @@ function fmtDate(value) {
   const time = new Date(value)
   return Number.isNaN(time.getTime()) ? 'Unknown time' : time.toLocaleString()
 }
+function localDateTime() {
+  const now = new Date()
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+  return local.toISOString().slice(0, 16)
+}
 function initialDraft() {
-  return { category: 'water', title: '', note: '', lat: String(PILOT_CENTER.lat), lon: String(PILOT_CENTER.lon),
+  return { observedAtLocal: localDateTime(), category: 'water', title: '', note: '', lat: String(PILOT_CENTER.lat), lon: String(PILOT_CENTER.lon),
     visitStatus: 'unknown', reportedHours: '', accessibility: { wheelchair:'unknown', stepFree:'unknown', idRequired:'unknown', petsAllowed:'unknown' } }
 }
 export default function App() {
@@ -196,13 +201,15 @@ export default function App() {
             <textarea id="note" rows="4" maxLength="400" value={draft.note} placeholder="Avoid names, identities and sensitive details." onChange={(e) => setDraft({ ...draft, note: e.target.value })}/>
             <label htmlFor="hours">{t.hours}</label>
             <input id="hours" maxLength="100" value={draft.reportedHours} placeholder={language === 'es' ? 'Horario informado (sin confirmar)' : 'e.g. Mon–Fri 9–5; not independently checked'} onChange={e => setDraft({...draft,reportedHours:e.target.value})}/>
+            <label htmlFor="observed-at">{language === 'es' ? 'Fecha y hora de la observación' : 'When did you actually observe this?'}</label>
+            <input id="observed-at" type="datetime-local" required value={draft.observedAtLocal} max={localDateTime()} onChange={e => setDraft({...draft, observedAtLocal:e.target.value})}/>
             <label htmlFor="visit-status">{t.status}</label>
             <select id="visit-status" value={draft.visitStatus} onChange={e => setDraft({...draft,visitStatus:e.target.value})}>
               <option value="unknown">{t.unknown}</option>
               <option value="working">{t.worked}</option>
               <option value="not_working">{t.broken}</option>
             </select>
-            <p className="help">{language === 'es' ? 'La fecha se registra al guardar; “funcionaba” significa solo que lo viste funcionar entonces.' : 'The timestamp is recorded when you save. “Worked” only means you observed it working at that moment.'}</p>
+            <p className="help">{language === 'es' ? 'Indica cuándo lo viste en realidad. “Funcionaba” solo se refiere a esa fecha. La fecha de guardado se registra aparte.' : 'Enter when you actually saw the resource. “Worked” only means it worked at that reported time. Saved time is recorded separately.'}</p>
             <strong className="input-label">{t.access}</strong>
             <div className="access-fields">{[
               ['wheelchair', t.wheelchair],['stepFree',t.stepFree],['idRequired',t.id],['petsAllowed',t.pets]

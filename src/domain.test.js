@@ -49,3 +49,12 @@ test('reported hours and observed function never create a verified resource', ()
   assert.equal(report.reportedHours,'Mon-Fri 9-5')
   assert.throws(()=>normalizeReport({category:'water',title:'Test',lat:40,lon:-75,reportedHours:'x'.repeat(101)}),/100/)
 })
+
+test('last-seen working time represents explicitly entered observation time, not save time',()=>{
+  const saved=new Date('2026-10-10T22:00:00Z')
+  const item=normalizeReport({category:'water',title:'Fountain',lat:40,lon:-75,observedAtLocal:'2026-10-10T18:00:00Z',visitStatus:'working'},saved)
+  assert.equal(item.observedAt,'2026-10-10T18:00:00.000Z')
+  assert.equal(item.lastSeenWorkingAt,'2026-10-10T18:00:00.000Z')
+  assert.equal(item.savedAt,'2026-10-10T22:00:00.000Z')
+  assert.throws(()=>normalizeReport({category:'water',title:'Fountain',lat:40,lon:-75,observedAtLocal:'2026-10-11T22:00:00Z'},saved),/future/)
+})

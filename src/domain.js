@@ -40,6 +40,8 @@ export function normalizeReport(input, clock = new Date()) {
   if (note.length > 400) throw new Error('Notes must be 400 characters or fewer.')
   if (!validCoordinates(lat, lon)) throw new Error('Select a valid location on the map.')
   if (!Number.isFinite(clock.getTime())) throw new Error('Invalid observation time.')
+  const observed = input.observedAtLocal ? new Date(input.observedAtLocal) : clock
+  if (!Number.isFinite(observed.getTime()) || observed.getTime() > clock.getTime() + 5 * 60000) throw new Error('Observation time must be valid and cannot be in the future.')
   const visitStatus = ['working', 'not_working', 'unknown'].includes(input.visitStatus) ? input.visitStatus : 'unknown'
   const reportedHours = String(input.reportedHours || '').trim()
   if (reportedHours.length > 100) throw new Error('Reported hours must be 100 characters or fewer.')
@@ -49,8 +51,9 @@ export function normalizeReport(input, clock = new Date()) {
     id: crypto.randomUUID(),
     schemaVersion: 1,
     category, title, note, lat, lon,
-    observedAt: clock.toISOString(),
-    lastSeenWorkingAt: visitStatus === 'working' ? clock.toISOString() : null,
+    observedAt: observed.toISOString(),
+    savedAt: clock.toISOString(),
+    lastSeenWorkingAt: visitStatus === 'working' ? observed.toISOString() : null,
     visitStatus, reportedHours, accessibility,
     provenance: 'self-reported',
     condition: 'not-verified',
