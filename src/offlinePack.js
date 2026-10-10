@@ -44,7 +44,8 @@ export function createPublicPack(scan, now = new Date()) {
   const records = scan.sources.map(record => {
     // Projection intentionally discards custom properties, including private note, author, device ID.
     const projected = Object.fromEntries(ALLOWED_RECORD_FIELDS.map(key => [key, record[key]]))
-    projected.reportedHours = record.reportedHours || ''
+    projected.title = String(record.title || '').replace(/[<>\u0000-\u001f]/g, ' ').trim().slice(0, 110)
+    projected.reportedHours = String(record.reportedHours || '').replace(/[<>\u0000-\u001f]/g, ' ').slice(0, 120)
     return stripRuntime(normalizePublicRecord(projected, center))
   })
   const pack = {
