@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, CircleMarker, Polyline, Popup, useMap, useMapE
 import { CATEGORIES, PILOT_CENTER, distanceKm, normalizeReport, privateBackup } from './domain.js'
 import { listReports, saveReport, removeReport, clearAllReports } from './storage.js'
 import GloAgentDock from './GloAgentDock.jsx'
+import PocketPlan from './PocketPlan.jsx'
 import OfflinePacksPanel from './OfflinePacksPanel.jsx'
 import StreetSketchPanel from './StreetSketchPanel.jsx'
 import { sourcesFromPack } from './offlinePack.js'
@@ -91,6 +92,8 @@ export default function App() {
   const displayedRows = useMemo(() => listRowsForMode(visible, visiblePublic, lowBattery)
     .sort((a,b) => distanceKm(reference,a) - distanceKm(reference,b)), [visible,visiblePublic,lowBattery,reference])
   const displayedReceipt = visibleSaveReceipt(savedFeedback, reports)
+  const chosenRecord = reports.find(r=>r.id===selectedId) || publicCandidates.find(r=>r.id===selectedId)
+  const selectedResource = chosenRecord ? { title: chosenRecord.title, from: reports.some(r=>r.id===selectedId)?'private':'osm' } : null
 
   function onScoutRecords(records, metadata = null) {
     setPublicCandidates(records)
@@ -285,6 +288,7 @@ export default function App() {
         <p>{t.description}</p>
         <div className="actions"><button className="primary" onClick={begin}>+ {t.add}</button><button className="secondary" onClick={locate}>◎ {t.locate}</button></div>
       </section>
+      <PocketPlan language={language} resource={selectedResource}/>
       <SharedPreview pin={sharedPreview} language={language} onView={() => { if (lowBattery) changeLowBattery(); jumpTo(sharedPreview) }} onDismiss={closeShared}/>
       <div className="notice" role="status" aria-live="polite">{notice}</div>
       {error && <div className="warning" role="alert">Storage error: {error}. Your observations may not be saved.</div>}
