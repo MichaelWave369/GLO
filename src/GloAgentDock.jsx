@@ -29,8 +29,9 @@ function CrewCard({ agent, scan, audit }) {
   </div>
 }
 
-export default function GloAgentDock({ center, localReports, online, onSourcesChange, sourceRecords = [], packRevision = 0, onNavigate }) {
+export default function GloAgentDock({ center, localReports, online, onSourcesChange, sourceRecords = [], packRevision = 0, onNavigate, onOpenPacks }) {
   const [scan, setScan] = useState(null)
+  const [showAllResults, setShowAllResults] = useState(false)
   const [loading, setLoading] = useState(false)
   const [scanError, setScanError] = useState('')
   const [question, setQuestion] = useState('')
@@ -61,6 +62,7 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
       const next = await scoutPublicMap(center, controller.signal)
       if (controller.signal.aborted) return
       setScan(next)
+      setShowAllResults(false)
       onSourcesChange(next.sources, { center: next.center, checkedAt: next.checkedAt, mayBeIncomplete: next.mayBeIncomplete })
     } catch (error) {
       if (!controller.signal.aborted) setScanError(error.name === 'AbortError'
@@ -109,6 +111,7 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
   function clearScan() {
     controllerRef.current?.abort()
     setScan(null)
+    setShowAllResults(false)
     setLoading(false)
     setScanError('')
     onSourcesChange([])
@@ -131,8 +134,9 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
         <div className="scan-coordinates">Map center: {center.lat.toFixed(3)}, {center.lon.toFixed(3)} · Search radius: 1.8 km</div>
         <p className="agent-disclosure">Only when you press Search, a query with this approximate center is sent to the public <a href={SOURCE_ENDPOINT} target="_blank" rel="noreferrer noopener">Overpass service</a>. Its servers may receive your IP address. Your private observations, device location history, and GLO Bro questions are NOT included.</p>
         <div className="agent-buttons">
-          <button className="primary" disabled={!online || loading} onClick={runScout}>{loading ? 'Checking public map…' : '⌖ Search public map'}</button>
+          <button className="primary" disabled={!online || loading} onClick={runScout}>{loading ? 'Checking public map…' : 'Search public map'}</button>
           {scan && <button className="secondary" onClick={clearScan}>Clear source results</button>}
+          <button className="secondary" onClick={onOpenPacks}>Open offline packs</button>
         </div>
         {!online && <p className="agent-offline">Offline: no live source requests. Saved public Scout packs, your private notes, and local GLO Bro guidance remain usable.</p>}
         {scanError && <p className="agent-error" role="alert">{scanError}</p>}
@@ -144,14 +148,15 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
           {!candidates.length && <span>Nothing mapped in this limited query. That does NOT mean no resources exist here.</span>}
         </div>}
         {candidates.length > 0 && <div className="candidate-list" aria-label="Public map resource candidates">
-          {candidates.slice(0, 30).map((r) => <article key={r.id} className="candidate">
+          {candidates.slice(0, showAllResults ? 30 : 6).map((r) => <article key={r.id} className="candidate">
             <span className="candidate-icon" aria-hidden="true">{CATEGORIES[r.category].icon}</span>
             <div className="candidate-body"><strong>{r.title}</strong><small>{CATEGORIES[r.category].label} · {r.distanceKm.toFixed(1)} km from last scan center</small><small>{mappedAge(r).label} · Last queried {dateText(r.checkedAt)} · Unverified now</small><span>{r.accessNote}</span><div className="candidate-links">
               <button onClick={() => onNavigate(r)}>View on map</button>
               <a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">OSM source ↗</a>
             </div></div>
           </article>)}
-          {candidates.length > 30 && <p className="agent-paragraph">Showing the 30 nearest results of {candidates.length}. This is a display limit, not a source count.</p>}
+          {candidates.length > 6 && <button className="agent-show-more" onClick={() => setShowAllResults(value => !value)}>{showAllResults ? 'Show fewer results' : 'Show more mapped results'}</button>}
+          {showAllResults && candidates.length > 30 && <p className="agent-paragraph">Showing the 30 nearest results of {candidates.length}. This is a display limit, not a source count.</p>}
         </div>}
       </section>
 

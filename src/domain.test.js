@@ -58,3 +58,11 @@ test('last-seen working time represents explicitly entered observation time, not
   assert.equal(item.savedAt,'2026-10-10T22:00:00.000Z')
   assert.throws(()=>normalizeReport({category:'water',title:'Fountain',lat:40,lon:-75,observedAtLocal:'2026-10-11T22:00:00Z'},saved),/future/)
 })
+
+test('never convert missing coordinates into an accidental (0,0) pin', () => {
+  for (const coords of [{lat:'',lon:''},{lat:null,lon:-75},{lat:undefined,lon:-75},{lat:' ',lon:'-75'}]) {
+    assert.throws(()=>normalizeReport({category:'water',title:'Fountain',...coords}), /Coordinates cannot be blank/)
+  }
+  const real=normalizeReport({category:'water',title:'Real observation',lat:'40.986',lon:'-75.194'})
+  assert.equal(real.lat,40.986)
+})

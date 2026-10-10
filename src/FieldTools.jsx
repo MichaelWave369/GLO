@@ -11,7 +11,7 @@ export function CrisisCard({ language }) {
       {CRISIS_CONTACTS.map((contact) => <div className="crisis-contact" key={contact.number}>
         <strong>{contact.number}</strong>
         <span>{contact[language]}</span>
-        <div><a href={contact.call}>{language === 'es' ? 'Llamar' : 'Call'} {contact.number}</a>{contact.text && <> · <a href={contact.text}>{language === 'es' ? 'Mensaje' : 'Text'} {contact.number}</a></>}</div>
+        <div className="crisis-links"><a href={contact.call}>{language === 'es' ? 'Llamar' : 'Call'} {contact.number}</a>{contact.text && <a href={contact.text}>{language === 'es' ? 'Mensaje' : 'Text'} {contact.number}</a>}</div>
       </div>)}
     </div>
     <p className="crisis-note">{language === 'es'

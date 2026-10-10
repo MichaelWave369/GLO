@@ -99,3 +99,16 @@ Importing an untrusted JSON pack is restricted to the GLO public OSM schema, siz
 **Important:** this is *offline resource record storage*, **not an offline street-map package or guaranteed offline navigation**. Records can go stale, hours and fees may be wrong, and missing resources do not mean no services exist. Use the snapshot age warnings. There is no automatic background refresh or claim of verified safety/availability.
 
 Panic clear removes both personal GLO reports and local saved public packs in one app-owned IndexedDB transaction. It cannot erase shared files, previously shared links, browser history, or other devices.
+
+
+## P0.5 mobile field-usability improvements (Scout test findings)
+
+- **Add a private pin** scrolls the new form into view and, only after that explicit tap, requests browser location permission. A denied/unavailable result leaves coordinates **blank**, never silently set to the Stroudsburg start viewport.
+- Use your location again or **Pick on map**. A map tap fills coordinates and returns to the editor. The form refuses to save until a real location is selected or entered.
+- Save confirmation appears immediately next to the private pin list rather than only in the banner above the fold.
+- Emergency call/text actions, source/list controls, map zoom and online-tile checkbox use larger touch targets. Readability and color contrast improved at phone sizes.
+- Mobile source results start at six, with a Show more button, rather than a nested scrolling box. The Offline Scout pack tools are now in a collapsible section **after** Scout so the flow reads from search to save.
+- Main heading/eyebrow have Spanish versions, source-search icon uses reliable text, hours placeholder is short, formatting artifacts are fixed, and favicon.ico accompanies the existing SVG.
+- Automated unit tests enforce that missing coordinates cannot accidentally become (0,0).
+
+The update still needs human validation of accessibility, zoom controls, geolocation-permission denial/retry, Spanish screen-reader output, and actual offline/low-battery behavior on real phones. A green CI build is not that validation.

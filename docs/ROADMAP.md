@@ -74,3 +74,15 @@ The project must not become a surveillance network, user-profile service, or a m
 - Include OSM attribution, ODbL metadata, unknown access/hours warnings and source staleness thresholds.
 
 **Acceptance:** CI tests/build pass, manual airplane-mode reload demonstrates offline saved records and local GLO Bro results; strict import rejection of private fields; successful v1-to-v2 IndexedDB upgrade preserves reports; Android battery/accessibility checks; no automatic Overpass calls on startup. Note that this is **not** the P1 licensed offline street-basemap deliverable.
+
+
+## P0.5 mobile UX acceptance checks (Scout)
+
+- [ ] Add pin directly opens/scrolls to editor, requests location only after tap, and leaves coordinates blank if permission denied
+- [ ] Map selection returns to editor with explicit coordinates; never assume default viewport
+- [ ] Saving reveals an in-context local-only confirmation; no accidental public publishing
+- [ ] 44×44 px minimum effective touch targets for critical buttons including 911/988/211, pin actions, map zoom, and tile switch
+- [ ] Shorter phone workflow: Scout search before collapsed offline packs; source results visible without nested scroll traps
+- [ ] Readable text, adequate visual contrast, translated main Spanish heading, shortened hours prompt
+- [ ] Real favicon.ico and SVG link resolve without 404
+- [ ] Android, iOS, keyboard/screen reader, and low-power acceptance runs are recorded separately from unit CI

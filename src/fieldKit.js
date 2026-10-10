@@ -8,6 +8,9 @@ export const CRISIS_CONTACTS = Object.freeze([
 
 export const TEXT = Object.freeze({
   en: {
+    heroEyebrow: 'A MAP THAT LOOKS OUT FOR EVERYBODY', heroFirst: 'Find what you need.', heroSecond: 'Share what you know.',
+    pinFormTitle: 'Add a private observation', pickMap: 'Pick on map',
+    locationRequired: 'Please confirm a real location before saving. Stroudsburg is only the starting map view, never an automatic pin location.',
     add: 'Add a private pin', locate: 'Use my location', emergency: 'Need help right now?', crisisInfo: 'U.S. support numbers. These stay readable offline. Calling or texting still requires a usable phone connection.',
     battery: 'Low-battery list', batteryOff: 'Show map and full view', language: 'Español', panic: 'Panic clear', panicConfirm: 'Erase ALL GLO observations saved on this device? This cannot undo shared links, downloads, browser history or copies outside this app.',
     cleared: 'GLO local observations cleared. Shared links, downloads and browser history must be removed separately.', noPins: 'No saved resource pins match this view.',
@@ -17,6 +20,9 @@ export const TEXT = Object.freeze({
     emptyTitle: 'Nothing saved here yet', description: 'Water, meals, restrooms, charging and more. Reports are personal notes, not safety guarantees.'
   },
   es: {
+    heroEyebrow: 'UN MAPA PARA AYUDARNOS ENTRE TODOS', heroFirst: 'Encuentra lo que necesitas.', heroSecond: 'Comparte lo que sabes.',
+    pinFormTitle: 'Agregar observación privada', pickMap: 'Elegir en el mapa',
+    locationRequired: 'Confirma el lugar real antes de guardar. Stroudsburg es solo la vista inicial, no el lugar de tu punto.',
     add: 'Agregar punto privado', locate: 'Usar mi ubicación', emergency: '¿Necesitas ayuda ahora?', crisisInfo: 'Números de ayuda en EE. UU. Se pueden leer sin conexión. Llamar o enviar mensajes requiere señal.',
     battery: 'Lista de bajo consumo', batteryOff: 'Mostrar mapa', language: 'English', panic: 'Borrar datos', panicConfirm: '¿Borrar TODAS las observaciones de GLO en este dispositivo? No se borran enlaces compartidos, descargas ni historial del navegador.',
     cleared: 'Se borraron las observaciones locales de GLO. Los enlaces, descargas e historial deben borrarse aparte.', noPins: 'No hay recursos guardados que coincidan.',
