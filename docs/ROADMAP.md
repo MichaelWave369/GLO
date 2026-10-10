@@ -114,3 +114,18 @@ The project must not become a surveillance network, user-profile service, or a m
 - [ ] Scout to validate permission denied → manually choose coordinates → save → delete while in low-battery mode
 - [ ] Scout to verify no duplicates in a five-result public source scan
 - [ ] Phone accessibility audit for 320–430 px widths and VoiceOver/TalkBack
+
+
+## P1-C: intentionally small cross-repo bridges
+
+First implementation: **KindBridge369 → GLO Pocket Plan**, adapted to GLO's React shell and no-account/offline boundary, plus **Peekaboo → distinct note-vs-OSM provenance** in optional resource text.
+
+Potential, *not yet wired*:
+- **Peekaboo:** source changed since last local snapshot, with timestamps and neutral warnings; do not call changed data verified.
+- **Aidora:** conservative personal-information export review with explicit user-directed data exchange; do not import the current BoardPack device IDs or message threads.
+- **FieldCloudWorker:** read-only scheduled public-only checks and bounded receipts, with manual review before anything appears as current/verified. No private phone location or user notes in workers.
+- **Infinite Commons:** deterministic optional artifact schema and offline validation, only if multiple publishers emerge.
+- **Vessie/Anti-M and BudgetGenius:** governance principles and strict budget caps, **not** a runtime/server dependency.
+- **RepoRider:** contributor/developer workflow tools, not a user-facing help feature.
+
+Acceptance: test small pure functions, no automatic persistence/network requests, no private-coordinate inclusion in copied plans, explicit copy/print disclosures, accessible phone and Spanish testing. Keep GLO useful on low-battery phones.

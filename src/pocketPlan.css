@@ -1,0 +1,30 @@
+.pocket-wrap{margin:16px 0 21px}
+.pocket-details{border:1px solid #bcd8c5;border-radius:14px;background:#fff;overflow:hidden}
+.pocket-details>summary{cursor:pointer;display:flex;gap:9px;align-items:center;justify-content:space-between;flex-wrap:wrap;min-height:56px;padding:15px 18px;background:#e9f4ea;color:#1c553c;font-size:16px;list-style:none}
+.pocket-details>summary::-webkit-details-marker{display:none}
+.pocket-details>summary::before{content:'+';font-weight:900;font-size:20px;margin-right:6px}
+.pocket-details[open]>summary::before{content:'−'}
+.pocket-details>summary span{font-size:12px;font-weight:650;color:#3d694d}
+.pocket-body{padding:18px;display:grid;gap:12px}
+.pocket-intro,.pocket-note,.pocket-privacy,.pocket-message{color:#3f5d4a;font-size:13px;line-height:1.6;margin:0}
+.pocket-fields{display:grid;gap:9px;max-width:730px}
+.pocket-fields label,.pocket-preview label{font-size:14px;font-weight:750;color:#27523b}
+.pocket-fields input:not([type="checkbox"]),.pocket-fields select,.pocket-preview textarea{min-height:47px;width:100%;border:1px solid #adc7b5;border-radius:10px;padding:11px 13px;font:inherit;font-size:15px;color:#193c2a;background:#fff}
+.pocket-fields .pocket-option{display:flex;align-items:center;gap:12px;min-height:48px;padding:6px 0;cursor:pointer}
+.pocket-fields .pocket-option input{width:24px;height:24px;flex:0 0 24px;accent-color:#266b4e}
+.pocket-preview{display:grid;gap:8px}
+.pocket-preview textarea{white-space:pre-wrap;line-height:1.5;min-height:180px}
+.pocket-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.pocket-actions button{min-height:48px}
+.pocket-print{display:none}
+.low-battery .pocket-details{border-color:#477154;background:#111c15;color:#f0f6ee}
+.low-battery .pocket-details>summary{background:#1b3b24;color:#f4f8ef}
+.low-battery .pocket-details>summary span,.low-battery .pocket-intro,.low-battery .pocket-note,.low-battery .pocket-privacy{color:#e2eee1}
+.low-battery .pocket-fields label,.low-battery .pocket-preview label{color:#e0f2df}
+@media print {
+  body *{visibility:hidden!important}
+  .pocket-print,.pocket-print *{visibility:visible!important}
+  .pocket-print{display:block!important;position:absolute;top:10mm;left:10mm;right:10mm;max-width:180mm;color:#000}
+  .pocket-print pre{font:11pt/1.55 Arial,sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}
+}
+@media(max-width:590px){.pocket-body{padding:13px}.pocket-details>summary{padding:14px}.pocket-actions{display:grid;grid-template-columns:1fr}.pocket-actions button{width:100%}}
