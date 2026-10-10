@@ -15,6 +15,8 @@ GLO Pin is a free, accountless, local-first community resource map. It is being 
 - View local markers without network connectivity, if the app shell was previously cached/installed.
 - Online OpenStreetMap tiles remain OFF until the user explicitly enables them.
 - Manual, labeled **private JSON backup** containing the user's exact reports.
+- **GLO crew:** user-triggered OSM Scout, edit-age Freshness analysis, local privacy boundary Guard, and free offline-capable GLO Bro **rule-based guide**.
+- Source records are distinct from private pins. Public OSM results are only queried on explicit action and never labeled verified operational status.
 - PWA application-shell caching and a GitHub Pages build pipeline.
 - Small deterministic tests of the observation and privacy contract.
 
@@ -26,7 +28,7 @@ This is an early prototype, NOT a verified community resource directory. Reports
 
 **Full offline street maps do not exist in P0.** With internet disabled or external map tiles not enabled, local pins remain visible against a coordinate grid, but roads and other geographical details are absent. That is not navigable offline map coverage. The PWA app shell also requires an initial successful load and depends on browser installation/caching support.
 
-Video, photos, public camera views, live community databases, and food-safety verification are not included.
+Video, photos, public camera views, live community databases, and food-safety verification are not included. **GLO Bro currently uses local decision rules, not a remotely hosted or on-device language model.** Actual model-driven AI remains a separately reviewed integration, with clear consent and a no-account fallback.
 
 ## Run locally
 

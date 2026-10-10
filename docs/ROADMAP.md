@@ -6,6 +6,15 @@ Deliver a React resource-map shell with three initial resource categories, Index
 
 **Acceptance:** green build and tests; browser verification of add/filter/search/delete; the app shell launches offline after prior installation/load; local observations remain available; zero street-tile requests before opt-in. CI alone does not establish phone or offline acceptance.
 
+## P0.2: governed source scout and GLO Bro
+
+- Four limited agent roles visible in the app: Scout (user-initiated Overpass discovery), Freshness (OSM last-edit metadata), Guard (private/public separation), and GLO Bro (offline local guide).
+- GLO Bro uses explicit decision rules and locally available records until a consent-based, privacy-reviewed AI model service or lightweight on-device model can be added.
+- All OSM results are evidence of a mapped record only. Open, safe, or functioning claims remain unsupported without separate verification.
+- No automated background crawlers or agents, no private data uploads, no resource reputation scores in this phase.
+
+**Acceptance:** build and tests pass; on-demand scout action and fallback behaviors work; human mobile review verifies clear provenance and separation; zero Overpass calls until the user clicks Search.
+
 ## P1: real downloadable offline maps
 
 - Choose a rights-cleared offline renderer/package system (e.g. MapLibre + PMTiles).

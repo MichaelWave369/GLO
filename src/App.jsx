@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import { CATEGORIES, PILOT_CENTER, distanceKm, normalizeReport, privateBackup } from './domain.js'
 import { listReports, saveReport, removeReport } from './storage.js'
+import GloAgentDock from './GloAgentDock.jsx'
 
 function MapNavigator({ target }) {
   const map = useMap()
@@ -12,6 +13,10 @@ function MapNavigator({ target }) {
 }
 function MapPicker({ enabled, onPick }) {
   useMapEvents({ click: (e) => { if (enabled) onPick(e.latlng) } })
+  return null
+}
+function MapCenterTracker({ onMove }) {
+  useMapEvents({ moveend: (e) => { const point = e.target.getCenter(); onMove({ lat: point.lat, lon: point.lng }) } })
   return null
 }
 function fmtDate(value) {
@@ -31,6 +36,8 @@ export default function App() {
   const [online, setOnline] = useState(navigator.onLine)
   const [tiles, setTiles] = useState(false)
   const [reference, setReference] = useState(PILOT_CENTER)
+  const [mapCenter, setMapCenter] = useState(PILOT_CENTER)
+  const [publicCandidates, setPublicCandidates] = useState([])
   const [target, setTarget] = useState(null)
   const [notice, setNotice] = useState('No account needed. Your observations stay on this device.')
   const [error, setError] = useState('')
@@ -52,6 +59,8 @@ export default function App() {
     (filter === 'all' || r.category === filter) &&
     (r.title + ' ' + r.note).toLowerCase().includes(query.trim().toLowerCase())
   ).sort((a, b) => distanceKm(reference, a) - distanceKm(reference, b)), [reports, filter, query, reference])
+
+  const visiblePublic = useMemo(() => publicCandidates.filter((r) => filter === 'all' || r.category === filter), [publicCandidates, filter])
 
   function jumpTo(r) {
     setSelectedId(r.id)
@@ -169,7 +178,11 @@ export default function App() {
             <MapContainer className="leaflet-map" center={[PILOT_CENTER.lat, PILOT_CENTER.lon]} zoom={13} scrollWheelZoom={false}>
               {online && tiles && <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'/>}
               <MapNavigator target={target}/>
+              <MapCenterTracker onMove={setMapCenter}/>
               <MapPicker enabled={editing} onPick={({ lat, lng }) => setDraft((d) => ({ ...d, lat: lat.toFixed(6), lon: lng.toFixed(6) }))}/>
+              {visiblePublic.map((r) => <CircleMarker key={r.id} center={[r.lat, r.lon]} radius={selectedId === r.id ? 12 : 9} pathOptions={{ color: '#457695', fillColor: r.category === 'water' ? '#83d4e4' : r.category === 'power' ? '#eec575' : '#a9cfa1', fillOpacity: 0.85, weight: 2, dashArray: '4 3' }} eventHandlers={{ click: () => setSelectedId(r.id) }}>
+                <Popup><strong>{r.title}</strong><br/>{CATEGORIES[r.category].label}<br/>OpenStreetMap record · Not verified<br/><a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">View OSM record</a></Popup>
+              </CircleMarker>)}
               {visible.map((r) => <CircleMarker key={r.id} center={[r.lat, r.lon]} radius={selectedId === r.id ? 11 : 8} pathOptions={{ color: '#155d4e', fillColor: r.category === 'water' ? '#4aa9c0' : r.category === 'power' ? '#ecb64e' : '#81b77b', fillOpacity: 0.94, weight: 3 }} eventHandlers={{ click: () => setSelectedId(r.id) }}>
                 <Popup><strong>{r.title}</strong><br/>{CATEGORIES[r.category].label}<br/>Self-reported · Unverified<br/>Private to this device</Popup>
               </CircleMarker>)}
@@ -180,6 +193,7 @@ export default function App() {
           <div className="map-footnote"><strong>Map privacy:</strong> Street tiles are off by default. If enabled, OpenStreetMap tile servers may receive your viewed map area and IP address. Offline street navigation and downloadable regional maps are future work. The tileless view is not a navigable map.</div>
         </div>
       </section>
+      <GloAgentDock center={mapCenter} localReports={reports} online={online} onSourcesChange={setPublicCandidates} onNavigate={jumpTo}/>
       <div className="principles"><div><b>◇</b><strong>No accounts</strong><p>Use GLO Pin without creating a profile.</p></div><div><b>⌁</b><strong>Local first</strong><p>Saved reports stay on-device; public sharing is not yet available.</p></div><div><b>✓</b><strong>Evidence over guesses</strong><p>Reports are marked self-reported, never certified safe.</p></div></div>
     </main>
     <footer>GLO Pin · Good Lookin' Out · <a href="https://github.com/MichaelWave369/GLO">Open-source repository</a><span>v0.1 prototype · Not an emergency service · No community sync</span></footer>
