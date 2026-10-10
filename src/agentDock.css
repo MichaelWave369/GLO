@@ -3,3 +3,29 @@
 .ai-options{margin-top:18px;padding:15px;border-radius:12px;border:1px solid #d5e5d9;background:#f0f7f1}.ai-options strong{font-size:13px;color:#2b624a}.ai-options p{font-size:11px;line-height:1.6;color:#587562}.ai-options button{margin-top:5px}.ai-state{font-size:11px;line-height:1.5;font-weight:700;color:#49765b}.ai-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.ai-answer{white-space:pre-wrap;overflow-wrap:anywhere;background:white;padding:12px;margin-top:12px;border:1px solid #d5e6db;border-radius:10px}.ai-answer strong{font-size:10px;letter-spacing:.06em;color:#855b2c}.ai-answer p{font-size:12px;color:#2e573e}.ai-answer small{font-size:10px;color:#7b775c;line-height:1.5}
 
 .audit-strip{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#eef5ee;color:#587465;border-radius:11px;padding:12px 14px;margin-bottom:18px;font-size:11px;line-height:1.5}.audit-strip strong{color:#2a664a}.audit-strip span{padding-left:11px;border-left:1px solid #c9dacd}
+
+
+/* Less visual noise, more readable public-source details. */
+.agent-desc small,.agent-desc>span,.agent-paragraph,.agent-disclosure,.agent-ai-note,.candidate-body>span,.candidate-body small,
+.scan-coordinates,.agent-offline,.agent-error,.scan-summary,.audit-strip,.agent-dock-footer,.guide-response,.guide-match small{
+  font-size:13px;line-height:1.55;color:#405e4e
+}
+.agent-desc>span{color:#2b624b}
+.agent-person{min-width:0}
+.agent-mini-count,.agent-local-pill{font-size:11px}
+.candidate-body strong{font-size:14px}
+.candidate-links{gap:8px;flex-wrap:wrap}
+.candidate-links a,.candidate-links button{font-size:13px;min-height:44px;min-width:44px;padding:10px 13px;border-radius:8px;background:#e9f3ea;color:#20563d;text-decoration:none}
+.agent-buttons .primary,.agent-buttons .secondary,.guide-form button{min-height:48px}
+.quick-questions button{font-size:13px;min-height:46px}
+.agent-dock-head p{font-size:14px;color:#405c4a}
+.candidate-list{max-height:none;overflow:visible}
+.agent-show-more{background:#e5f0e8;color:#1b5c3f;border:1px solid #b3cdb9;padding:11px 16px;border-radius:9px;font-size:13px;font-weight:800;min-height:46px;margin-top:10px}
+@media(max-width:590px){
+  .agent-person{padding:12px}
+  .agent-desc strong{font-size:14px}
+  .agent-desc small,.agent-desc>span{font-size:12px}
+  .agent-grid{grid-template-columns:1fr 1fr}
+  .agent-buttons{display:flex;flex-wrap:wrap}
+  .candidate{padding:14px}
+}
