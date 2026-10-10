@@ -7,6 +7,8 @@ import './fieldKit.css'
 import './streetSketch.css'
 import './pocketPlan.css'
 import App from './App.jsx'
+// Keep the approved charcoal/mint palette last so it covers every feature module.
+import './darkTheme.css'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

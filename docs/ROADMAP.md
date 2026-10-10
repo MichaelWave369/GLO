@@ -157,3 +157,17 @@ Do not import FamilyVault auth/RBAC/medical APIs into GLO. This is a design-patt
 - [ ] Accessibility audit of update alert and per-field sharing approvals
 
 Field report from Scout: scoped shares and decoded QR payloads passed default, precision-only, title-only and rapid-toggle checks. Do not convert that into a claim of an independent security audit.
+
+
+## Dark UI acceptance checklist
+
+- [x] Use approved charcoal/mint mockup as visual direction; default to dark on first page load
+- [x] Apply to hero, forms, filter pills, map background/zoom/popups, crisis panels, Scout/GLO Bro, Pocket Plan, offline packs, share approvals and update banner
+- [x] Improve linework and marker contrast in local tileless map; preserve tile-toggle opt-in and OSM attribution
+- [x] Use dark browser / PWA theme color, with white paper printing
+- [x] Add deterministic foreground/background contrast tests and dark-section coverage test
+- [ ] Scout: inspect 320/390px and widescreen; field labels, map controls, focus ring, long notes, emergency call targets, share preview and copy/QR contrast
+- [ ] Scout: confirm online tile CSS colors do not impair legibility; switch tiles off for the best dark look
+- [ ] Scout: check low-battery vs standard mode, Pocket Plan print, installed PWA status bar and Spanish labels
+
+The visual change is intentionally CSS-first. Data sources, local storage, location prompts, privacy permissions and service-worker update mechanics remain unchanged.

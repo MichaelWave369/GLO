@@ -179,3 +179,14 @@ Scout independently decoded handoff JSON and QR payloads across default, exact-o
 - After an update is found, a tap applies it and reloads the app. Offline resources already saved on the device remain in the app's IndexedDB, which is not cleared by service-worker activation.
 
 The update banner requires a device to load this version at least once. A device still running an older cached build without the update detector cannot retroactively display the new notice; after one manual cache refresh the notice can handle future releases. A browser's cache, service-worker lifecycle and device settings can delay discovery. This is **not** a promise of immediate updates, automatic installation, or offline-to-online connectivity.
+
+
+## Default charcoal + mint appearance
+
+GLO Pin now opens in the darker **charcoal/mint visual theme**, matched to the approved dark dashboard mockup rather than the formerly bright white/cream background. The dark palette covers the hero, navigation, private-pin cards, resource and assistant panels, crisis/call controls, location form, saved street sketches, sharing preflight, offline packs, update notice, QR preview and Leaflet map chrome.
+
+- The **tileless/offline map** uses a dark legible grid. Stored OSM linework colors are brighter for dark contrast.
+- Opt-in online OpenStreetMap raster tiles use a *client-side visual color filter* to reduce brightness. This affects only their appearance, not the OSM data, provenance or permission model. Colors are not a trustworthy indicator of road classification or safety.
+- The low-battery screen remains distinct and legible; printing a Pocket Plan retains a white page with dark text.
+- The default-dark change introduces **no new location requests, account requirement, network calls, or migration of private local reports**, and keeps the previously reviewed update prompt and emergency controls.
+- Colors and readable defaults have deterministic CSS token/contrast tests; automated tests and Pages deployment do **not** replace real phone-width and screen-reader review.

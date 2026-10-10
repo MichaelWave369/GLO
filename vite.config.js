@@ -15,8 +15,8 @@ export default defineConfig({
         start_url: '/GLO/',
         scope: '/GLO/',
         display: 'standalone',
-        theme_color: '#122d38',
-        background_color: '#f4f7f3',
+        theme_color: '#0c1419',
+        background_color: '#0c1419',
         icons: [{ src: '/GLO/glo-pin.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }]
       },
       workbox: {
