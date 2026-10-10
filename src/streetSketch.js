@@ -93,3 +93,10 @@ export async function fetchStreetSketch(center,signal){
     return createStreetSketch(JSON.parse(raw).elements,center)
   }finally{clearTimeout(timer);signal?.removeEventListener('abort',abort)}
 }
+
+
+export function sketchAge(sketch,now=Date.now()) {
+  const value=Date.parse(sketch?.savedAt)
+  if(!Number.isFinite(value)||value>now+300000)return null
+  return Math.max(0,Math.floor((now-value)/86400000))
+}
