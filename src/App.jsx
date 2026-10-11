@@ -66,7 +66,7 @@ export default function App() {
   const [activePackId, setActivePackId] = useState('')
   const [packRevision, setPackRevision] = useState(0)
   const [target, setTarget] = useState(null)
-  const [notice, setNotice] = useState('No account needed. Your observations stay on this device.')
+  const [notice, setNotice] = useState({key:'welcome'})
   const [error, setError] = useState('')
   const [locationHint, setLocationHint] = useState('')
   const [formError, setFormError] = useState('')
@@ -133,8 +133,8 @@ export default function App() {
     setPackRevision(v => v + 1)
     setReference(pack.center)
     setTarget({ ...pack.center, zoom:14 })
-    setNotice((restored ? 'Restored' : 'Loaded') + ' offline public Scout pack (' + sources.length +
-      ' records). Last queried: ' + new Date(pack.scannedAt).toLocaleString() +
+    setNotice((restored ? ui.offlinePackRestore : ui.offlinePackLoad) + ' ' + ui.offlinePackLabel + ' (' + sources.length +
+      ' ' + ui.offlinePackRecords + '). '+ui.offlinePackQueried+': ' + new Date(pack.scannedAt).toLocaleString(language==='es'?'es-US':'en-US') +
       '. Records are unverified, and no street map was downloaded.')
   }
   function removeOfflinePack(id) {
@@ -301,7 +301,7 @@ export default function App() {
         <img src={import.meta.env.BASE_URL + 'glo-pin.svg'} width="44" height="44" alt="" />
         <span><strong>GLO <span>Pin</span></strong><small>GOOD LOOKIN' OUT</small></span>
       </a>
-      <div className="status"><span className="status-dot" />{connectionDisplay(online,language)}<span className="chip">{ui.localFirst}</span></div>
+      <div className="status"><span className={'status-dot '+(online?'status-dot-unverified':'status-dot-offline')} />{connectionDisplay(online,language)}<span className="chip">{ui.localFirst}</span></div>
     </header>
     <main>
       <div className="field-controls">
@@ -319,7 +319,7 @@ export default function App() {
       </section>
       <PocketPlan language={language} resource={selectedResource}/>
       <SharedPreview pin={sharedPreview} language={language} onView={() => { if (lowBattery) changeLowBattery(); jumpTo(sharedPreview) }} onDismiss={closeShared}/>
-      {notice && <div className="notice" role="status" aria-live="polite">{notice}</div>}
+      {notice && <div className="notice" role="status" aria-live="polite">{typeof notice==='object'?ui[notice.key]||'':notice}</div>}
       {error && <div className="warning" role="alert">{ui.storageError}: {error}. {ui.storageCaution}</div>}
       <section className="workspace" aria-label={ui.mapPrivacyArea}>
         <aside className="sidebar">
@@ -410,7 +410,7 @@ export default function App() {
               {backupReviewOpen && reports.length>0 &&
                 <BackupReview reports={reports} language={language}
                   onClose={()=>setBackupReviewOpen(false)}
-                  onDownloaded={message=>setNotice(message)}/>}
+                  onDownloaded={()=>setNotice({key:'downloadRequested'})}/>}
               {restoreOpen && <BackupRestore existing={reports} language={language}
                 onClose={()=>setRestoreOpen(false)}
                 onRestored={async message=>{await refresh();setSavedFeedback(null);setNotice(message)}}/>}
@@ -440,8 +440,8 @@ export default function App() {
             {editing && <div className="map-tip">{ui.mapTap}</div>}
           </div>
           <div className="map-footnote"><strong>{ui.mapPrivacy}</strong> {ui.mapPrivacyText}</div>
-          <StreetSketchPanel center={mapCenter} online={online} selected={streetSketch}
-            onSelect={(pack,restored)=>{setStreetSketch(pack);setTarget({...pack.center,zoom:15});setNotice((restored?'Restored':'Selected')+' '+pack.records.length+' offline streets, paths and waterways. No directions or live conditions.')}}
+          <StreetSketchPanel center={mapCenter} online={online} selected={streetSketch} language={language}
+            onSelect={(pack,restored)=>{setStreetSketch(pack);setTarget({...pack.center,zoom:15});setNotice((restored?ui.restoredMap:ui.selectedMap)+' '+pack.records.length+' '+ui.savedMap)}}
             onDelete={()=>setStreetSketch(null)}/>
         </div>}
       </section>
@@ -449,7 +449,7 @@ export default function App() {
         onSourcesChange={onScoutRecords} sourceRecords={publicCandidates} sourceSnapshot={sourceScan} packRevision={packRevision} onNavigate={jumpTo} onOpenPacks={openPacks}/>}
       <details className="packs-fold" ref={packsDetailsRef}>
         <summary>{language === 'es' ? 'Guardar o abrir recursos sin conexión' : 'Save or open offline resource packs'}</summary>
-        <OfflinePacksPanel scan={sourceScan} onUse={useOfflinePack} onRemove={removeOfflinePack} onNotice={setNotice}/>
+        <OfflinePacksPanel scan={sourceScan} language={language} onUse={useOfflinePack} onRemove={removeOfflinePack} onNotice={setNotice}/>
       </details>
       <div className="principles"><div><b>◇</b><strong>{ui.principlesNo}</strong><p>{ui.principlesNoInfo}</p></div><div><b>⌁</b><strong>{ui.principlesLocal}</strong><p>{ui.principlesLocalInfo}</p></div><div><b>✓</b><strong>{ui.principlesEvidence}</strong><p>{ui.principlesEvidenceInfo}</p></div></div>
     </main>
