@@ -11,6 +11,8 @@ import { sourcesFromPack } from './offlinePack.js'
 import { initialDraft, localDateTime } from './pinDraft.js'
 import { listRowsForMode, visibleSaveReceipt, activeShareTarget } from './resourceView.js'
 import MapPinIcon from './MapPinIcon.jsx'
+import RecheckPanel, { RecheckHistory } from './RecheckPanel.jsx'
+import { latestRecheck } from './recheck.js'
 import { TEXT, accessText, parseSharedPin } from './fieldKit.js'
 import { CrisisCard, SharePanel, SharedPreview } from './FieldTools.jsx'
 
@@ -38,6 +40,7 @@ export default function App() {
   const [language, setLanguage] = useState('en')
   const [lowBattery, setLowBattery] = useState(false)
   const [sharingPin, setSharingPin] = useState(null)
+  const [recheckTargetId, setRecheckTargetId] = useState('')
   const [sharedPreview, setSharedPreview] = useState(() => parseSharedPin(window.location.hash))
   const [panicCovered, setPanicCovered] = useState(false)
   const [panicCleared, setPanicCleared] = useState(false)
@@ -97,6 +100,7 @@ export default function App() {
   const selectedResource = chosenRecord ? { title: chosenRecord.title, from: reports.some(r=>r.id===selectedId)?'private':'osm' } : null
   // The share panel is tied to a live report, not to a stale copied React object.
   const activeSharingPin = activeShareTarget(sharingPin, reports, publicCandidates)
+  const activeRecheckReport = reports.find(r=>r.id===recheckTargetId) || null
 
   function onScoutRecords(records, metadata = null) {
     setPublicCandidates(records)
@@ -167,6 +171,7 @@ export default function App() {
     }, { enableHighAccuracy: false, maximumAge: 60000, timeout: 12000 })
   }
   function begin() {
+    setRecheckTargetId('')
     setDraft(initialDraft()) // Never silently use Stroudsburg or the last map view for a new report.
     locationRequest.current += 1
     setSavedFeedback(null)
@@ -218,6 +223,7 @@ export default function App() {
       // Revoke any still-visible approval UI before performing deletion.
       // Previously copied links/QRs remain beyond GLO's control.
       setSharingPin(current => current?.id === r.id ? null : current)
+      setRecheckTargetId(current => current === r.id ? '' : current)
       await removeReport(r.id)
       setSavedFeedback(current => current?.id === r.id ? null : current)
       await refresh()
@@ -243,6 +249,7 @@ export default function App() {
       setSourceScan(null)
       setActivePackId('')
       setSharingPin(null)
+      setRecheckTargetId('')
       setSharedPreview(null)
       setSelectedId('')
       setDraft(initialDraft())
@@ -365,18 +372,24 @@ export default function App() {
               {displayedRows.length ? displayedRows.map((r) => <article className={'pin-card' + (selectedId === r.id ? ' selected' : '')} key={r.id}>
                 <button className="pin-card-main" onClick={() => jumpTo(r)}>
                   <span className="category-icon">{CATEGORIES[r.category].icon}</span>
-                  <span className="pin-info"><strong>{r.title}</strong><small>{CATEGORIES[r.category].label} · {distanceKm(reference, r).toFixed(1)} km from map search center</small>{r.note && <span className="pin-note">{r.note}</span>}<small>{r.from === 'osm' ? 'OpenStreetMap · ' + (r.checkedAt || '') : t.seen + ': ' + fmtDate(r.lastSeenWorkingAt || r.observedAt)} · {t.noteStatus}</small>
+                  <span className="pin-info"><strong>{r.title}</strong><small>{CATEGORIES[r.category].label} · {distanceKm(reference, r).toFixed(1)} km from map search center</small>{r.note && <span className="pin-note">{r.note}</span>}<small>{r.from === 'osm' ? 'OpenStreetMap · ' + (r.checkedAt || '') : t.seen + ': ' + fmtDate(latestRecheck(r)?.observedAt || r.observedAt)} · {t.noteStatus}</small>
                     {r.reportedHours && <span className="local-observation">{t.reported}: {r.reportedHours}</span>}
-                    {r.visitStatus === 'not_working' && <span className="local-observation">{t.broken}</span>}
-                    {r.visitStatus === 'working' && <span className="local-observation">{t.worked}: {fmtDate(r.lastSeenWorkingAt || r.observedAt)}</span>}
+                    {!latestRecheck(r) && r.visitStatus === 'not_working' && <span className="local-observation">{t.broken}</span>}
+                    {latestRecheck(r) && <span className="local-observation">{language === 'es' ? 'Última revisión personal' : 'Latest personal recheck'}: {latestRecheck(r).visitStatus === 'working' ? t.worked : latestRecheck(r).visitStatus === 'not_working' ? t.broken : (language === 'es' ? 'No se pudo comprobar' : 'Could not determine')} · {language === 'es' ? 'Sin verificación independiente' : 'Not independently verified'}</span>}
+                    {!latestRecheck(r) && r.visitStatus === 'working' && <span className="local-observation">{t.worked}: {fmtDate(r.lastSeenWorkingAt || r.observedAt)}</span>}
                     {r.accessibility && Object.entries(r.accessibility).filter(([,v])=>v!=='unknown').map(([key,value])=><span className="local-observation" key={key}>{({wheelchair:t.wheelchair,stepFree:t.stepFree,idRequired:t.id,petsAllowed:t.pets})[key]}: {accessText(key,value,language)}</span>)}</span>
                 </button>
+                {r.from !== 'osm' && <RecheckHistory report={r} language={language}/>}
                 <div className="pin-actions">
-                  <button onClick={() => setSharingPin(r)}>{t.share}</button>
+                  {r.from !== 'osm' && <button type="button" onClick={() => {setSharingPin(null);setRecheckTargetId(r.id)}}>{language === 'es' ? 'Volver a comprobar' : 'Recheck'}</button>}
+                  <button onClick={() => {setRecheckTargetId('');setSharingPin(r)}}>{t.share}</button>
                   {r.from === 'osm' ? <a href={r.sourceUrl} rel="noopener noreferrer" target="_blank">OSM ↗</a> : <button className="delete" onClick={() => erase(r)} aria-label={'Delete ' + r.title}>{language === 'es' ? 'Borrar punto' : 'Delete local pin'}</button>}
                 </div>
               </article>) : <div className="empty"><span className="empty-symbol"><MapPinIcon size={42}/></span><strong>{language === 'es' ? 'No hay puntos que mostrar' : lowBattery ? 'No resources to show' : 'No private pins yet'}</strong><p>{t.noPins}</p><button className="plain-link" onClick={begin}>Add a pin →</button></div>}
             </div>
+            {activeRecheckReport && <RecheckPanel key={activeRecheckReport.id} report={activeRecheckReport} language={language}
+              onSaved={async () => {await refresh();setRecheckTargetId('');setNotice(language==='es'?'Nueva observación privada guardada. Historial conservado.':'Private recheck saved; earlier observations preserved.')}}
+              onClose={() => setRecheckTargetId('')}/>}
             <SharePanel key={activeSharingPin?.id || "none"} pin={activeSharingPin} language={language} onClose={() => setSharingPin(null)}/>
             <div className="backup"><strong>Keep your own data</strong><p>Download a private JSON backup. This file contains your coordinates and notes; it does not upload.</p><button className="secondary compact" disabled={!reports.length} onClick={backup}>{t.backup}</button></div>
           </>}
