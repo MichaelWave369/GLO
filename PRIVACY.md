@@ -85,3 +85,12 @@ PWA update detection contacts the application's own GitHub Pages origin only whe
 After a user explicitly starts a new Scout search, GLO compares the newly downloaded **public OSM candidate records** with an already-loaded public snapshot (including a locally saved public resource pack), provided both queries cover approximately the same neighborhood. Comparison happens in browser memory; it needs no additional fetch and never reads private notes or sends report coordinates. No shared account, activity tracking or change history is created.
 
 Public OSM data may be stale, incomplete, erroneous or edited for unrelated reasons. “Newly returned”, “edited” and “not returned” describe map/query outputs only, **never** a provider's current real-world availability. A record that is missing from one query is not proof that the corresponding service closed or disappeared. If a query was truncated, conclusions are even more limited.
+
+
+## Field Recheck Ledger privacy
+
+A private resource pin can contain up to 20 append-only personal rechecks. These include an observation time, the device save time, a self-reported status, and an optional short note. The history is stored in the **same device-only IndexedDB row** as the initial report. GLO does not send these observations to Overpass, OpenStreetMap, another user, a cloud AI model, or an API. The old entry remains readable even if a later visit disagrees with it.
+
+Downloading a private backup includes **all stored rechecks** because they are part of the pin's private record. A backup file can retain personal/sensitive details even after the user deletes a pin or uses panic clear. Do not export or share private recheck histories as public source data. A deleted pin has no surviving app-owned history entry in GLO's \`reports\` table, but external copies are beyond GLO's reach.
+
+The app does not independently verify any field observation, claim of working equipment, resource availability, or safety. No background location access is needed for recheck.
