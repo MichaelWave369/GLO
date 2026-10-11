@@ -201,3 +201,18 @@ The visual change is intentionally CSS-first. Data sources, local storage, locat
 - [ ] Scout test statuses working / not working / unknown and pre-original/future dates
 - [ ] Confirm no private check enters public OSM packs, GLO Bro public source list, QR/shared pin or external requests
 - [ ] Verify low-battery, Spanish, print, screen readers, and backup disclosure on real devices
+
+
+## P1-H: privacy-reviewed local exports
+
+- [x] Replace one-tap private backup with an explicit Data Safety Review.
+- [x] Default to counts-only overview; clearly mark as **NOT A BACKUP**.
+- [x] Safely project only derived counts; exclude names, exact coordinates, notes, IDs, visit and recheck content in overview.
+- [x] Full private JSON requires separate mode selection and plain-text/sensitive-data acknowledgement; preserve original backup format with history.
+- [x] Show private pin count, recheck count, coordinate-bearing pins and note-bearing pins on-device before selection.
+- [x] Works offline and in low-battery mode; bilingual labels and dark mobile hit targets.
+- [x] No upload, background export, account/identity, encryption promises or silent sharing.
+- [x] Add regression tests for scoped export content and explicit full-backup acknowledgement.
+- [ ] Scout phone QA: preview → counts overview → inspect file for private data; full backup warning and content; cancel; low-battery, Spanish.
+- [ ] Scout verify no file is downloaded before consent and panic clear does not claim to erase downloaded files.
+- [ ] Consider truly encrypted local export **only after** a rigorous cryptography/restore/security design review.
