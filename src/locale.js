@@ -17,6 +17,8 @@ export function connectionDisplay(isOnline,language='en'){
 }
 export const UI=Object.freeze({
  en:{
+  welcome:'No account needed. Your observations stay on this device.',
+  downloadRequested:'Download requested. Check Downloads and protect or delete the file yourself.',
   localFirst:'LOCAL FIRST', explorer:'RESOURCE EXPLORER',all:'All',
   distance:'km from map search center',map:'Explore the map',
   start:'Starting view: Stroudsburg, PA (not your detected position)',
@@ -42,6 +44,8 @@ export const UI=Object.freeze({
   offlinePackQueried:'Last queried',offlinePackRemoved:'Removed offline public resource pack.'
  },
  es:{
+  welcome:'No necesitas cuenta. Tus observaciones permanecen en este dispositivo.',
+  downloadRequested:'Se solicitó la descarga. Revisa Descargas y protege o borra el archivo por tu cuenta.',
   localFirst:'PRIMERO LO LOCAL',explorer:'EXPLORADOR DE RECURSOS',all:'Todos',
   distance:'km del centro de búsqueda del mapa',map:'Explorar el mapa',
   start:'Vista inicial: Stroudsburg, PA (no es tu ubicación detectada)',
