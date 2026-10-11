@@ -250,3 +250,18 @@ GLO can now **recover private reports and append-only recheck histories from a f
 - GLO does not currently support encrypted private backups or recovery of deleted source files.
 
 Real-device QA still required for file chooser behavior, offline restore after reload, low-battery view, Spanish, conflicts, capacity, and screen readers.
+
+
+## Scout 2026-10-10: Spanish, browser connectivity and recovery messaging
+
+Scout's real-phone field review passed full private export with complete recheck history, new-profile recovery with exact preserved details, add-only re-import protecting newer local observations, cached offline operation, crisis visibility and combined Spanish/low-battery operation. That is field acceptance for these tested paths, **not** a blanket audit of privacy or real-world service availability.
+
+P1-J closes the follow-up mobile UX issues:
+- Resource types, filter chips, sidebar distance/status text, the map controls/popups/privacy explanation, OSM offline street-sketch controls and public pack panel are localized in Spanish.
+- Scout's visible controls, freshness/source-change labels, GLO Bro forms and deterministic offline rule responses now support Spanish, including common Spanish water/food/power/weather queries. **User-written notes, map feature names and optional on-device AI responses are not automatically translated.** These may remain in the source language.
+- **Browser connection indicator:** \`navigator.onLine\` cannot prove internet reachability. GLO no longer claims "Browser online" from that hint. It says **Connection not checked / Conexión sin comprobar** when a network interface may exist, or **Offline / Sin conexión** when the browser reports offline, and resynchronizes on focus/visibility. No background internet probe or location transmission is introduced. On-demand public requests can still fail independently.
+- The low-battery **LOCAL FIRST / PRIMERO LO LOCAL** chip now uses a pale mint background with dark text. The connectivity dot is amber until reachability is established, not an unearned green success signal.
+- If a selected backup contains only pin IDs already on this device, its non-destructive preview now explicitly states **nothing was changed**, in English and Spanish. The restore button remains disabled.
+- The post-export **Download requested** notice is localized at render time, so toggling language no longer leaves that particular persisted notice in the wrong language.
+
+No changes to backup schema, private storage, QR shares, offline cache, location consent, public status provenance or panic clear behavior.
