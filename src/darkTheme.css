@@ -278,3 +278,29 @@ html .low-battery .crisis-contact a{background:#347352;color:#fff}
   body{background:white!important;color:#000!important}
   html .pocket-print,html .pocket-print *{color:#000!important;background:white!important}
 }
+
+
+/* Scout acceptance: low-battery connection and LOCAL FIRST pill must be high contrast. */
+html .shell.low-battery .status{
+  color:#e7f7ed;
+  font-weight:700;
+}
+html .shell.low-battery .status .chip{
+  background:#d9f7e4;
+  color:#10271b;
+  border:1px solid #f1fff5;
+  font-weight:900;
+  letter-spacing:.025em;
+}
+html .shell.low-battery .status .status-dot{
+  background:#98eebd;
+  box-shadow:0 0 0 3px #29553b;
+}
+html .shell.low-battery .agent-local-pill{
+  background:#d9f7e4;
+  color:#10271b;
+}
+@media(max-width:480px){
+  html .masthead .status{flex-wrap:wrap;gap:7px;justify-content:flex-end;max-width:65%;line-height:1.4}
+  html .masthead .chip{margin-left:0}
+}
