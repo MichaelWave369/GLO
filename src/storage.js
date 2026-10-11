@@ -1,6 +1,7 @@
 // IndexedDB is per-origin; GLO deliberately touches only its own named database.
 import { validatePublicPack } from './offlinePack.js'
 import { validateStreetSketch } from './streetSketch.js'
+import { MAX_RECHECKS, validatedRechecks } from './recheck.js'
 
 const NAME = 'glo-pin-local-v1'
 const TABLE = 'reports'
@@ -46,6 +47,36 @@ export async function listReports() {
 }
 export function saveReport(report) { return transact('readwrite', table => table.put(report)) }
 export function removeReport(id) { return transact('readwrite', table => table.delete(id)) }
+
+// The pin and its rechecks live in the SAME IndexedDB row, so deletion, private backup
+// and panic clear include the full history without an upgrade or a separate orphan store.
+export async function appendRecheck(reportId, receipt) {
+  const db=await openDatabase()
+  try {
+    return await new Promise((resolve,reject)=>{
+      const tx=db.transaction(TABLE,'readwrite')
+      const store=tx.objectStore(TABLE)
+      const get=store.get(reportId)
+      let updated
+      get.onsuccess=()=>{
+        const existing=get.result
+        if(!existing) {tx.abort();return}
+        const current=validatedRechecks(existing)
+        const matches=validatedRechecks({...existing,rechecks:[receipt]})
+        if(matches.length!==1 || Object.keys(receipt).some(k=>![
+          'id','observedAt','savedAt','visitStatus','note','provenance','condition','visibility'
+        ].includes(k)) || current.length>=MAX_RECHECKS ||
+          current.some(r=>r.id===receipt.id)){tx.abort();return}
+        updated={...existing,rechecks:[...(existing.rechecks||[]),receipt]}
+        store.put(updated)
+      }
+      tx.oncomplete=()=>resolve(updated)
+      tx.onabort=()=>reject(new Error('Private recheck not saved. Pin missing, history full (20) or receipt invalid.'))
+      tx.onerror=()=>reject(tx.error||new Error('Unable to save the private recheck.'))
+    })
+  } finally {db.close()}
+}
+
 
 export async function listPublicPacks() {
   const packs = await transact('readonly', table => table.getAll(), PACKS)
