@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import 'fake-indexeddb/auto'
-import { listReports, saveReport, removeReport, appendRecheck, savePublicPack, listPublicPacks, listStreetSketches, saveStreetSketch, clearAllLocalData } from './storage.js'
+import { listReports, saveReport, removeReport, appendRecheck, restorePrivateReports, savePublicPack, listPublicPacks, listStreetSketches, saveStreetSketch, clearAllLocalData } from './storage.js'
 import { createPublicPack } from './offlinePack.js'
 import { createStreetSketch } from './streetSketch.js'
 import { createRecheck } from './recheck.js'
@@ -101,4 +101,44 @@ test('recheck history bounded to 20, and deleting a pin removes history',async()
   await assert.rejects(appendRecheck(original.id,tooMany),/history full/)
   await removeReport(original.id)
   assert.equal((await listReports()).some(r=>r.id==='full-pin'),false)
+})
+
+
+test('private restore adds missing pins but cannot overwrite an existing newer history',async()=>{
+  const seen=new Date(Date.now()-86400000).toISOString()
+  const first={id:'keep-current',title:'Current local pin',category:'water',
+    lat:40.986,lon:-75.194,observedAt:seen,savedAt:seen,visitStatus:'unknown',
+    note:'My newest private note',rechecks:[]}
+  const oldBackup={...first,title:'Old exported title',note:'Older info from export'}
+  const newPin={...first,id:'restore-only',title:'Recovered from backup',note:'Old recovery note'}
+  await saveReport(first)
+  const outcome=await restorePrivateReports([oldBackup,newPin])
+  assert.deepEqual(outcome,{imported:1,skipped:1})
+  const rows=await listReports()
+  assert.equal(rows.find(r=>r.id==='keep-current').note,'My newest private note')
+  assert.equal(rows.find(r=>r.id==='restore-only').title,'Recovered from backup')
+  assert.deepEqual(await restorePrivateReports([oldBackup,newPin]),{imported:0,skipped:2})
+  await clearAllLocalData()
+})
+test('invalid restore fails before writing and does not replace existing data',async()=>{
+  const when=new Date(Date.now()-100000).toISOString()
+  await saveReport({id:'protected',category:'water',title:'Protected',lat:40,lon:-75,observedAt:when,note:'Must stay'})
+  await assert.rejects(restorePrivateReports([
+    {id:'good-looking',category:'water',title:'Good',lat:40,lon:-75,observedAt:when},
+    {id:'bad-looking',category:'water',title:'Bad',lat:120,lon:-75,observedAt:when}
+  ]),/Invalid private coordinates/)
+  const rows=await listReports()
+  assert.deepEqual(rows.map(r=>r.id),['protected'])
+  await clearAllLocalData()
+})
+
+test('panic clear wins over an import started in the same tab',async()=>{
+ const observed=new Date(Date.now()-60000).toISOString()
+ const record={id:'recovery-race',category:'water',title:'Must not reappear',lat:40,lon:-75,
+   observedAt:observed,savedAt:observed,note:'Remove on panic clear'}
+ // Attach cancellation handling immediately; a panic-clear abort is expected.
+ const pending=restorePrivateReports([record]).catch(()=>null)
+ await clearAllLocalData()
+ await pending
+ assert.deepEqual(await listReports(),[])
 })

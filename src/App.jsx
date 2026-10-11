@@ -6,6 +6,7 @@ import GloAgentDock from './GloAgentDock.jsx'
 import UpdateNotice from './UpdateNotice.jsx'
 import PocketPlan from './PocketPlan.jsx'
 import BackupReview from './BackupReview.jsx'
+import BackupRestore from './BackupRestore.jsx'
 import OfflinePacksPanel from './OfflinePacksPanel.jsx'
 import StreetSketchPanel from './StreetSketchPanel.jsx'
 import { sourcesFromPack } from './offlinePack.js'
@@ -43,6 +44,7 @@ export default function App() {
   const [sharingPin, setSharingPin] = useState(null)
   const [recheckTargetId, setRecheckTargetId] = useState('')
   const [backupReviewOpen, setBackupReviewOpen] = useState(false)
+  const [restoreOpen, setRestoreOpen] = useState(false)
   const [sharedPreview, setSharedPreview] = useState(() => parseSharedPin(window.location.hash))
   const [panicCovered, setPanicCovered] = useState(false)
   const [panicCleared, setPanicCleared] = useState(false)
@@ -253,6 +255,7 @@ export default function App() {
       setSharingPin(null)
       setRecheckTargetId('')
       setBackupReviewOpen(false)
+      setRestoreOpen(false)
       setSharedPreview(null)
       setSelectedId('')
       setDraft(initialDraft())
@@ -386,12 +389,19 @@ export default function App() {
             <div className="backup">
               <strong>{language==='es'?'Tus datos, bajo tu control':'Keep your own data'}</strong>
               <p>{language==='es'?'Revisa los datos antes de crear un archivo. Las copias completas contienen ubicaciones y revisiones privadas.':'Review what leaves this device before downloading. Full backups include exact locations, private notes and rechecks.'}</p>
-              <button type="button" className="secondary compact" disabled={!reports.length}
-                onClick={()=>setBackupReviewOpen(open=>!open)}>{language==='es'?'Revisar opciones de exportación':'Review export options'}</button>
+              <div className="backup-actions-row">
+                <button type="button" className="secondary compact" disabled={!reports.length}
+                  onClick={()=>{setRestoreOpen(false);setBackupReviewOpen(open=>!open)}}>{language==='es'?'Revisar opciones de exportación':'Review export options'}</button>
+                <button type="button" className="secondary compact"
+                  onClick={()=>{setBackupReviewOpen(false);setRestoreOpen(open=>!open)}}>{language==='es'?'Recuperar copia privada':'Recover private backup'}</button>
+              </div>
               {backupReviewOpen && reports.length>0 &&
                 <BackupReview reports={reports} language={language}
                   onClose={()=>setBackupReviewOpen(false)}
                   onDownloaded={message=>setNotice(message)}/>}
+              {restoreOpen && <BackupRestore existing={reports} language={language}
+                onClose={()=>setRestoreOpen(false)}
+                onRestored={async message=>{await refresh();setSavedFeedback(null);setNotice(message)}}/>}
             </div>
           </>}
         </aside>

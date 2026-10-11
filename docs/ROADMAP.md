@@ -216,3 +216,18 @@ The visual change is intentionally CSS-first. Data sources, local storage, locat
 - [ ] Scout phone QA: preview → counts overview → inspect file for private data; full backup warning and content; cancel; low-battery, Spanish.
 - [ ] Scout verify no file is downloaded before consent and panic clear does not claim to erase downloaded files.
 - [ ] Consider truly encrypted local export **only after** a rigorous cryptography/restore/security design review.
+
+
+## P1-I: private offline backup recovery
+
+- [x] Add **Recover private backup** alongside explicit local export review.
+- [x] Parse only the full v1 private JSON format; reject counts-only overview, public OSM packs, unknown schemas, hidden fields, spoofed verified status, malformed and oversized files.
+- [x] Limit to 1.5 MB, 200 pins per file, 20 rechecks per pin, 400 total on device.
+- [x] Private preview summarizes only pins/rechecks/new/conflicting IDs; no titles, notes, coordinates or automatic upload.
+- [x] Require separate user review/acknowledgement and final browser confirmation.
+- [x] Atomic **add-only** IndexedDB restore; skip existing IDs, preserve newer local notes and histories; no silent overwrites or partial merges.
+- [x] Normalize optional metadata in historical files into self-reported, not-verified, device-only records; retain valid multiline notes.
+- [x] Regression tests for round-trip backup, invalid files, duplicate IDs, forged verification, conflict-safe import, repeated import, storage cap, panic-clear race.
+- [ ] Field-test Android/iOS airplane-mode choose → preview → restore → reload, and import into a device with existing changed pins.
+- [ ] Check file picker accessibility, Spanish/low-battery UI, local storage pressure, 1.5 MB rejection.
+- [ ] Design interoperable encrypted exports only after cryptographic review and secure passphrase/key handling.

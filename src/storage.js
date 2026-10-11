@@ -2,12 +2,15 @@
 import { validatePublicPack } from './offlinePack.js'
 import { validateStreetSketch } from './streetSketch.js'
 import { MAX_RECHECKS, validatedRechecks } from './recheck.js'
+import { parsePrivateRestore } from './restoreSafety.js'
 
 const NAME = 'glo-pin-local-v1'
 const TABLE = 'reports'
 const PACKS = 'publicPacks'
 const STREETS = 'streetSketches'
 const MAX_SAVED_PACKS = 10
+// In this tab, an in-flight recovery must never repopulate data after panic clear.
+let privacyEpoch = 0
 
 function openDatabase() {
   if (!globalThis.indexedDB) return Promise.reject(new Error('This browser does not support local IndexedDB storage.'))
@@ -112,6 +115,7 @@ export function removePublicPack(id) { return transact('readwrite', table => tab
 // A privacy-clear operation must erase both local reports and public packs in one transaction.
 // It does NOT affect other apps on the same origin, exported files, links, or browser history.
 export async function clearAllLocalData() {
+  privacyEpoch++
   const db = await openDatabase()
   try {
     return await new Promise((resolve, reject) => {
@@ -154,4 +158,37 @@ export async function saveStreetSketch(sketch) {
 }
 export function deleteStreetSketch(id) {
   return transact('readwrite',store=>store.delete(id),STREETS)
+}
+
+
+// This is ADD ONLY. The live IndexedDB keys, not a stale React preview, are
+// re-checked inside ONE write transaction. Existing IDs are never overwritten.
+// A failed write aborts the batch; no partial-success import is reported.
+export async function restorePrivateReports(incoming) {
+  const startedInEpoch=privacyEpoch
+  if(!Array.isArray(incoming))throw new Error('No reviewed private backup selected.')
+  const inspected=parsePrivateRestore(JSON.stringify({
+    format:'glo-pin-private-backup',schemaVersion:1,exportedAt:new Date().toISOString(),
+    reports:incoming
+  })).reports
+  const db=await openDatabase()
+  try{
+    return await new Promise((resolve,reject)=>{
+      const tx=db.transaction(TABLE,'readwrite')
+      const store=tx.objectStore(TABLE)
+      const keys=store.getAllKeys()
+      let outcome=null
+      keys.onsuccess=()=>{
+        if(privacyEpoch!==startedInEpoch){tx.abort();return}
+        const existing=new Set(keys.result)
+        const fresh=inspected.filter(r=>!existing.has(r.id))
+        if(existing.size+fresh.length>400){tx.abort();return}
+        outcome={imported:fresh.length,skipped:inspected.length-fresh.length}
+        for(const report of fresh)store.add(report)
+      }
+      tx.oncomplete=()=>resolve(outcome)
+      tx.onabort=()=>reject(new Error('Restore cancelled: invalid state, storage limit (400 pins) or failed write. No existing pins were overwritten.'))
+      tx.onerror=()=>reject(tx.error||new Error('Restore failed. No existing pins were overwritten.'))
+    })
+  }finally{db.close()}
 }

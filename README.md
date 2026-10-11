@@ -233,3 +233,20 @@ The **full private backup** is a separate, deliberate selection and requires ack
 Both files are created locally, only following a user click, without upload, login, or a source lookup. Browsers can save downloaded files to folders synchronized externally by the operating system. A private backup can persist after the GLO panic clear action and can be read by anyone with access to the file. The user must protect or remove outside copies themselves. The interface is bilingual (English/Spanish), dark-mode and low-battery compatible, with thumb-size controls and a no-export close action.
 
 Export tests ensure private identifiers/coordinates/notes/visit history never enter a counts-only overview, and full export remains behind a separate acknowledgement.
+
+
+## P1-I: private offline backup recovery
+
+GLO can now **recover private reports and append-only recheck histories from a full GLO backup**, including the previously exported v1 \`glo-pin-private-backup\` format. Use **Keep your own data → Recover private backup**. This is a local, user-directed read of the selected JSON file, with a counts-only preview. The app does not upload the file, request location, use an account, or contact the map service.
+
+**Safety boundaries:**
+- Only a full private backup is accepted. Counts-only overviews, OSM resource packs, unsupported schemas, unknown fields, forged verified/official statuses, malformed locations, timestamps and rechecks are refused.
+- Files are limited to **1.5 MB**, with up to **200 pins per import**, **20 rechecks per pin**, and **400 total pins** after restoration; too-large files and malformed batches are rejected.
+- The review lists only counts, the export date, how many pins have IDs already present, and how many are missing. It does not display private titles or notes on the preview screen.
+- An explicit acknowledgement plus a browser confirmation are required before adding anything.
+- **Add-only, transactional import:** pin IDs already on this device are skipped, not overwritten, not partially merged, and not considered identical just because their IDs match. No existing local observation or recheck history is replaced. If any write fails, the entire import transaction aborts.
+- Restored pins preserve original timestamps, private notes and valid recheck histories. Imported observations remain **self-reported, device-only, not independently verified**.
+- Panic clear is guarded against an in-flight restore in the same tab; exported JSON files, other tabs, browser caches and cloud-synced downloads remain outside the app's deletion guarantee.
+- GLO does not currently support encrypted private backups or recovery of deleted source files.
+
+Real-device QA still required for file chooser behavior, offline restore after reload, low-battery view, Spanish, conflicts, capacity, and screen readers.

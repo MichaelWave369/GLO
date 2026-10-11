@@ -103,3 +103,12 @@ Export requires an explicit review. The default **counts-only** JSON shows aggre
 The separately selected **full private backup** carries all reports and recheck histories in plaintext JSON, including precise coordinates and potentially identifying descriptions. A separate checkbox confirms that sensitive information will leave GLO's IndexedDB and be saved outside the app. GLO does not upload the content, but device download folders may be synchronized to third-party cloud storage outside GLO's control. **Panic clear cannot remove downloaded files, external copies or backups.** Downloading a backup does not encrypt it or grant access controls. GLO does not currently support importing that private backup as a verified restore operation.
 
 The user can close without downloading. A file download may be blocked by the browser; GLO reports a download request, not a guarantee the file was saved. The privacy review is inspired by Aidora's explicit redaction/export design, without importing any Aidora accounts or personal information.
+
+
+## P1-I: private backup recovery has no external upload
+
+A person can select an existing GLO private backup JSON file using their browser's file picker. Reading and validating the contents happens locally on the device. The file can contain exact latitudes and longitudes, titles, personal notes, accessibility observations and full recheck histories. Preview displays **counts rather than individual secrets**. The app does not send the content to any network destination.
+
+The person must approve before a bounded **add-only** IndexedDB transaction adds missing pin IDs. IDs already present remain unchanged and are skipped. This does not merge two divergent versions of a pin; if the same identifier exists with newer local details, those details are intentionally preserved. The entire restore aborts on invalid data or failed writes, and does not claim that a historical personal observation proves a resource open, safe or operational.
+
+Opening a selected file in GLO does not delete that file from Downloads or undo cloud synchronization performed by the browser or operating system. Browser-managed file picker caches and device-level traces are outside GLO's panic-clear promise. Panic clear erases app-owned local reports and their histories but cannot revoke external copies. The newly implemented safeguard prevents a pending import in the same tab from repopulating data after panic clear; it is not a cross-tab security lock.
