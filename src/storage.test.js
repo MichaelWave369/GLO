@@ -136,8 +136,9 @@ test('panic clear wins over an import started in the same tab',async()=>{
  const observed=new Date(Date.now()-60000).toISOString()
  const record={id:'recovery-race',category:'water',title:'Must not reappear',lat:40,lon:-75,
    observedAt:observed,savedAt:observed,note:'Remove on panic clear'}
- const pending=restorePrivateReports([record])
+ // Attach cancellation handling immediately; a panic-clear abort is expected.
+ const pending=restorePrivateReports([record]).catch(()=>null)
  await clearAllLocalData()
- await pending.catch(()=>{})
+ await pending
  assert.deepEqual(await listReports(),[])
 })
