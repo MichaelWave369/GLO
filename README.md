@@ -190,3 +190,18 @@ GLO Pin now opens in the darker **charcoal/mint visual theme**, matched to the a
 - The low-battery screen remains distinct and legible; printing a Pocket Plan retains a white page with dark text.
 - The default-dark change introduces **no new location requests, account requirement, network calls, or migration of private local reports**, and keeps the previously reviewed update prompt and emergency controls.
 - Colors and readable defaults have deterministic CSS token/contrast tests; automated tests and Pages deployment do **not** replace real phone-width and screen-reader review.
+
+
+## P1-F: what changed in the public map? (Peekaboo-inspired evidence comparison)
+
+When a person deliberately reruns **Search public map**, GLO can compare the newly returned public OpenStreetMap records with the previously loaded **same-neighborhood** public snapshot. This is an original, local, bounded interpretation of evidence-change principles from [Peekaboo](https://github.com/MichaelWave369/Peekaboo), not imported code.
+
+- **Changed map details** means differences in the normalized public record name, category, OSM opening-hours text or mapped coordinate position (over approximately 15 m). These are differences in **map data**, not service verification.
+- **OSM edit timestamp changed only** means the underlying OSM edit date changed but none of the above visible fields changed.
+- **Newly returned** means absent from the earlier bounded query results, **not** a new or open service.
+- **Not returned this time** means absent from the latest query, **not** a closed, removed or inaccessible service.
+- Comparisons require both scans to have grounded centers within 250 meters; otherwise GLO clearly declines to compare unrelated neighborhoods. If an Overpass request hit its cap, GLO warns that records may be missing.
+- The optional details lists are collapsed by default and link directly to official OSM object pages. On the phone, showing 12 examples per category avoids another huge scroll.
+- Both the previous saved/loaded OSM pack and the fresh scan are public source data. No device ID, private note or report is included in the comparison, and it runs locally without a second network request.
+
+**What this does not prove:** no comparison can determine whether a drinking fountain works, a shelter is open, a pantry has supplies, a bathroom is accessible, or anyone is safe. For those, follow the provider's official information or a fresh human observation and preserve its provenance.

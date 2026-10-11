@@ -171,3 +171,18 @@ Field report from Scout: scoped shares and decoded QR payloads passed default, p
 - [ ] Scout: check low-battery vs standard mode, Pocket Plan print, installed PWA status bar and Spanish labels
 
 The visual change is intentionally CSS-first. Data sources, local storage, location prompts, privacy permissions and service-worker update mechanics remain unchanged.
+
+
+## P1-F: public-only changes since your last look
+
+- [x] Compare bounded, user-triggered Scout source scans to prior same-area source snapshots by stable OSM IDs
+- [x] Treat OSM name, category, mapped location and mapped hours changes as **map-field changes**, not verified service changes
+- [x] Separate edits to map timestamps from meaningful record-field differences
+- [x] Label newly returned and not returned **as query results**, never opening/closure
+- [x] Compare against previous deliberately saved/restored offline OSM snapshots without extra network calls
+- [x] Avoid comparing different neighborhoods (250 m center-shift bound) and warn if source query was capped
+- [x] Show concise summary and collapsed source-linked details in normal online Scout view
+- [x] Add pure regression tests for field changes, unknowns, incomplete results and exclusion of local reports
+- [ ] Field-test on mobile using a saved pack followed by a later real on-demand search
+- [ ] Confirm empty, offline and query-failure states cannot be mistaken for closure or current operation
+- [ ] Add structured independently sourced operator-status notices only with explicit publisher authorization and audit receipts

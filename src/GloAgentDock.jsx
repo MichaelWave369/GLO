@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATEGORIES, distanceKm } from './domain.js'
 import { CREW, guideReply, freshnessAudit } from './guide.js'
 import { mappedAge, scoutPublicMap, SOURCE_ENDPOINT } from './scout.js'
+import { comparePublicScans } from './sourceChange.js'
 import { inspectOnDeviceAI, askOnDeviceAI } from './onDeviceAi.js'
 import MapPinIcon from './MapPinIcon.jsx'
 
@@ -30,8 +31,9 @@ function CrewCard({ agent, scan, audit }) {
   </div>
 }
 
-export default function GloAgentDock({ center, localReports, online, onSourcesChange, sourceRecords = [], packRevision = 0, onNavigate, onOpenPacks }) {
+export default function GloAgentDock({ center, localReports, online, onSourcesChange, sourceRecords = [], sourceSnapshot = null, packRevision = 0, onNavigate, onOpenPacks }) {
   const [scan, setScan] = useState(null)
+  const [sourceChanges, setSourceChanges] = useState(null)
   const [showAllResults, setShowAllResults] = useState(false)
   const [loading, setLoading] = useState(false)
   const [scanError, setScanError] = useState('')
@@ -44,7 +46,7 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
   const controllerRef = useRef(null)
 
   useEffect(() => () => controllerRef.current?.abort(), [])
-  useEffect(() => { setScan(null) }, [packRevision])
+  useEffect(() => { setScan(null); setSourceChanges(null) }, [packRevision])
   const candidates = sourceRecords
   const audit = useMemo(() => freshnessAudit(localReports, candidates), [localReports, candidates])
   const changedViewport = scan ? distanceKm(center, scan.center) > 0.4 : false
@@ -62,6 +64,7 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
     try {
       const next = await scoutPublicMap(center, controller.signal)
       if (controller.signal.aborted) return
+      setSourceChanges(comparePublicScans(sourceSnapshot, next))
       setScan(next)
       setShowAllResults(false)
       onSourcesChange(next.sources, { center: next.center, checkedAt: next.checkedAt, mayBeIncomplete: next.mayBeIncomplete })
@@ -112,6 +115,7 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
   function clearScan() {
     controllerRef.current?.abort()
     setScan(null)
+    setSourceChanges(null)
     setShowAllResults(false)
     setLoading(false)
     setScanError('')
@@ -151,6 +155,33 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
           {scan.mayBeIncomplete && <span className="scan-stale">Source returned its query cap. Results may be incomplete.</span>}
           {!candidates.length && <span>Nothing mapped in this limited query. That does NOT mean no resources exist here.</span>}
         </div>}
+        {sourceChanges && <section className="source-changes" aria-label="Public map source changes" aria-live="polite">
+          <strong>What changed in the public map?</strong>
+          {sourceChanges.status !== 'compared' ? <p>{sourceChanges.reason} Save a public Scout pack or run Search again in the same area to enable this comparison.</p> :
+            <>
+              <p>Compared with public records queried {dateText(sourceChanges.previousCheckedAt)}. This compares OpenStreetMap data, <strong>NOT whether resources are actually open or working.</strong></p>
+              <div className="source-change-counts">
+                <span>{sourceChanges.detailChanges.length} mapped details changed</span>
+                <span>{sourceChanges.editOnly.length} OSM edit dates changed only</span>
+                <span>{sourceChanges.newlyReturned.length} newly returned</span>
+                <span>{sourceChanges.notReturned.length} not returned this time</span>
+              </div>
+              {sourceChanges.queryIncomplete && <p className="source-change-warning">One of these scans hit the query result limit. Missing/new counts are incomplete.</p>}
+              <p className="source-change-caveat">{sourceChanges.warning}</p>
+              {[['Mapped details changed',sourceChanges.detailChanges],['Map edit dates changed only',sourceChanges.editOnly],['Newly returned by search',sourceChanges.newlyReturned],['Not returned by this search',sourceChanges.notReturned]]
+                .filter(([,rows])=>rows.length>0)
+                .map(([heading,rows])=><details key={heading} className="source-change-group">
+                  <summary>{heading} ({rows.length})</summary>
+                  <ul>{rows.slice(0,12).map(item=><li key={item.id}>
+                    <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer">{item.title}</a>
+                    {item.changes?.length ? <small>Map fields: {item.changes.join(', ')}</small> : null}
+                  </li>)}</ul>
+                  {rows.length>12 && <p>Showing 12 of {rows.length} records. This is a display limit.</p>}
+                </details>)}
+              {!sourceChanges.detailChanges.length&&!sourceChanges.editOnly.length&&!sourceChanges.newlyReturned.length&&!sourceChanges.notReturned.length &&
+                <p>No differences detected in these particular OSM fields. This does not confirm the real-world condition of any place.</p>}
+            </>}
+        </section>}
         {candidates.length > 0 && <div className="candidate-list" aria-label="Public map resource candidates">
           {candidates.slice(0, showAllResults ? 30 : 6).map((r) => <article key={r.id} className="candidate">
             <span className="candidate-icon" aria-hidden="true">{CATEGORIES[r.category].icon}</span>

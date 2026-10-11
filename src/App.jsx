@@ -106,7 +106,9 @@ export default function App() {
   function useOfflinePack(pack, { restored = false } = {}) {
     const sources = sourcesFromPack(pack)
     setPublicCandidates(sources)
-    setSourceScan(null)
+    // Retain public scan provenance for optional on-demand same-neighborhood comparisons.
+    // This is not a network refresh and never upgrades map records to verified.
+    setSourceScan({ center: pack.center, checkedAt:pack.scannedAt, sources, mayBeIncomplete:pack.incomplete })
     setActivePackId(pack.id)
     setPackRevision(v => v + 1)
     setReference(pack.center)
@@ -408,7 +410,7 @@ export default function App() {
         </div>}
       </section>
       {!lowBattery && <GloAgentDock center={mapCenter} localReports={reports} online={online}
-        onSourcesChange={onScoutRecords} sourceRecords={publicCandidates} packRevision={packRevision} onNavigate={jumpTo} onOpenPacks={openPacks}/>}
+        onSourcesChange={onScoutRecords} sourceRecords={publicCandidates} sourceSnapshot={sourceScan} packRevision={packRevision} onNavigate={jumpTo} onOpenPacks={openPacks}/>}
       <details className="packs-fold" ref={packsDetailsRef}>
         <summary>{language === 'es' ? 'Guardar o abrir recursos sin conexión' : 'Save or open offline resource packs'}</summary>
         <OfflinePacksPanel scan={sourceScan} onUse={useOfflinePack} onRemove={removeOfflinePack} onNotice={setNotice}/>
