@@ -4,6 +4,9 @@ import { CATEGORIES, privateBackup } from './domain.js'
 import { validatedRechecks } from './recheck.js'
 
 export const EXPORT_MODES=Object.freeze(['overview','private-backup'])
+export function exportApproved(mode,acknowledged=false){
+  return mode==='overview'||(mode==='private-backup'&&acknowledged===true)
+}
 const categoryKeys=Object.keys(CATEGORIES)
 
 export function exportInventory(reports=[]) {
