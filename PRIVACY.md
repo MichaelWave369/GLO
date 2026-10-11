@@ -78,3 +78,10 @@ No FamilyVault vault credentials, session cookies, database tables, medical reco
 An orphaned private pin must not leave a share-approval UI accessible. Deletion invalidates its in-memory sharing state and the UI independently checks for the record's continuing presence. This does not recall previously copied/sent hash links, screenshot QR codes or browser history.
 
 PWA update detection contacts the application's own GitHub Pages origin only when the browser is online, visible, and a registered worker is present; foreground checks are throttled. Nothing in this update process sends private report data, GPS coordinates or notes. Choosing **Update now** reloads the application, which may discard unsaved form text. The user is warned before the choice. Saved IndexedDB entries are not intentionally modified by service-worker activation. Very old cached app versions may still require a manual reload/cache reset once, because code already cached cannot acquire new functionality without being replaced.
+
+
+## On-device comparison of public map source changes
+
+After a user explicitly starts a new Scout search, GLO compares the newly downloaded **public OSM candidate records** with an already-loaded public snapshot (including a locally saved public resource pack), provided both queries cover approximately the same neighborhood. Comparison happens in browser memory; it needs no additional fetch and never reads private notes or sends report coordinates. No shared account, activity tracking or change history is created.
+
+Public OSM data may be stale, incomplete, erroneous or edited for unrelated reasons. “Newly returned”, “edited” and “not returned” describe map/query outputs only, **never** a provider's current real-world availability. A record that is missing from one query is not proof that the corresponding service closed or disappeared. If a query was truncated, conclusions are even more limited.
