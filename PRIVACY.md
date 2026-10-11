@@ -94,3 +94,12 @@ A private resource pin can contain up to 20 append-only personal rechecks. These
 Downloading a private backup includes **all stored rechecks** because they are part of the pin's private record. A backup file can retain personal/sensitive details even after the user deletes a pin or uses panic clear. Do not export or share private recheck histories as public source data. A deleted pin has no surviving app-owned history entry in GLO's \`reports\` table, but external copies are beyond GLO's reach.
 
 The app does not independently verify any field observation, claim of working equipment, resource availability, or safety. No background location access is needed for recheck.
+
+
+## Data Safety Review (P1-H): local files have different privacy risks
+
+Export requires an explicit review. The default **counts-only** JSON shows aggregate totals and resource-category counts, without names, notes, coordinates, timestamps of visits or individual report IDs. Counts can still expose resource interests. This file is not a backup and cannot restore GLO's private pins.
+
+The separately selected **full private backup** carries all reports and recheck histories in plaintext JSON, including precise coordinates and potentially identifying descriptions. A separate checkbox confirms that sensitive information will leave GLO's IndexedDB and be saved outside the app. GLO does not upload the content, but device download folders may be synchronized to third-party cloud storage outside GLO's control. **Panic clear cannot remove downloaded files, external copies or backups.** Downloading a backup does not encrypt it or grant access controls. GLO does not currently support importing that private backup as a verified restore operation.
+
+The user can close without downloading. A file download may be blocked by the browser; GLO reports a download request, not a guarantee the file was saved. The privacy review is inspired by Aidora's explicit redaction/export design, without importing any Aidora accounts or personal information.

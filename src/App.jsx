@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, TileLayer, Circle, CircleMarker, Polyline, Popup, useMap, useMapEvents } from 'react-leaflet'
-import { CATEGORIES, PILOT_CENTER, distanceKm, normalizeReport, privateBackup } from './domain.js'
+import { CATEGORIES, PILOT_CENTER, distanceKm, normalizeReport } from './domain.js'
 import { listReports, saveReport, removeReport, clearAllReports } from './storage.js'
 import GloAgentDock from './GloAgentDock.jsx'
 import UpdateNotice from './UpdateNotice.jsx'
 import PocketPlan from './PocketPlan.jsx'
+import BackupReview from './BackupReview.jsx'
 import OfflinePacksPanel from './OfflinePacksPanel.jsx'
 import StreetSketchPanel from './StreetSketchPanel.jsx'
 import { sourcesFromPack } from './offlinePack.js'
@@ -41,6 +42,7 @@ export default function App() {
   const [lowBattery, setLowBattery] = useState(false)
   const [sharingPin, setSharingPin] = useState(null)
   const [recheckTargetId, setRecheckTargetId] = useState('')
+  const [backupReviewOpen, setBackupReviewOpen] = useState(false)
   const [sharedPreview, setSharedPreview] = useState(() => parseSharedPin(window.location.hash))
   const [panicCovered, setPanicCovered] = useState(false)
   const [panicCleared, setPanicCleared] = useState(false)
@@ -250,6 +252,7 @@ export default function App() {
       setActivePackId('')
       setSharingPin(null)
       setRecheckTargetId('')
+      setBackupReviewOpen(false)
       setSharedPreview(null)
       setSelectedId('')
       setDraft(initialDraft())
@@ -270,17 +273,6 @@ export default function App() {
   function closeShared() {
     setSharedPreview(null)
     window.history.replaceState(null,'',window.location.pathname + window.location.search)
-  }
-  function backup() {
-    if (!reports.length) return
-    const blob = new Blob([JSON.stringify(privateBackup(reports), null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'GLO-Pin-PRIVATE-backup.json'
-    a.click()
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
-    setNotice('A private backup was downloaded. It contains exact coordinates and notes. Keep it secure.')
   }
 
   if (panicCovered) return <main style={{ minHeight:'100vh', padding:'32px', background:'#080c08', color:'#f2f4f1', fontFamily:'system-ui', display:'grid', placeContent:'center', textAlign:'center', gap:'18px' }}>
@@ -391,7 +383,16 @@ export default function App() {
               onSaved={async () => {await refresh();setRecheckTargetId('');setNotice(language==='es'?'Nueva observación privada guardada. Historial conservado.':'Private recheck saved; earlier observations preserved.')}}
               onClose={() => setRecheckTargetId('')}/>}
             <SharePanel key={activeSharingPin?.id || "none"} pin={activeSharingPin} language={language} onClose={() => setSharingPin(null)}/>
-            <div className="backup"><strong>Keep your own data</strong><p>Download a private JSON backup. This file contains your coordinates and notes; it does not upload.</p><button className="secondary compact" disabled={!reports.length} onClick={backup}>{t.backup}</button></div>
+            <div className="backup">
+              <strong>{language==='es'?'Tus datos, bajo tu control':'Keep your own data'}</strong>
+              <p>{language==='es'?'Revisa los datos antes de crear un archivo. Las copias completas contienen ubicaciones y revisiones privadas.':'Review what leaves this device before downloading. Full backups include exact locations, private notes and rechecks.'}</p>
+              <button type="button" className="secondary compact" disabled={!reports.length}
+                onClick={()=>setBackupReviewOpen(open=>!open)}>{language==='es'?'Revisar opciones de exportación':'Review export options'}</button>
+              {backupReviewOpen && reports.length>0 &&
+                <BackupReview reports={reports} language={language}
+                  onClose={()=>setBackupReviewOpen(false)}
+                  onDownloaded={message=>setNotice(message)}/>}
+            </div>
           </>}
         </aside>
         {!lowBattery && <div className="map-column">
