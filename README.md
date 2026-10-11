@@ -220,3 +220,16 @@ Open any saved **private pin** and tap **Recheck** to record another in-person o
 - Freshness audits use the most recent valid personal observation (not just the first one), without declaring a site verified.
 
 Human phone acceptance still required: offline recheck, three different states, history after reload, private backup, deletion, panic clear, low-battery, Spanish and screen-reader checks.
+
+
+## P1-H: privacy-reviewed, local-only exports (Aidora-inspired)
+
+GLO now puts a **Data Safety Review** in front of its private export button, adapting the privacy-by-default review idea from [Aidora](https://github.com/MichaelWave369/Aidora). All code is written in GLO, not imported from Aidora's messaging stack.
+
+The **default** is a counts-only overview, labeled \`GLO-Pin-OVERVIEW-NOT-A-BACKUP.json\`. It contains only overall counts of private pins/rechecks and category totals. It is **not a restorable backup**. It excludes report names, notes, exact/approximate coordinates, visit times, contact information, device IDs and history content. Even counts may disclose which categories someone tracks.
+
+The **full private backup** is a separate, deliberate selection and requires acknowledgement that the resulting \`GLO-Pin-PRIVATE-SENSITIVE-backup.json\` includes every pin, exact coordinates, private notes, timestamps and all recheck receipts. It uses the same \`glo-pin-private-backup\` JSON format and schema as before, retaining full fidelity. **It is not encrypted**. This project does not claim secure encrypted vault storage or cross-device restore.
+
+Both files are created locally, only following a user click, without upload, login, or a source lookup. Browsers can save downloaded files to folders synchronized externally by the operating system. A private backup can persist after the GLO panic clear action and can be read by anyone with access to the file. The user must protect or remove outside copies themselves. The interface is bilingual (English/Spanish), dark-mode and low-battery compatible, with thumb-size controls and a no-export close action.
+
+Export tests ensure private identifiers/coordinates/notes/visit history never enter a counts-only overview, and full export remains behind a separate acknowledgement.
