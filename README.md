@@ -205,3 +205,18 @@ When a person deliberately reruns **Search public map**, GLO can compare the new
 - Both the previous saved/loaded OSM pack and the fresh scan are public source data. No device ID, private note or report is included in the comparison, and it runs locally without a second network request.
 
 **What this does not prove:** no comparison can determine whether a drinking fountain works, a shelter is open, a pantry has supplies, a bathroom is accessible, or anyone is safe. For those, follow the provider's official information or a fresh human observation and preserve its provenance.
+
+
+## P1-G: private Field Recheck Ledger (original observations preserved)
+
+Open any saved **private pin** and tap **Recheck** to record another in-person observation, including when the visit occurred, whether the resource appeared to work, and a short optional note. Each entry stays attached to the original pin in the device's existing IndexedDB \`reports\` store. Earlier entries and the original status are **not overwritten**. The expandable **Private observation history** shows all entries with their dates and unverified provenance, newest observed visits first.
+
+- The recheck is **self-reported**, **device-only** and **not independently verified**. Even a recent "appeared working" observation does not establish current availability, operating status, safety, access, fees, or suitability for other people.
+- Recheck is offline-capable and requires **no account, automatic geolocation, API request, publication or resource provider connection**.
+- Rechecks are limited to **20 per pin** and notes to 240 characters. The full pin and its history are saved as one record in an IndexedDB transaction; no schema migration or separate orphan history is needed.
+- Existing private backup JSON includes the rechecks as part of the saved \`reports\` rows. This file is **sensitive** and may contain timestamps and private observations, and it is not protected by GLO after download.
+- Deleting the private pin also deletes its history. **Panic clear** erases the whole app-owned private database row as before; exported backups, screenshots, shared links, browser history and other devices are outside GLO's deletion scope.
+- Public OSM Scout sources are **not** eligible for private rechecks here: first make a separate device-only observation of the public resource. Observations cannot alter public map/provider status.
+- Freshness audits use the most recent valid personal observation (not just the first one), without declaring a site verified.
+
+Human phone acceptance still required: offline recheck, three different states, history after reload, private backup, deletion, panic clear, low-battery, Spanish and screen-reader checks.

@@ -186,3 +186,18 @@ The visual change is intentionally CSS-first. Data sources, local storage, locat
 - [ ] Field-test on mobile using a saved pack followed by a later real on-demand search
 - [ ] Confirm empty, offline and query-failure states cannot be mistaken for closure or current operation
 - [ ] Add structured independently sourced operator-status notices only with explicit publisher authorization and audit receipts
+
+
+## P1-G: private, offline Field Recheck Ledger
+
+- [x] Keep original observation immutable; append later dated observations as self-reported, device-only receipts
+- [x] Append atomically to the original report row in IndexedDB, no schema upgrade or separate orphan store
+- [x] Cap to 20 rechecks per pin, 240-character notes, reject malformed/future/pre-original observations and forged verified status
+- [x] Show private-history timeline, current self-reported recheck result, and thumb-sized phone form
+- [x] English/Spanish recheck labels and readable charcoal/mint controls
+- [x] Recheck changes local freshness audit date but never public operational status
+- [x] Deleting pin deletes history; panic clear wipes rows; private backup naturally includes complete history
+- [ ] Scout offline/airplane mode add → recheck → reload → inspect original/updated history on Android/iOS
+- [ ] Scout test statuses working / not working / unknown and pre-original/future dates
+- [ ] Confirm no private check enters public OSM packs, GLO Bro public source list, QR/shared pin or external requests
+- [ ] Verify low-battery, Spanish, print, screen readers, and backup disclosure on real devices

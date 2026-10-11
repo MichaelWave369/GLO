@@ -1,4 +1,5 @@
 import { CATEGORIES, distanceKm } from './domain.js'
+import { latestObservedAt } from './recheck.js'
 
 export const CREW = Object.freeze([
   { id: 'scout', name: 'Scout', role: 'Search public mapped resources', detail: 'Runs only when you request a map scan.' },
@@ -81,7 +82,7 @@ export function freshnessAudit(reports = [], sources = [], now = Date.now()) {
   }
   return {
     privateRecheck: reports.filter((r) => {
-      const age = ageDays(r.observedAt)
+      const age = ageDays(latestObservedAt(r))
       return age === null || age > 7
     }).length,
     sourceOlderYear: sources.filter((r) => {

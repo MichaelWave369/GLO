@@ -1,9 +1,11 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import 'fake-indexeddb/auto'
-import { listReports, saveReport, savePublicPack, listPublicPacks, listStreetSketches, saveStreetSketch, clearAllLocalData } from './storage.js'
+import { listReports, saveReport, removeReport, appendRecheck, savePublicPack, listPublicPacks, listStreetSketches, saveStreetSketch, clearAllLocalData } from './storage.js'
 import { createPublicPack } from './offlinePack.js'
 import { createStreetSketch } from './streetSketch.js'
+import { createRecheck } from './recheck.js'
+import { privateBackup } from './domain.js'
 
 // Mimics an existing P0.3 device with v1 IndexedDB notes before the new store exists.
 const oldDb = () => new Promise((resolve, reject) => {
@@ -61,4 +63,42 @@ test('street sketch local storage is limited to four areas',async()=>{
   const c={lat:42,lon:-75}
   await assert.rejects(saveStreetSketch(createStreetSketch([{...way,geometry:[{lat:42,lon:-75},{lat:42.001,lon:-75.001}]}],c,now)),/4 neighborhoods/)
   await clearAllLocalData()
+})
+
+
+test('append-only recheck preserves prior history, private backup and panic clear',async()=>{
+  const original={id:'recheck-test',title:'Public fountain',category:'water',
+    lat:40.986,lon:-75.194,note:'Original secret note',observedAt:'2026-09-30T08:00:00Z',
+    visitStatus:'working',condition:'not-verified',visibility:'device-only'}
+  await saveReport(original)
+  const when=new Date('2026-10-10T22:00:00Z')
+  const recheck=createRecheck(original,{visitStatus:'not_working',observedAtLocal:'2026-10-10T21:00:00Z',note:'Stopped today'},when,()=>'check-1')
+  await appendRecheck(original.id,recheck)
+  const [saved]=(await listReports()).filter(r=>r.id===original.id)
+  assert.equal(saved.visitStatus,'working')
+  assert.equal(saved.note,'Original secret note')
+  assert.equal(saved.rechecks.length,1)
+  assert.equal(saved.rechecks[0].visitStatus,'not_working')
+  assert.equal(privateBackup([saved],when).reports[0].rechecks[0].id,'check-1')
+  assert.ok(!(await listPublicPacks()).some(pack=>JSON.stringify(pack).includes('Stopped today')))
+  await assert.rejects(appendRecheck('missing-pin',recheck),/Pin missing/)
+  await assert.rejects(appendRecheck(original.id,{...recheck,condition:'verified',id:'fake'}),/receipt invalid/)
+  await assert.rejects(appendRecheck(original.id,recheck),/receipt invalid/)
+  await clearAllLocalData()
+  assert.deepEqual(await listReports(),[])
+})
+
+test('recheck history bounded to 20, and deleting a pin removes history',async()=>{
+  const original={id:'full-pin',observedAt:'2026-09-01T09:00:00Z',title:'Public tap'}
+  await saveReport(original)
+  const at=new Date('2026-10-10T22:00:00Z')
+  for(let i=0;i<20;i++){
+    const check=createRecheck(original,{visitStatus:'unknown',note:'Seen',observedAtLocal:'2026-10-02T11:00:00Z'},at,()=>String(i))
+    await appendRecheck(original.id,check)
+  }
+  assert.equal((await listReports()).find(r=>r.id==='full-pin').rechecks.length,20)
+  const tooMany=createRecheck(original,{visitStatus:'unknown'},at,()=>'extra')
+  await assert.rejects(appendRecheck(original.id,tooMany),/history full/)
+  await removeReport(original.id)
+  assert.equal((await listReports()).some(r=>r.id==='full-pin'),false)
 })
