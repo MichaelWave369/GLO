@@ -25,3 +25,7 @@
 .backup-restore :focus-visible{outline:3px solid #e7e7a5;outline-offset:3px}
 @media(max-width:560px){.backup-restore{padding:12px}.restore-actions{display:grid;grid-template-columns:1fr}.restore-actions button{width:100%}}
 @media(max-width:380px){.restore-summary dl{grid-template-columns:1fr}}
+
+.backup-actions-row{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.backup-actions-row button{min-height:48px}
+@media(max-width:560px){.backup-actions-row{display:grid;grid-template-columns:1fr}.backup-actions-row button{width:100%}}
