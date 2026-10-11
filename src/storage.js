@@ -9,6 +9,8 @@ const TABLE = 'reports'
 const PACKS = 'publicPacks'
 const STREETS = 'streetSketches'
 const MAX_SAVED_PACKS = 10
+// In this tab, an in-flight recovery must never repopulate data after panic clear.
+let privacyEpoch = 0
 
 function openDatabase() {
   if (!globalThis.indexedDB) return Promise.reject(new Error('This browser does not support local IndexedDB storage.'))
@@ -113,6 +115,7 @@ export function removePublicPack(id) { return transact('readwrite', table => tab
 // A privacy-clear operation must erase both local reports and public packs in one transaction.
 // It does NOT affect other apps on the same origin, exported files, links, or browser history.
 export async function clearAllLocalData() {
+  privacyEpoch++
   const db = await openDatabase()
   try {
     return await new Promise((resolve, reject) => {
@@ -162,6 +165,7 @@ export function deleteStreetSketch(id) {
 // re-checked inside ONE write transaction. Existing IDs are never overwritten.
 // A failed write aborts the batch; no partial-success import is reported.
 export async function restorePrivateReports(incoming) {
+  const startedInEpoch=privacyEpoch
   if(!Array.isArray(incoming))throw new Error('No reviewed private backup selected.')
   const inspected=parsePrivateRestore(JSON.stringify({
     format:'glo-pin-private-backup',schemaVersion:1,exportedAt:new Date().toISOString(),
@@ -175,6 +179,7 @@ export async function restorePrivateReports(incoming) {
       const keys=store.getAllKeys()
       let outcome=null
       keys.onsuccess=()=>{
+        if(privacyEpoch!==startedInEpoch){tx.abort();return}
         const existing=new Set(keys.result)
         const fresh=inspected.filter(r=>!existing.has(r.id))
         if(existing.size+fresh.length>400){tx.abort();return}
