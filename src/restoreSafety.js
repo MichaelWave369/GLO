@@ -11,7 +11,7 @@ const keys=['id','schemaVersion','category','title','note','lat','lon','observed
 const accessKeys=['wheelchair','stepFree','idRequired','petsAllowed']
 const receiptKeys=['id','observedAt','savedAt','visitStatus','note','provenance','condition','visibility']
 const fieldStatus=['working','not_working','unknown']
-const cleanText=(v,limit)=>typeof v==='string'&&v.length<=limit&&!/[\u0000-\u001f\u007f]/.test(v)
+const cleanText=(v,limit)=>typeof v==='string'&&v.length<=limit&&!/[\u0000-\u0008\u000B\u000C\u000E-\u001f\u007f]/.test(v)
 const iso=v=>typeof v==='string'&&v.length<=35&&Number.isFinite(Date.parse(v))
 const plain=v=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.getPrototypeOf(v)===Object.prototype
 const allowed=(v,arr)=>plain(v)&&Object.keys(v).every(k=>arr.includes(k))
