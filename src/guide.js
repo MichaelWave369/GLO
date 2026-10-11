@@ -1,4 +1,5 @@
 import { CATEGORIES, distanceKm } from './domain.js'
+import { categoryLabel } from './locale.js'
 import { latestObservedAt } from './recheck.js'
 
 export const CREW = Object.freeze([
@@ -9,11 +10,11 @@ export const CREW = Object.freeze([
 ])
 
 const KEYWORDS = Object.freeze({
-  water: /\b(water|drink|drinking|hydration|thirst|fountain|refill|bottle)\b/i,
-  power: /\b(power|electric|electricity|outlet|socket|charge|charger|charging|battery|phone)\b/i,
-  shelter: /\b(shelter|shade|covered|rain|storm|roof|bench|sit|seating|rest|dry)\b/i,
+  water: /\b(water|drink|drinking|hydration|thirst|fountain|refill|bottle|agua|beber|potable|fuente|sed)\b/i,
+  power: /\b(power|electric|electricity|outlet|socket|charge|charger|charging|battery|phone|cargar|carga|enchufe|teléfono|telefono|batería|bateria)\b/i,
+  shelter: /\b(shelter|shade|covered|rain|storm|roof|bench|sit|seating|rest|dry|refugio|lluvia|cubierto|techo|sombra|asiento)\b/i,
   restroom: /\b(bathroom|toilet|restroom|bathrooms|baño|aseo)\b/i,
-  food: /\b(food|hungry|hunger|meal|eat|pantry|grocer|comida|hambre)\b/i,
+  food: /\b(food|hungry|hunger|meal|eat|pantry|grocer|comida|hambre|comer|alimentos)\b/i,
   shower: /\b(shower|showers|ducha)\b/i,
   laundry: /\b(laundry|wash clothes|lavandería)\b/i,
   warming: /\b(warming|cold|freeze|freezing|calentarme)\b/i,
@@ -23,9 +24,9 @@ const KEYWORDS = Object.freeze({
   pet_support: /\b(pets|dog|cat|pet friendly|mascotas)\b/i,
   overnight: /\b(overnight|night shelter|sleeping program|albergue)\b/i
 })
-const FOOD = /\b(food|hungry|hunger|meal|eat|pantry|grocer)\b/i
-const OTHER = /\b(bathroom|toilet|restroom|bath|wifi|internet|shower|laundry)\b/i
-const URGENT = /\b(emergency|immediate danger|overdose|unconscious|cannot breathe|can't breathe)\b/i
+const FOOD = /\b(food|hungry|hunger|meal|eat|pantry|grocer|comida|hambre|comer|alimentos)\b/i
+const OTHER = /\b(bathroom|toilet|restroom|bath|wifi|internet|shower|laundry|baño|ducha|lavandería|lavanderia)\b/i
+const URGENT = /\b(emergency|immediate danger|overdose|unconscious|cannot breathe|can't breathe|emergencia|peligro inmediato|sobredosis|no puedo respirar|no puede respirar)\b/i
 
 export function detectNeed(message) {
   const text = String(message || '').slice(0, 500)
@@ -38,8 +39,13 @@ export function detectNeed(message) {
   }
 }
 
-export function guideReply(message, { reports = [], sources = [], center, online = true } = {}) {
+export function guideReply(message, { reports = [], sources = [], center, online = true } = {},language='en') {
   const need = detectNeed(message)
+  if (need.urgent && language==='es') return {
+    title:'Busca ayuda humana inmediata',
+    lines:['Si hay peligro inmediato, llama a los servicios de emergencia de tu zona (911 en EE. UU.).','GLO Pin no supervisa emergencias ni puede enviar asistencia.'],
+    matches:[],kind:'urgent'
+  }
   if (need.urgent) return {
     title: 'Please seek immediate human help',
     lines: ['If someone may be in immediate danger, contact your local emergency services now (911 in the U.S.).', 'GLO Pin does not monitor emergencies and cannot dispatch assistance.'],
@@ -53,6 +59,25 @@ export function guideReply(message, { reports = [], sources = [], center, online
     .filter((r) => r?.lat !== undefined && r?.lon !== undefined)
     .sort((a, b) => (center ? distanceKm(center, a) - distanceKm(center, b) : 0))
     .slice(0, 4)
+  if (language==='es') {
+    const lines=[]
+    if(need.categories.length)lines.push(
+      'Puedo revisar información guardada o cartografiada sobre '+need.categories.map(k=>categoryLabel(k,'es',CATEGORIES).toLowerCase()).join(', ')+'.'
+    )
+    else if(!need.food&&!need.other)lines.push('Indica qué necesitas: agua, comida, un baño, carga, un lugar cubierto u otro servicio esencial.')
+    if(need.food)lines.push('Scout puede mostrar bancos de alimentos y comidas. Esto no prueba requisitos, existencias, costos ni horarios actuales. En EE. UU., 211 puede dar información local.')
+    if(need.other)lines.push('Scout busca baños públicos y duchas etiquetados. Wi-Fi y lavandería pueden aparecer como notas privadas. Un resultado vacío no demuestra que no haya servicios.')
+    if(candidates.length){
+      lines.push('Encontré '+candidates.length+' posibles recursos en los datos disponibles en este dispositivo. NO se ha confirmado que estén abiertos, sean seguros ni funcionen.')
+      if(candidates.some(r=>r.origin==='osm'))lines.push('Los registros cartografiados vienen de OpenStreetMap. Las fechas de edición no prueban disponibilidad actual.')
+    }else if(need.categories.length){
+      lines.push('No tengo coincidencias en los datos actualmente cargados. Eso no significa que no haya recursos cerca.')
+    }
+    if(!online)lines.push('Estás sin conexión según el navegador. Solo puedo usar la información ya guardada aquí.')
+    else if(!sources.length)lines.push('Para buscar datos públicos, pulsa por separado «Buscar en mapa público». Esto enviará el centro aproximado seleccionado a un servicio externo.')
+    lines.push('Cuando sea posible, confirma directamente las condiciones, el acceso y los horarios.')
+    return {title:'GLO Bro · orientación local',lines,matches:candidates,kind:'local'}
+  }
   const lines = []
   if (need.categories.length) {
     lines.push('I can check ' + need.categories.map((c) => CATEGORIES[c].label.toLowerCase()).join(', ') + ' information saved or mapped here.')
