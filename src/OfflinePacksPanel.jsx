@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { createPublicPack, packAge, parsePublicPack, sourcesFromPack, MAX_PACK_BYTES } from './offlinePack.js'
 import { listPublicPacks, removePublicPack, savePublicPack } from './storage.js'
 import './offlinePacks.css'
+import { mapPanelText, publicPackAgeLabel } from './mapPanelsLocale.js'
 
 function niceTime(value) {
   const date = new Date(value)
@@ -17,7 +18,8 @@ function exportFile(pack) {
   setTimeout(() => URL.revokeObjectURL(url), 1500)
 }
 
-export default function OfflinePacksPanel({ scan, onUse, onRemove, onNotice }) {
+export default function OfflinePacksPanel({ scan, onUse, onRemove, onNotice, language='en' }) {
+  const t=mapPanelText(language)
   const [packs, setPacks] = useState([])
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
@@ -32,7 +34,7 @@ export default function OfflinePacksPanel({ scan, onUse, onRemove, onNotice }) {
         setLoadedId(items[0].id)
         onUse(items[0], { restored:true })
       }
-    }).catch(err => { if (active) setError('Offline public storage unavailable: ' + err.message) })
+    }).catch(err => { if (active) setError(t.packUnavailable+': '+err.message) })
     return () => { active = false }
   }, []) // Intentionally runs on mount: no automatic network refresh.
 
@@ -45,7 +47,7 @@ export default function OfflinePacksPanel({ scan, onUse, onRemove, onNotice }) {
       await savePublicPack(pack)
       await refresh()
       setLoadedId(pack.id)
-      onNotice('A public OSM snapshot was saved to this device. It contains NO private notes. No offline street map was downloaded.')
+      onNotice(t.packSavedSuccess)
     } catch (e) { setError(e.message) }
     finally { setPending(false) }
   }
@@ -57,61 +59,61 @@ export default function OfflinePacksPanel({ scan, onUse, onRemove, onNotice }) {
     } catch (e) { setError(e.message) }
   }
   async function remove(pack) {
-    if (!window.confirm('Delete this saved public snapshot from this device? Your private observations will not be touched.')) return
+    if (!window.confirm(t.packConfirm)) return
     setError('')
     try {
       await removePublicPack(pack.id)
       await refresh()
       if (loadedId === pack.id) { setLoadedId(''); onRemove(pack.id) }
-      onNotice('Saved public resource snapshot deleted.')
+      onNotice(t.packDeleted)
     } catch(e) { setError(e.message) }
   }
   async function importPack(event) {
     const file=event.target.files?.[0]
     event.target.value=''
     if (!file || pending) return
-    if (file.size > MAX_PACK_BYTES) { setError('File too large for an offline public pack.'); return }
+    if (file.size > MAX_PACK_BYTES) { setError(t.packTooLarge); return }
     setPending(true);setError('')
     try {
       const pack = parsePublicPack(await file.text())
       await savePublicPack(pack)
       await refresh()
       usePack(pack)
-      onNotice('A public OSM snapshot was imported locally. It is not a verified or current resource directory.')
-    } catch(e) { setError('Import rejected: ' + e.message) }
+      onNotice(t.packImported)
+    } catch(e) { setError(t.packRejected+': '+e.message) }
     finally { setPending(false) }
   }
   return <section className="offline-panel" aria-labelledby="offline-heading">
     <div className="offline-top">
-      <div><span className="eyebrow">TAKE THE RESOURCE LIST WITH YOU</span><h2 id="offline-heading">Offline Scout packs</h2>
-        <p>Save a bounded snapshot of public OpenStreetMap resource records after a deliberate Scout search. Reopen it without internet, or exchange the file with another person. No private observations are included.</p>
+      <div><span className="eyebrow">{t.packEyebrow}</span><h2 id="offline-heading">{t.packHeading}</h2>
+        <p>{t.packIntro}</p>
       </div>
-      <span className="offline-counter">{packs.length}/10 saved</span>
+      <span className="offline-counter">{packs.length}/10 {t.packSaved}</span>
     </div>
     <div className="offline-actions">
       <button className="primary" disabled={pending || !scan?.sources?.length} onClick={saveCurrent}>
-        {pending ? 'Working…' : 'Save this Scout search offline'}</button>
+        {pending ? t.working : t.packSave}</button>
       <label className="secondary offline-import">
-        Import public pack
-        <input type="file" accept=".json,application/json" disabled={pending} onChange={importPack} aria-label="Import a GLO public resource pack"/>
+        {t.packImport}
+        <input type="file" accept=".json,application/json" disabled={pending} onChange={importPack} aria-label={t.packImportAria}/>
       </label>
     </div>
     {error && <p className="offline-error" role="alert">{error}</p>}
     <div className="offline-entries">
       {packs.length ? packs.map(pack => <article className="offline-entry" key={pack.id}>
         <div><strong>{pack.center.lat.toFixed(3)}, {pack.center.lon.toFixed(3)}</strong>
-          <small>{pack.records.length} public records · Last scanned {niceTime(pack.scannedAt)}</small>
-          <span className={'offline-age '+packAge(pack).level}>{packAge(pack).label}</span>
-          {pack.incomplete && <span className="offline-warn">The original query hit its result cap. Coverage may be incomplete.</span>}
-          {loadedId===pack.id && <span className="offline-loaded">Selected on this device</span>}
+          <small>{pack.records.length} {t.publicRecords} · {t.lastScanned} {new Date(pack.scannedAt).toLocaleString(language==='es'?'es-US':'en-US')}</small>
+          <span className={'offline-age '+packAge(pack).level}>{publicPackAgeLabel(pack,language)||packAge(pack).label}</span>
+          {pack.incomplete && <span className="offline-warn">{t.packCap}</span>}
+          {loadedId===pack.id && <span className="offline-loaded">{t.selected}</span>}
         </div>
         <div className="offline-entry-actions">
-          <button className="secondary compact" onClick={()=>usePack(pack)}>Use offline</button>
-          <button className="secondary compact" onClick={()=>exportFile(pack)}>Export file</button>
-          <button className="offline-delete" onClick={()=>remove(pack)}>Delete</button>
+          <button className="secondary compact" onClick={()=>usePack(pack)}>{t.packUse}</button>
+          <button className="secondary compact" onClick={()=>exportFile(pack)}>{t.packExport}</button>
+          <button className="offline-delete" onClick={()=>remove(pack)}>{t.packDelete}</button>
         </div>
-      </article>) : <p className="offline-empty">No public region saved yet. Search the public map, then save its results. Importing a trusted public pack also works while offline.</p>}
+      </article>) : <p className="offline-empty">{t.packEmpty}</p>}
     </div>
-    <p className="offline-disclaimer"><strong>Not an offline street map.</strong> These are last-seen <em>map records</em>, not confirmed opening hours or working services. No background refresh occurs. Always check dates and accessibility. Source: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors, ODbL</a>. Do not present peer-shared packs as verified.</p>
+    <p className="offline-disclaimer"><strong>{t.packCaveatHead}</strong> {t.packCaveat} <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors, ODbL</a>. {t.packCaveatEnd}</p>
   </section>
 }

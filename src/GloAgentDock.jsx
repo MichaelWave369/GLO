@@ -1,37 +1,28 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATEGORIES, distanceKm } from './domain.js'
 import { CREW, guideReply, freshnessAudit } from './guide.js'
-import { mappedAge, scoutPublicMap, SOURCE_ENDPOINT } from './scout.js'
+import { scoutPublicMap, SOURCE_ENDPOINT } from './scout.js'
+import { categoryLabel, translateScoutChange } from './locale.js'
+import { crewCopy, osmEditLabel, formatCrewDate } from './crewLocale.js'
 import { comparePublicScans } from './sourceChange.js'
 import { inspectOnDeviceAI, askOnDeviceAI } from './onDeviceAi.js'
 import MapPinIcon from './MapPinIcon.jsx'
 
-const QUESTIONS = [
-  { label: 'I need drinking water', text: 'Where can I find drinking water?' },
-  { label: 'I need to charge a phone', text: 'Where can I charge my phone battery?' },
-  { label: 'I need shelter from rain', text: 'Is there a covered place where I can sit out of the rain?' },
-  { label: 'I need food', text: 'Where can I get food?' }
-]
-
-function dateText(value) {
-  if (!value) return 'Never'
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? 'Unknown' : date.toLocaleString()
-}
-
-function CrewCard({ agent, scan, audit }) {
-  let status = 'Ready for local use'
-  if (agent.id === 'scout') status = scan ? 'Last requested: ' + dateText(scan.checkedAt) : 'Not run yet'
-  if (agent.id === 'freshness') status = audit.privateRecheck + ' local pins due to recheck'
-  if (agent.id === 'guard') status = 'No private reports uploaded'
-  if (agent.id === 'bro') status = 'Local rules · works offline'
+function CrewCard({ agent, scan, audit, language }) {
+  const c=crewCopy(language)
+  let status = c.ready
+  if (agent.id === 'scout') status = scan ? c.lastRequested+': '+formatCrewDate(scan.checkedAt,language) : c.neverRun
+  if (agent.id === 'freshness') status = audit.privateRecheck + ' ' + c.due
+  if (agent.id === 'guard') status = c.guard
+  if (agent.id === 'bro') status = c.bro
   return <div className="agent-person">
     <span className={'agent-avatar avatar-' + agent.id} aria-hidden="true">{agent.id === 'scout' ? <MapPinIcon size={25}/> : agent.id === 'freshness' ? '↻' : agent.id === 'guard' ? '◇' : '✦'}</span>
-    <div className="agent-desc"><strong>{agent.name}</strong><small>{agent.role}</small><span>{status}</span></div>
+    <div className="agent-desc"><strong>{agent.name}</strong><small>{c.roles[['scout','freshness','guard','bro'].indexOf(agent.id)] || agent.role}</small><span>{status}</span></div>
   </div>
 }
 
-export default function GloAgentDock({ center, localReports, online, onSourcesChange, sourceRecords = [], sourceSnapshot = null, packRevision = 0, onNavigate, onOpenPacks }) {
+export default function GloAgentDock({ center, localReports, online, onSourcesChange, sourceRecords = [], sourceSnapshot = null, packRevision = 0, onNavigate, onOpenPacks, language='en' }) {
+  const c=crewCopy(language)
   const [scan, setScan] = useState(null)
   const [sourceChanges, setSourceChanges] = useState(null)
   const [showAllResults, setShowAllResults] = useState(false)
@@ -50,6 +41,9 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
   const candidates = sourceRecords
   const audit = useMemo(() => freshnessAudit(localReports, candidates), [localReports, candidates])
   const changedViewport = scan ? distanceKm(center, scan.center) > 0.4 : false
+  const displayedAnswer=conversation?guideReply(conversation.asked,{
+    reports:localReports,sources:candidates,center,online
+  },language):null
   const counts = useMemo(() => Object.fromEntries(Object.keys(CATEGORIES).map((key) => [
     key, candidates.filter((item) => item.category === key).length
   ])), [candidates])
@@ -81,9 +75,7 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
     setQuestion(trimmed)
     setAiText('')
     setAiError('')
-    setConversation({ asked: trimmed, answer: guideReply(trimmed, {
-      reports: localReports, sources: candidates, center, online
-    }) })
+    setConversation({ asked: trimmed })
   }
 
   async function checkAi() {
@@ -97,7 +89,7 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
   async function askAi() {
     const questionToAsk = question.trim().slice(0, 300)
     if (!questionToAsk || aiBusy) return
-    if (aiStatus === 'downloadable' && !window.confirm('The browser may download a large on-device AI model and use significant storage and battery. Continue?')) return
+    if (aiStatus === 'downloadable' && !window.confirm(c.downloadConfirm)) return
     setAiBusy(true)
     setAiError('')
     setAiText('')
@@ -124,119 +116,119 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
 
   return <section className="agent-dock" aria-labelledby="glo-bro-heading">
     <div className="agent-dock-head">
-      <div><span className="eyebrow">GOOD LOOKIN' OUT · ASSISTANCE</span><h2 id="glo-bro-heading">Your GLO crew</h2><p>Four clearly defined helpers, one goal: useful information without pretending guesses are facts.</p></div>
-      <span className="agent-local-pill">PRIVATE-FIRST</span>
+      <div><span className="eyebrow">{c.eyebrow}</span><h2 id="glo-bro-heading">{c.heading}</h2><p>{c.intro}</p></div>
+      <span className="agent-local-pill">{c.privateFirst}</span>
     </div>
     <details className="crew-roster">
-      <summary>Meet the four GLO helpers</summary>
+      <summary>{c.meet}</summary>
       <div className="agent-grid">
-        {CREW.map((agent) => <CrewCard key={agent.id} agent={agent} scan={scan} audit={audit}/>)}
+        {CREW.map((agent) => <CrewCard key={agent.id} agent={agent} scan={scan} audit={audit} language={language}/>)}
       </div>
     </details>
 
-    <div className="audit-strip" role="status"><strong>Freshness audit</strong><span>{audit.privateRecheck} local observations older than 7 days or undated, needing a human recheck</span><span>{audit.sourceOlderYear} public map records last edited over a year ago</span><span>{audit.sourceAgeUnknown} public map records with unknown edit age</span></div>
+    <div className="audit-strip" role="status"><strong>{c.freshness}</strong><span>{audit.privateRecheck} {c.privateDue}</span><span>{audit.sourceOlderYear} {c.sourceOld}</span><span>{audit.sourceAgeUnknown} {c.sourceUnknown}</span></div>
     <div className="agent-panels">
       <section className="agent-panel" aria-labelledby="public-scout-title">
-        <div className="agent-panel-title"><div><span className="eyebrow">SOURCE SCOUT</span><h3 id="public-scout-title">Check the public map</h3></div><span className="agent-mini-count">{candidates.length} found</span></div>
-        <p className="agent-paragraph">Search mapped drinking water, sheltered seating, USB-tagged charging, public restrooms, food banks, meal services and showers within 1.8 km. Fees, eligibility, safety, opening times and live availability remain unverified.</p>
-        <div className="scan-coordinates">Map center: {center.lat.toFixed(3)}, {center.lon.toFixed(3)} · Search radius: 1.8 km</div>
-        <p className="agent-disclosure">Only when you press Search, a query with this approximate center is sent to the public <a href={SOURCE_ENDPOINT} target="_blank" rel="noreferrer noopener">Overpass service</a>. Its servers may receive your IP address. Your private observations, device location history, and GLO Bro questions are NOT included.</p>
+        <div className="agent-panel-title"><div><span className="eyebrow">{c.scout}</span><h3 id="public-scout-title">{c.scoutTitle}</h3></div><span className="agent-mini-count">{candidates.length} {c.found}</span></div>
+        <p className="agent-paragraph">{c.scoutIntro}</p>
+        <div className="scan-coordinates">{c.mapCenter}: {center.lat.toFixed(3)}, {center.lon.toFixed(3)} · {c.radius}: 1.8 km</div>
+        <p className="agent-disclosure">{c.disclosureStart} <a href={SOURCE_ENDPOINT} target="_blank" rel="noreferrer noopener">Overpass service</a>. {c.disclosureEnd}</p>
         <div className="agent-buttons">
-          <button className="primary" disabled={!online || loading} onClick={runScout}>{loading ? 'Checking public map…' : 'Search public map'}</button>
-          {scan && <button className="secondary" onClick={clearScan}>Clear source results</button>}
-          <button className="secondary" onClick={onOpenPacks}>Open offline packs</button>
+          <button className="primary" disabled={!online || loading} onClick={runScout}>{loading ? c.searching : c.search}</button>
+          {scan && <button className="secondary" onClick={clearScan}>{c.clear}</button>}
+          <button className="secondary" onClick={onOpenPacks}>{c.packs}</button>
         </div>
-        {!online && <p className="agent-offline">Offline: no live source requests. Saved public Scout packs, your private notes, and local GLO Bro guidance remain usable.</p>}
+        {!online && <p className="agent-offline">{c.offline}</p>}
         {scanError && <p className="agent-error" role="alert">{scanError}</p>}
         {scan && <div className="scan-summary" role="status">
-          <strong>Public map queried {dateText(scan.checkedAt)}</strong>
-          <span>{counts.water} water · {counts.power} USB · {counts.shelter} cover · {counts.restroom} toilets · {counts.food} food services · {counts.shower} showers</span>
-          {changedViewport && <span className="scan-stale">Map moved since this search. These results belong to the previous center. Search again for the new area.</span>}
-          {scan.mayBeIncomplete && <span className="scan-stale">Source returned its query cap. Results may be incomplete.</span>}
-          {!candidates.length && <span>Nothing mapped in this limited query. That does NOT mean no resources exist here.</span>}
+          <strong>{c.queried} {formatCrewDate(scan.checkedAt,language)}</strong>
+          <span>{counts.water} {c.water} · {counts.power} {c.power} · {counts.shelter} {c.cover} · {counts.restroom} {c.toilets} · {counts.food} {c.food} · {counts.shower} {c.showers}</span>
+          {changedViewport && <span className="scan-stale">{c.moved}</span>}
+          {scan.mayBeIncomplete && <span className="scan-stale">{c.incomplete}</span>}
+          {!candidates.length && <span>{c.none}</span>}
         </div>}
-        {sourceChanges && <section className="source-changes" aria-label="Public map source changes" aria-live="polite">
-          <strong>What changed in the public map?</strong>
-          {sourceChanges.status !== 'compared' ? <p>{sourceChanges.reason} Save a public Scout pack or run Search again in the same area to enable this comparison.</p> :
+        {sourceChanges && <section className="source-changes" aria-label={c.changeHeading} aria-live="polite">
+          <strong>{c.changeHeading}</strong>
+          {sourceChanges.status !== 'compared' ? <p>{language==='es'?c.noBaseline:sourceChanges.reason+' '+c.noBaseline}</p> :
             <>
-              <p>Compared with public records queried {dateText(sourceChanges.previousCheckedAt)}. This compares OpenStreetMap data, <strong>NOT whether resources are actually open or working.</strong></p>
+              <p>{c.previous} {formatCrewDate(sourceChanges.previousCheckedAt,language)}. <strong>{c.notProof}</strong></p>
               <div className="source-change-counts">
-                <span>{sourceChanges.detailChanges.length} mapped details changed</span>
-                <span>{sourceChanges.editOnly.length} OSM edit dates changed only</span>
-                <span>{sourceChanges.newlyReturned.length} newly returned</span>
-                <span>{sourceChanges.notReturned.length} not returned this time</span>
+                <span>{sourceChanges.detailChanges.length} {c.changed}</span>
+                <span>{sourceChanges.editOnly.length} {c.edit}</span>
+                <span>{sourceChanges.newlyReturned.length} {c.newly}</span>
+                <span>{sourceChanges.notReturned.length} {c.missing}</span>
               </div>
-              {sourceChanges.queryIncomplete && <p className="source-change-warning">One of these scans hit the query result limit. Missing/new counts are incomplete.</p>}
-              <p className="source-change-caveat">{sourceChanges.warning}</p>
-              {[['Mapped details changed',sourceChanges.detailChanges],['Map edit dates changed only',sourceChanges.editOnly],['Newly returned by search',sourceChanges.newlyReturned],['Not returned by this search',sourceChanges.notReturned]]
+              {sourceChanges.queryIncomplete && <p className="source-change-warning">{c.incompleteDifference}</p>}
+              <p className="source-change-caveat">{language==='es'?c.changeWarning:sourceChanges.warning}</p>
+              {[[c.changeLabels[0],sourceChanges.detailChanges],[c.changeLabels[1],sourceChanges.editOnly],[c.changeLabels[2],sourceChanges.newlyReturned],[c.changeLabels[3],sourceChanges.notReturned]]
                 .filter(([,rows])=>rows.length>0)
                 .map(([heading,rows])=><details key={heading} className="source-change-group">
                   <summary>{heading} ({rows.length})</summary>
                   <ul>{rows.slice(0,12).map(item=><li key={item.id}>
                     <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer">{item.title}</a>
-                    {item.changes?.length ? <small>Map fields: {item.changes.join(', ')}</small> : null}
+                    {item.changes?.length ? <small>{c.mapFields}: {item.changes.map(field=>translateScoutChange(field,language)).join(', ')}</small> : null}
                   </li>)}</ul>
-                  {rows.length>12 && <p>Showing 12 of {rows.length} records. This is a display limit.</p>}
+                  {rows.length>12 && <p>{c.displayLimit} {rows.length} {c.records}</p>}
                 </details>)}
               {!sourceChanges.detailChanges.length&&!sourceChanges.editOnly.length&&!sourceChanges.newlyReturned.length&&!sourceChanges.notReturned.length &&
-                <p>No differences detected in these particular OSM fields. This does not confirm the real-world condition of any place.</p>}
+                <p>{c.noChanges}</p>}
             </>}
         </section>}
-        {candidates.length > 0 && <div className="candidate-list" aria-label="Public map resource candidates">
+        {candidates.length > 0 && <div className="candidate-list" aria-label={c.candidateAria}>
           {candidates.slice(0, showAllResults ? 30 : 6).map((r) => <article key={r.id} className="candidate">
             <span className="candidate-icon" aria-hidden="true">{CATEGORIES[r.category].icon}</span>
-            <div className="candidate-body"><strong>{r.title}</strong><small>{CATEGORIES[r.category].label} · {r.distanceKm.toFixed(1)} km from last scan center</small><small>{mappedAge(r).label} · Last queried {dateText(r.checkedAt)} · Unverified now</small><span>{r.accessNote}</span><div className="candidate-links">
-              <button onClick={() => onNavigate(r)}>View on map</button>
-              <a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">OSM source ↗</a>
+            <div className="candidate-body"><strong>{r.title}</strong><small>{categoryLabel(r.category,language,CATEGORIES)} · {r.distanceKm.toFixed(1)} {c.distance}</small><small>{osmEditLabel(r,language)} · {c.queriedAt} {formatCrewDate(r.checkedAt,language)} · {c.unverified}</small><span>{r.accessNote}</span><div className="candidate-links">
+              <button onClick={() => onNavigate(r)}>{c.viewMap}</button>
+              <a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">{c.sourceLink}</a>
             </div></div>
           </article>)}
-          {candidates.length > 6 && <button className="agent-show-more" onClick={() => setShowAllResults(value => !value)}>{showAllResults ? 'Show fewer results' : 'Show more mapped results'}</button>}
-          {showAllResults && candidates.length > 30 && <p className="agent-paragraph">Showing the 30 nearest results of {candidates.length}. This is a display limit, not a source count.</p>}
+          {candidates.length > 6 && <button className="agent-show-more" onClick={() => setShowAllResults(value => !value)}>{showAllResults ? c.showFewer : c.showMore}</button>}
+          {showAllResults && candidates.length > 30 && <p className="agent-paragraph">{c.display30} {candidates.length}. {c.notSourceCount}</p>}
         </div>}
       </section>
 
       <section className="agent-panel guide-panel" aria-labelledby="guide-title">
-        <div className="agent-panel-title"><div><span className="eyebrow">YOUR LOCAL GUIDE</span><h3 id="guide-title">Ask GLO Bro</h3></div><span className="agent-mini-count">OFFLINE READY</span></div>
-        <p className="agent-paragraph">Tell me what you need, brother. I'll use the information this device actually has and help you decide what to check next.</p>
-        <p className="agent-ai-note"><strong>Always available:</strong> a local guide with no server requests. On compatible desktop Chrome browsers, optional <strong>real on-device AI</strong> can provide more conversational help after you choose to enable it. Most mobile phones do not support that model today.</p>
+        <div className="agent-panel-title"><div><span className="eyebrow">{c.guide}</span><h3 id="guide-title">{c.askBro}</h3></div><span className="agent-mini-count">{c.offlineReady}</span></div>
+        <p className="agent-paragraph">{c.guideIntro}</p>
+        <p className="agent-ai-note">{c.aiDisclaimer}</p>
         <div className="quick-questions">
-          {QUESTIONS.map((q) => <button type="button" key={q.label} onClick={() => ask(q.text)}>{q.label}</button>)}
+          {c.qs.map((label,i)=><button type="button" key={label} onClick={()=>ask(c.qr[i])}>{label}</button>)}
         </div>
         <form onSubmit={(e) => { e.preventDefault(); ask() }} className="guide-form">
-          <label htmlFor="bro-question">What do you need?</label>
-          <textarea id="bro-question" maxLength="300" rows="3" placeholder="I need water and somewhere to charge my phone..." value={question} onChange={(e) => setQuestion(e.target.value)}/>
-          <button type="submit" className="primary" disabled={!question.trim()}>Ask GLO Bro →</button>
+          <label htmlFor="bro-question">{c.askNeed}</label>
+          <textarea id="bro-question" maxLength="300" rows="3" placeholder={c.askPlaceholder} value={question} onChange={(e) => setQuestion(e.target.value)}/>
+          <button type="submit" className="primary" disabled={!question.trim()}>{c.askAction}</button>
         </form>
         <div className="ai-options">
-          <div><strong>Optional on-device AI</strong><p>Checks for a model built into your browser. There is no cloud AI connection, account, or API key. Checking availability does not download a model. Enabling a model that is not installed may require a large download and substantial battery/storage.</p></div>
-          {aiStatus === 'unchecked' && <button type="button" className="secondary compact" onClick={checkAi}>Check my browser for AI</button>}
-          {aiStatus === 'checking' && <span className="ai-state">Checking availability…</span>}
-          {aiStatus === 'unsupported' && <span className="ai-state">Not supported on this browser. The local guide above still works.</span>}
-          {aiStatus === 'unavailable' && <span className="ai-state">Model unavailable on this device. The local guide still works.</span>}
-          {aiStatus === 'downloading' && <span className="ai-state">Browser says its model is downloading. Check again after it finishes.</span>}
-          {['unsupported','unavailable','downloading'].includes(aiStatus) && <button type="button" className="secondary compact" onClick={checkAi}>Recheck AI</button>}
+          <div><strong>{c.optionalAi}</strong><p>{c.aiIntro}</p></div>
+          {aiStatus === 'unchecked' && <button type="button" className="secondary compact" onClick={checkAi}>{c.aiCheck}</button>}
+          {aiStatus === 'checking' && <span className="ai-state">{c.aiChecking}</span>}
+          {aiStatus === 'unsupported' && <span className="ai-state">{c.aiUnsupported}</span>}
+          {aiStatus === 'unavailable' && <span className="ai-state">{c.aiUnavailable}</span>}
+          {aiStatus === 'downloading' && <span className="ai-state">{c.aiDownloading}</span>}
+          {['unsupported','unavailable','downloading'].includes(aiStatus) && <button type="button" className="secondary compact" onClick={checkAi}>{c.aiRecheck}</button>}
           {['available','downloadable'].includes(aiStatus) && <div className="ai-actions">
-            <span className="ai-state">{aiStatus === 'available' ? 'On-device model ready' : 'Model download required'}</span>
+            <span className="ai-state">{aiStatus === 'available' ? c.aiReady : c.aiDownload}</span>
             <button type="button" className="secondary compact" disabled={aiBusy || !question.trim()} onClick={askAi}>
-              {aiBusy ? 'Asking local AI…' : aiStatus === 'available' ? 'Ask on-device AI' : 'Download model and ask'}
+              {aiBusy ? c.aiAsking : aiStatus === 'available' ? c.aiAsk : c.aiGet}
             </button>
           </div>}
           {aiError && <p className="agent-error" role="alert">{aiError}</p>}
-          {aiText && <div className="ai-answer" role="status"><strong>ON-DEVICE AI SUGGESTION · NOT VERIFIED</strong><p>{aiText}</p><small>The language model can make mistakes. Only the separately linked source records are evidence of a mapped resource.</small></div>}
+          {aiText && <div className="ai-answer" role="status"><strong>{c.aiResult}</strong><p>{aiText}</p><small>{c.aiCaveat}</small></div>}
         </div>
         {conversation && <div className="guide-response" role="status" aria-live="polite">
-          <div className="guide-response-ask"><span>YOU ASKED</span><p>{conversation.asked}</p></div>
-          <strong className="guide-response-title">{conversation.answer.title}</strong>
-          {conversation.answer.lines.map((line, i) => <p key={i}>{line}</p>)}
-          {conversation.answer.matches.length > 0 && <div className="guide-matches">
-            {conversation.answer.matches.map((r, i) => <div key={r.id || i} className="guide-match">
-              <div><strong>{r.title}</strong><small>{r.origin === 'private-note' ? 'Your private observation' : 'OpenStreetMap entry'} · Unverified</small></div>
-              <button type="button" onClick={() => onNavigate(r)}>Map ↗</button>
+          <div className="guide-response-ask"><span>{c.youAsked}</span><p>{conversation.asked}</p></div>
+          <strong className="guide-response-title">{displayedAnswer.title}</strong>
+          {displayedAnswer.lines.map((line, i) => <p key={i}>{line}</p>)}
+          {displayedAnswer.matches.length > 0 && <div className="guide-matches">
+            {displayedAnswer.matches.map((r, i) => <div key={r.id || i} className="guide-match">
+              <div><strong>{r.title}</strong><small>{r.origin === 'private-note' ? c.privateObservation : c.osmEntry} · {c.unverified}</small></div>
+              <button type="button" onClick={() => onNavigate(r)}>{c.mapAction}</button>
             </div>)}
           </div>}
         </div>}
       </section>
     </div>
-    <div className="agent-dock-footer"><strong>The crew's rule:</strong> A map record is evidence that someone mapped a place, not evidence the resource is open, safe, accessible, or operational. Agent actions run on demand, not as an autonomous background network.</div>
+    <div className="agent-dock-footer"><strong>{c.rule}</strong> {c.ruleText}</div>
   </section>
 }

@@ -112,3 +112,10 @@ A person can select an existing GLO private backup JSON file using their browser
 The person must approve before a bounded **add-only** IndexedDB transaction adds missing pin IDs. IDs already present remain unchanged and are skipped. This does not merge two divergent versions of a pin; if the same identifier exists with newer local details, those details are intentionally preserved. The entire restore aborts on invalid data or failed writes, and does not claim that a historical personal observation proves a resource open, safe or operational.
 
 Opening a selected file in GLO does not delete that file from Downloads or undo cloud synchronization performed by the browser or operating system. Browser-managed file picker caches and device-level traces are outside GLO's panic-clear promise. Panic clear erases app-owned local reports and their histories but cannot revoke external copies. The newly implemented safeguard prevents a pending import in the same tab from repopulating data after panic clear; it is not a cross-tab security lock.
+
+
+## Scout mobile language and connection copy (P1-J)
+
+The browser's \`navigator.onLine\` API indicates a network-interface hint, **not** verified internet service or access to Overpass. The header never states "Browser online" merely from that hint. It may report **Connection not checked** even when the device cannot reach the public internet. No background fetch is added, preserving offline operation and minimizing privacy exposure.
+
+Spanish UI translation covers main explorer and map flows, Scout controls, offline packs, local rule-guided explanations and recovery feedback. It does not translate imported OpenStreetMap names, unstructured notes, third-party errors, optional locally generated model responses or external provider content; those are source data, not app-authored facts. The original private backup data and recheck histories are unchanged.

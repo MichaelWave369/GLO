@@ -16,6 +16,7 @@ import MapPinIcon from './MapPinIcon.jsx'
 import RecheckPanel, { RecheckHistory } from './RecheckPanel.jsx'
 import { latestRecheck } from './recheck.js'
 import { TEXT, accessText, parseSharedPin } from './fieldKit.js'
+import { categoryLabel, connectionDisplay, UI } from './locale.js'
 import { CrisisCard, SharePanel, SharedPreview } from './FieldTools.jsx'
 
 function MapNavigator({ target }) {
@@ -49,6 +50,7 @@ export default function App() {
   const [panicCovered, setPanicCovered] = useState(false)
   const [panicCleared, setPanicCleared] = useState(false)
   const t = TEXT[language]
+  const ui = UI[language]
   const [selectedId, setSelectedId] = useState('')
   const [filter, setFilter] = useState('all')
   const [query, setQuery] = useState('')
@@ -64,7 +66,7 @@ export default function App() {
   const [activePackId, setActivePackId] = useState('')
   const [packRevision, setPackRevision] = useState(0)
   const [target, setTarget] = useState(null)
-  const [notice, setNotice] = useState('No account needed. Your observations stay on this device.')
+  const [notice, setNotice] = useState({key:'welcome'})
   const [error, setError] = useState('')
   const [locationHint, setLocationHint] = useState('')
   const [formError, setFormError] = useState('')
@@ -81,11 +83,21 @@ export default function App() {
   }
   useEffect(() => {
     refresh()
-    const yes = () => setOnline(true)
-    const no = () => setOnline(false)
-    window.addEventListener('online', yes)
-    window.addEventListener('offline', no)
-    return () => { window.removeEventListener('online', yes); window.removeEventListener('offline', no) }
+    const syncConnection = () => setOnline(navigator.onLine)
+    window.addEventListener('online', syncConnection)
+    window.addEventListener('offline', syncConnection)
+    window.addEventListener('focus', syncConnection)
+    window.addEventListener('pageshow', syncConnection)
+    const whenVisible = () => { if(document.visibilityState==='visible')syncConnection() }
+    document.addEventListener('visibilitychange', whenVisible)
+    syncConnection()
+    return () => {
+      window.removeEventListener('online', syncConnection)
+      window.removeEventListener('offline', syncConnection)
+      window.removeEventListener('focus', syncConnection)
+      window.removeEventListener('pageshow', syncConnection)
+      document.removeEventListener('visibilitychange', whenVisible)
+    }
   }, [])
 
   const visible = useMemo(() => reports.filter((r) =>
@@ -121,8 +133,8 @@ export default function App() {
     setPackRevision(v => v + 1)
     setReference(pack.center)
     setTarget({ ...pack.center, zoom:14 })
-    setNotice((restored ? 'Restored' : 'Loaded') + ' offline public Scout pack (' + sources.length +
-      ' records). Last queried: ' + new Date(pack.scannedAt).toLocaleString() +
+    setNotice((restored ? ui.offlinePackRestore : ui.offlinePackLoad) + ' ' + ui.offlinePackLabel + ' (' + sources.length +
+      ' ' + ui.offlinePackRecords + '). '+ui.offlinePackQueried+': ' + new Date(pack.scannedAt).toLocaleString(language==='es'?'es-US':'en-US') +
       '. Records are unverified, and no street map was downloaded.')
   }
   function removeOfflinePack(id) {
@@ -289,7 +301,7 @@ export default function App() {
         <img src={import.meta.env.BASE_URL + 'glo-pin.svg'} width="44" height="44" alt="" />
         <span><strong>GLO <span>Pin</span></strong><small>GOOD LOOKIN' OUT</small></span>
       </a>
-      <div className="status"><span className="status-dot" />{online ? 'Browser online' : 'Browser offline'}<span className="chip">LOCAL FIRST</span></div>
+      <div className="status"><span className={'status-dot '+(online?'status-dot-unverified':'status-dot-offline')} />{connectionDisplay(online,language)}<span className="chip">{ui.localFirst}</span></div>
     </header>
     <main>
       <div className="field-controls">
@@ -307,13 +319,13 @@ export default function App() {
       </section>
       <PocketPlan language={language} resource={selectedResource}/>
       <SharedPreview pin={sharedPreview} language={language} onView={() => { if (lowBattery) changeLowBattery(); jumpTo(sharedPreview) }} onDismiss={closeShared}/>
-      {notice && <div className="notice" role="status" aria-live="polite">{notice}</div>}
-      {error && <div className="warning" role="alert">Storage error: {error}. Your observations may not be saved.</div>}
-      <section className="workspace" aria-label="GLO resource map">
+      {notice && <div className="notice" role="status" aria-live="polite">{typeof notice==='object'?ui[notice.key]||'':notice}</div>}
+      {error && <div className="warning" role="alert">{ui.storageError}: {error}. {ui.storageCaution}</div>}
+      <section className="workspace" aria-label={ui.mapPrivacyArea}>
         <aside className="sidebar">
           {editing ? <form ref={editorRef} className="pin-editor" onSubmit={save}>
-            <div className="eyebrow">PRIVATE · DEVICE ONLY</div>
-            <div className="header-row"><h2>{t.pinFormTitle}</h2><button type="button" className="close" onClick={cancelEdit} aria-label="Cancel editing">×</button></div>
+            <div className="eyebrow">{ui.formDevice}</div>
+            <div className="header-row"><h2>{t.pinFormTitle}</h2><button type="button" className="close" onClick={cancelEdit} aria-label={ui.cancelEditing}>×</button></div>
             <div className="location-hint" role="status" aria-live="polite">{locationHint}</div>
             <div className="actions location-actions">
               <button className="secondary" type="button" onClick={startPinLocation}>{t.locate}</button>
@@ -322,12 +334,12 @@ export default function App() {
             <p className="help">{language === 'es' ? 'Solo registra recursos públicos. Nunca señales dónde duerme una persona, domicilios privados o personas. Son observaciones, no garantía de seguridad.' : 'Record only public resources or official shelter programs. Never pin personal sleeping places, camps, private homes or people. A report is not a safety certification.'}</p>
             <label htmlFor="category">{t.type}</label>
             <select id="category" value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })}>
-              {Object.entries(CATEGORIES).map(([key, value]) => <option key={key} value={key}>{value.label}</option>)}
+              {Object.entries(CATEGORIES).map(([key, value]) => <option key={key} value={key}>{categoryLabel(key,language,CATEGORIES)}</option>)}
             </select>
             <label htmlFor="title">{t.observed}</label>
-            <input id="title" required maxLength="90" value={draft.title} placeholder="e.g. a public refill fountain" onChange={(e) => setDraft({ ...draft, title: e.target.value })}/>
+            <input id="title" required maxLength="90" value={draft.title} placeholder={ui.titleExample} onChange={(e) => setDraft({ ...draft, title: e.target.value })}/>
             <label htmlFor="note">{t.note}</label>
-            <textarea id="note" rows="4" maxLength="400" value={draft.note} placeholder="Avoid names, identities and sensitive details." onChange={(e) => setDraft({ ...draft, note: e.target.value })}/>
+            <textarea id="note" rows="4" maxLength="400" value={draft.note} placeholder={ui.notesExample} onChange={(e) => setDraft({ ...draft, note: e.target.value })}/>
             <label htmlFor="hours">{t.hours}</label>
             <input id="hours" maxLength="100" value={draft.reportedHours} placeholder={language === 'es' ? 'Ej.: lun–vie 9–17' : 'e.g. Mon–Fri 9–5'} onChange={e => setDraft({...draft,reportedHours:e.target.value})}/>
             <label htmlFor="observed-at">{language === 'es' ? 'Fecha y hora de la observación' : 'When did you actually observe this?'}</label>
@@ -355,19 +367,19 @@ export default function App() {
             <div className="actions"><button type="button" className="secondary" onClick={cancelEdit}>{t.cancel}</button><button type="submit" className="primary" disabled={!!error}>{t.save}</button></div>
           </form> : <>
             {displayedReceipt && <div ref={savedFeedbackRef} className="saved-feedback" role="status" aria-live="polite">{language === 'es' ? 'Guardado solo en este dispositivo: ' : 'Saved on this device only: '}{displayedReceipt.title}{language === 'es' ? '. No se publicó.' : '. Nothing was published.'}</div>}
-            <div className="header-row"><div><div className="eyebrow">RESOURCE EXPLORER</div><h2>{t.resources}</h2></div><span className="counter">{reports.length} {language === 'es' ? 'privados' : 'private'}{lowBattery ? ` + ${publicCandidates.length} ${language === 'es' ? 'públicos' : 'mapped'}` : ''}</span></div>
+            <div className="header-row"><div><div className="eyebrow">{ui.explorer}</div><h2>{t.resources}</h2></div><span className="counter">{reports.length} {language === 'es' ? 'privados' : 'private'}{lowBattery ? ` + ${publicCandidates.length} ${language === 'es' ? 'públicos' : 'mapped'}` : ''}</span></div>
             <p className="help">{t.private} {publicCandidates.length && !lowBattery ? (language === 'es' ? 'Los resultados públicos están abajo, en Scout, y aparecen como puntos separados en el mapa.' : 'Public map results are listed once in Scout below and shown as separate map markers.') : ''}</p>
             <label htmlFor="search">{t.search}</label>
             <input id="search" type="search" placeholder={t.search} value={query} onChange={(e) => setQuery(e.target.value)}/>
-            <div className="filters" role="group" aria-label="Filter by resource type">
-              <button className={filter === 'all' ? 'filter active' : 'filter'} onClick={() => setFilter('all')}>All</button>
-              {Object.entries(CATEGORIES).map(([key, value]) => <button key={key} className={filter === key ? 'filter active' : 'filter'} onClick={() => setFilter(key)}>{value.icon} {value.label}</button>)}
+            <div className="filters" role="group" aria-label={ui.filterAria}>
+              <button className={filter === 'all' ? 'filter active' : 'filter'} onClick={() => setFilter('all')}>{ui.all}</button>
+              {Object.entries(CATEGORIES).map(([key, value]) => <button key={key} className={filter === key ? 'filter active' : 'filter'} onClick={() => setFilter(key)}>{value.icon} {categoryLabel(key,language,CATEGORIES)}</button>)}
             </div>
             <div className="results">
               {displayedRows.length ? displayedRows.map((r) => <article className={'pin-card' + (selectedId === r.id ? ' selected' : '')} key={r.id}>
                 <button className="pin-card-main" onClick={() => jumpTo(r)}>
                   <span className="category-icon">{CATEGORIES[r.category].icon}</span>
-                  <span className="pin-info"><strong>{r.title}</strong><small>{CATEGORIES[r.category].label} · {distanceKm(reference, r).toFixed(1)} km from map search center</small>{r.note && <span className="pin-note">{r.note}</span>}<small>{r.from === 'osm' ? 'OpenStreetMap · ' + (r.checkedAt || '') : t.seen + ': ' + fmtDate(latestRecheck(r)?.observedAt || r.observedAt)} · {t.noteStatus}</small>
+                  <span className="pin-info"><strong>{r.title}</strong><small>{categoryLabel(r.category,language,CATEGORIES)} · {distanceKm(reference, r).toFixed(1)} {ui.distance}</small>{r.note && <span className="pin-note">{r.note}</span>}<small>{r.from === 'osm' ? 'OpenStreetMap · ' + (r.checkedAt || '') : t.seen + ': ' + fmtDate(latestRecheck(r)?.observedAt || r.observedAt)} · {t.noteStatus}</small>
                     {r.reportedHours && <span className="local-observation">{t.reported}: {r.reportedHours}</span>}
                     {!latestRecheck(r) && r.visitStatus === 'not_working' && <span className="local-observation">{t.broken}</span>}
                     {latestRecheck(r) && <span className="local-observation">{language === 'es' ? 'Última revisión personal' : 'Latest personal recheck'}: {latestRecheck(r).visitStatus === 'working' ? t.worked : latestRecheck(r).visitStatus === 'not_working' ? t.broken : (language === 'es' ? 'No se pudo comprobar' : 'Could not determine')} · {language === 'es' ? 'Sin verificación independiente' : 'Not independently verified'}</span>}
@@ -378,9 +390,9 @@ export default function App() {
                 <div className="pin-actions">
                   {r.from !== 'osm' && <button type="button" onClick={() => {setSharingPin(null);setRecheckTargetId(r.id)}}>{language === 'es' ? 'Volver a comprobar' : 'Recheck'}</button>}
                   <button onClick={() => {setRecheckTargetId('');setSharingPin(r)}}>{t.share}</button>
-                  {r.from === 'osm' ? <a href={r.sourceUrl} rel="noopener noreferrer" target="_blank">OSM ↗</a> : <button className="delete" onClick={() => erase(r)} aria-label={'Delete ' + r.title}>{language === 'es' ? 'Borrar punto' : 'Delete local pin'}</button>}
+                  {r.from === 'osm' ? <a href={r.sourceUrl} rel="noopener noreferrer" target="_blank">OSM ↗</a> : <button className="delete" onClick={() => erase(r)} aria-label={ui.deleted + r.title}>{language === 'es' ? 'Borrar punto' : 'Delete local pin'}</button>}
                 </div>
-              </article>) : <div className="empty"><span className="empty-symbol"><MapPinIcon size={42}/></span><strong>{language === 'es' ? 'No hay puntos que mostrar' : lowBattery ? 'No resources to show' : 'No private pins yet'}</strong><p>{t.noPins}</p><button className="plain-link" onClick={begin}>Add a pin →</button></div>}
+              </article>) : <div className="empty"><span className="empty-symbol"><MapPinIcon size={42}/></span><strong>{language === 'es' ? 'No hay puntos que mostrar' : lowBattery ? 'No resources to show' : 'No private pins yet'}</strong><p>{t.noPins}</p><button className="plain-link" onClick={begin}>{ui.addLink}</button></div>}
             </div>
             {activeRecheckReport && <RecheckPanel key={activeRecheckReport.id} report={activeRecheckReport} language={language}
               onSaved={async () => {await refresh();setRecheckTargetId('');setNotice(language==='es'?'Nueva observación privada guardada. Historial conservado.':'Private recheck saved; earlier observations preserved.')}}
@@ -398,7 +410,7 @@ export default function App() {
               {backupReviewOpen && reports.length>0 &&
                 <BackupReview reports={reports} language={language}
                   onClose={()=>setBackupReviewOpen(false)}
-                  onDownloaded={message=>setNotice(message)}/>}
+                  onDownloaded={()=>setNotice({key:'downloadRequested'})}/>}
               {restoreOpen && <BackupRestore existing={reports} language={language}
                 onClose={()=>setRestoreOpen(false)}
                 onRestored={async message=>{await refresh();setSavedFeedback(null);setNotice(message)}}/>}
@@ -406,41 +418,41 @@ export default function App() {
           </>}
         </aside>
         {!lowBattery && <div className="map-column">
-          <div className="map-top"><div><strong>Explore the map</strong><small>Starting view: Stroudsburg, PA (not your detected position)</small></div>
-            <div className="map-actions"><button className="secondary compact" onClick={locate}>◎ Center on me</button><label className="switch"><input type="checkbox" checked={online && tiles} disabled={!online} onChange={(e) => setTiles(e.target.checked)} />Online street tiles</label></div>
+          <div className="map-top"><div><strong>{ui.map}</strong><small>{ui.start}</small></div>
+            <div className="map-actions"><button className="secondary compact" onClick={locate}>◎ {ui.center}</button><label className="switch"><input type="checkbox" checked={online && tiles} disabled={!online} onChange={(e) => setTiles(e.target.checked)} />{ui.tiles}</label></div>
           </div>
           <div className="map-frame" ref={mapFrameRef}>
             <MapContainer className="leaflet-map" center={[PILOT_CENTER.lat, PILOT_CENTER.lon]} zoom={13} scrollWheelZoom={false}>
               {online && tiles && <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'/>}
               <MapNavigator target={target}/>
-              {streetSketch && !(online && tiles) && streetSketch.records.map(way => <Polyline key={way.id} positions={way.coordinates} pathOptions={{color:way.kind==='water'?'#7fc9ed':way.tag==='footway'||way.tag==='path'||way.tag==='steps'?'#efca81':'#91d5b1',weight:way.kind==='water'?3:way.tag==='footway'?2:4,opacity:.85,dashArray:way.tag==='footway'||way.tag==='path'?'5 6':undefined}}><Popup><strong>{way.name||'Unnamed mapped way'}</strong><p>OpenStreetMap {way.kind==='water'?'waterway':'road/path'} ({way.tag}). Not verified safe or currently accessible.</p></Popup></Polyline>)}
+              {streetSketch && !(online && tiles) && streetSketch.records.map(way => <Polyline key={way.id} positions={way.coordinates} pathOptions={{color:way.kind==='water'?'#7fc9ed':way.tag==='footway'||way.tag==='path'||way.tag==='steps'?'#efca81':'#91d5b1',weight:way.kind==='water'?3:way.tag==='footway'?2:4,opacity:.85,dashArray:way.tag==='footway'||way.tag==='path'?'5 6':undefined}}><Popup><strong>{way.name||ui.mappedWay}</strong><p>OpenStreetMap {way.kind==='water'?ui.waterway:ui.path} ({way.tag}). {ui.wayCaution}</p></Popup></Polyline>)}
               <MapCenterTracker onMove={setMapCenter}/>
               <MapPicker enabled={editing} onPick={pickCoordinates}/>
               {visiblePublic.map((r) => <CircleMarker key={r.id} center={[r.lat, r.lon]} radius={selectedId === r.id ? 12 : 9} pathOptions={{ color: '#95c9e0', fillColor: r.category === 'water' ? '#83d4e4' : r.category === 'power' ? '#eec575' : '#a9cfa1', fillOpacity: 0.85, weight: 2, dashArray: '4 3' }} eventHandlers={{ click: () => setSelectedId(r.id) }}>
-                <Popup><strong>{r.title}</strong><br/>{CATEGORIES[r.category].label}<br/>OpenStreetMap record · Not verified<br/><a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">View OSM record</a></Popup>
+                <Popup><strong>{r.title}</strong><br/>{categoryLabel(r.category,language,CATEGORIES)}<br/>{ui.osmRecord}<br/><a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">{ui.osmView}</a></Popup>
               </CircleMarker>)}
-              {sharedPreview && (sharedPreview.scope === 'area' ? <Circle center={[sharedPreview.lat, sharedPreview.lon]} radius={900} pathOptions={{color:'#c5a3ff',fillColor:'#a27ce2',fillOpacity:.12,dashArray:'7 7',weight:2}}><Popup><strong>{sharedPreview.title}</strong><br/>Approximate area only · NOT an entrance · Unverified</Popup></Circle> : <CircleMarker center={[sharedPreview.lat, sharedPreview.lon]} radius={12} pathOptions={{color:'#6636ac',fillColor:'#b68be0',fillOpacity:.9}}><Popup><strong>{sharedPreview.title}</strong><br/>Exact peer-shared location · Unverified</Popup></CircleMarker>)}}
+              {sharedPreview && (sharedPreview.scope === 'area' ? <Circle center={[sharedPreview.lat, sharedPreview.lon]} radius={900} pathOptions={{color:'#c5a3ff',fillColor:'#a27ce2',fillOpacity:.12,dashArray:'7 7',weight:2}}><Popup><strong>{sharedPreview.title}</strong><br/>{ui.sharedArea}</Popup></Circle> : <CircleMarker center={[sharedPreview.lat, sharedPreview.lon]} radius={12} pathOptions={{color:'#6636ac',fillColor:'#b68be0',fillOpacity:.9}}><Popup><strong>{sharedPreview.title}</strong><br/>{ui.sharedPoint}</Popup></CircleMarker>)}}
               {visible.map((r) => <CircleMarker key={r.id} center={[r.lat, r.lon]} radius={selectedId === r.id ? 11 : 8} pathOptions={{ color: '#8bdeaf', fillColor: r.category === 'water' ? '#4aa9c0' : r.category === 'power' ? '#ecb64e' : '#81b77b', fillOpacity: 0.94, weight: 3 }} eventHandlers={{ click: () => setSelectedId(r.id) }}>
-                <Popup><strong>{r.title}</strong><br/>{CATEGORIES[r.category].label}<br/>Self-reported · Unverified<br/>Private to this device</Popup>
+                <Popup><strong>{r.title}</strong><br/>{categoryLabel(r.category,language,CATEGORIES)}<br/>{ui.selfReported}<br/>{ui.privateDevice}</Popup>
               </CircleMarker>)}
             </MapContainer>
-            {!(online && tiles) && <div className="map-label">NO STREET BASEMAP · LOCAL MARKERS ONLY</div>}
-            {editing && <div className="map-tip">Tap map to choose pin location</div>}
+            {!(online && tiles) && <div className="map-label">{ui.mapNoBase}</div>}
+            {editing && <div className="map-tip">{ui.mapTap}</div>}
           </div>
-          <div className="map-footnote"><strong>Map privacy:</strong> Online street tiles remain OFF by default. You can separately save an offline OSM neighborhood sketch below. It shows real mapped streets and paths but does NOT provide complete offline navigation or current accessibility.</div>
-          <StreetSketchPanel center={mapCenter} online={online} selected={streetSketch}
-            onSelect={(pack,restored)=>{setStreetSketch(pack);setTarget({...pack.center,zoom:15});setNotice((restored?'Restored':'Selected')+' '+pack.records.length+' offline streets, paths and waterways. No directions or live conditions.')}}
+          <div className="map-footnote"><strong>{ui.mapPrivacy}</strong> {ui.mapPrivacyText}</div>
+          <StreetSketchPanel center={mapCenter} online={online} selected={streetSketch} language={language}
+            onSelect={(pack,restored)=>{setStreetSketch(pack);setTarget({...pack.center,zoom:15});setNotice((restored?ui.restoredMap:ui.selectedMap)+' '+pack.records.length+' '+ui.savedMap)}}
             onDelete={()=>setStreetSketch(null)}/>
         </div>}
       </section>
-      {!lowBattery && <GloAgentDock center={mapCenter} localReports={reports} online={online}
+      {!lowBattery && <GloAgentDock center={mapCenter} localReports={reports} online={online} language={language}
         onSourcesChange={onScoutRecords} sourceRecords={publicCandidates} sourceSnapshot={sourceScan} packRevision={packRevision} onNavigate={jumpTo} onOpenPacks={openPacks}/>}
       <details className="packs-fold" ref={packsDetailsRef}>
         <summary>{language === 'es' ? 'Guardar o abrir recursos sin conexión' : 'Save or open offline resource packs'}</summary>
-        <OfflinePacksPanel scan={sourceScan} onUse={useOfflinePack} onRemove={removeOfflinePack} onNotice={setNotice}/>
+        <OfflinePacksPanel scan={sourceScan} language={language} onUse={useOfflinePack} onRemove={removeOfflinePack} onNotice={setNotice}/>
       </details>
-      <div className="principles"><div><b>◇</b><strong>No accounts</strong><p>Use GLO Pin without creating a profile.</p></div><div><b>⌁</b><strong>Local first</strong><p>Saved reports stay on-device; optional peer links only expose approved fields.</p></div><div><b>✓</b><strong>Evidence over guesses</strong><p>Reports are marked self-reported, never certified safe.</p></div></div>
+      <div className="principles"><div><b>◇</b><strong>{ui.principlesNo}</strong><p>{ui.principlesNoInfo}</p></div><div><b>⌁</b><strong>{ui.principlesLocal}</strong><p>{ui.principlesLocalInfo}</p></div><div><b>✓</b><strong>{ui.principlesEvidence}</strong><p>{ui.principlesEvidenceInfo}</p></div></div>
     </main>
-    <footer>GLO Pin · Good Lookin' Out · <a href="https://github.com/MichaelWave369/GLO">Open-source repository</a><span>v0.1 prototype · Not an emergency service · No community sync</span></footer>
+    <footer>GLO Pin · Good Lookin' Out · <a href="https://github.com/MichaelWave369/GLO">{ui.repo}</a><span>v0.1 · {ui.footer}</span></footer>
   </div>
 }

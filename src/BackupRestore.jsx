@@ -16,7 +16,8 @@ const COPY={
   success:(added,skipped)=>'Recovery finished: '+added+' private pin(s) added, '+skipped+' existing ID(s) skipped. No existing pins overwritten.',
   failed:'File could not be opened. No local data was changed.',
   confirm:(count)=>'Add up to '+count+' missing PRIVATE pins to this device? Existing IDs will be skipped. This can reveal sensitive notes on this device. No public upload will occur.',
-  empty:'No missing pins to restore. Nothing will be overwritten.'
+  empty:'No missing pins to restore. Nothing will be overwritten.',
+  duplicateNote:n=>'This backup contains '+n+' pin(s) already on this device. Nothing changed; your existing notes and rechecks remain intact.'
  },
  es:{
   title:'Recuperar copia privada de GLO',help:'Selecciona una copia privada completa de GLO en JSON. No se sube nada. Revisa las cantidades antes de decidir.',
@@ -30,7 +31,8 @@ const COPY={
   success:(added,skipped)=>'Recuperación terminada: '+added+' puntos agregados, '+skipped+' IDs existentes omitidos. No se reemplazó ningún punto.',
   failed:'No se pudo leer el archivo. No se modificaron los datos locales.',
   confirm:(count)=>'¿Agregar hasta '+count+' puntos privados faltantes? No se reemplazarán los puntos existentes ni se publicará nada.',
-  empty:'No faltan puntos. No se reemplazará ningún dato.'
+  empty:'No faltan puntos. No se reemplazará ningún dato.',
+  duplicateNote:n=>'Esta copia contiene '+n+' punto(s) que ya están aquí. No cambió nada; tus notas y revisiones actuales siguen intactas.'
  }
 }
 export default function BackupRestore({existing=[],language='en',onClose,onRestored}){
@@ -91,7 +93,7 @@ export default function BackupRestore({existing=[],language='en',onClose,onResto
         </dl>
       </div>
       <p className="restore-note">{t.local}</p>
-      {counts.addable===0?<p>{t.empty}</p>:
+      {counts.addable===0?<p className="restore-duplicate-note" role="status">{counts.alreadyHere>0?t.duplicateNote(counts.alreadyHere):t.empty}</p>:
         <label className="restore-ack"><input type="checkbox" checked={approved} onChange={event=>setApproved(event.target.checked)}/>
           <span>{t.approve}</span>
         </label>}
