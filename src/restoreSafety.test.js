@@ -62,3 +62,9 @@ test('reject oversize files, unsupported versions and future-dated observations'
  assert.throws(()=>parsePrivateRestore(backup([{...entry,observedAt:'2029-01-01T00:00:00Z'}]),now),/timestamp/)
  assert.throws(()=>parsePrivateRestore(backup([{...entry,tag:'extra'}]),now),/unsafe/)
 })
+
+test('legitimate multiline legacy personal notes are preserved',()=>{
+ const raw={...entry,note:'Checked at noon.\nNo one was there.\tReturn tomorrow.'}
+ const parsed=parsePrivateRestore(backup([raw]),now)
+ assert.equal(parsed.reports[0].note,raw.note)
+})
