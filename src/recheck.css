@@ -1,0 +1,23 @@
+.recheck-panel,.recheck-history{background:#132a29;color:#eaf7ed;border:1px solid #375e53;border-radius:12px}
+.recheck-panel{padding:14px;display:grid;gap:10px;margin:14px 0;scroll-margin-top:14px}
+.recheck-panel>.header-row{flex-wrap:wrap;gap:10px}
+.recheck-panel>.header-row strong{font-size:15px;color:#a6edc0}
+.recheck-panel p,.recheck-panel small{font-size:13px;line-height:1.55;color:#d2e2d6;margin:0}
+.recheck-panel .recheck-caution{color:#f0d6a7}
+.recheck-form{display:grid;gap:9px}
+.recheck-form label{font-size:13px;font-weight:750;color:#eff7ef}
+.recheck-form input,.recheck-form select,.recheck-form textarea{display:block;width:100%;min-height:48px;padding:10px 12px;background:#0e1c22;color:#f0f7ef;border:1px solid #527365;border-radius:9px;font-size:15px}
+.recheck-form textarea{resize:vertical}
+.recheck-form textarea::placeholder{color:#bbd2c3}
+.recheck-actions{display:flex;gap:9px;flex-wrap:wrap}
+.recheck-actions button{min-height:48px}
+.recheck-history{padding:0 12px;margin:10px 0 2px;background:#13242a}
+.recheck-history summary{display:list-item;cursor:pointer;min-height:48px;align-content:center;font-size:13px;font-weight:800;color:#acf1c8}
+.recheck-history ol{padding-left:20px;display:grid;gap:12px;margin:5px 0 15px}
+.recheck-history li{font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+.recheck-history li strong,.recheck-history li small,.recheck-history li span{display:block}
+.recheck-history li strong{color:#edf7f1}
+.recheck-history li small,.recheck-history li span{color:#bbd5c7}
+.recheck-history li p{white-space:pre-wrap;margin:4px 0;color:#e0ede0;font-size:12px}
+.recheck-form :focus-visible,.recheck-history summary:focus-visible{outline:3px solid #e3e8a8;outline-offset:2px}
+@media(max-width:590px){.recheck-panel{padding:12px}.recheck-actions{display:grid;grid-template-columns:1fr}.recheck-actions button{width:100%}}
