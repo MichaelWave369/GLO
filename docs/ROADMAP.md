@@ -231,3 +231,17 @@ The visual change is intentionally CSS-first. Data sources, local storage, locat
 - [ ] Field-test Android/iOS airplane-mode choose → preview → restore → reload, and import into a device with existing changed pins.
 - [ ] Check file picker accessibility, Spanish/low-battery UI, local storage pressure, 1.5 MB rejection.
 - [ ] Design interoperable encrypted exports only after cryptographic review and secure passphrase/key handling.
+
+
+## P1-J: Scout field review localization and confidence fixes
+
+- [x] Scout confirmed private backup round-trip, two historical checks, preserved newer local recheck on re-import, cached airplane-mode operation and crisis visibility in low-battery Spanish mode.
+- [x] Translate resource chips, sidebar distance, map controls/popups, offline neighborhood sketch and public pack panels.
+- [x] Translate GLO crew status, Scout source/freshness warnings, GLO Bro interface, and deterministic local guide response to Spanish.
+- [x] Avoid false **Browser online** claim from navigator.onLine. Show connection-not-checked rather than unearned network availability; do not add background fetch.
+- [x] Improve low-battery LOCAL FIRST badge and connection status contrast, including dot colors.
+- [x] Explain zero-new-pin re-import explicitly, while keeping restore disabled and existing observations unchanged.
+- [x] Render Download requested notice in selected UI language; add bilingual locale regression tests.
+- [ ] Scout mobile re-test: toggle English/Spanish across full page, 320–430px layout, low battery, offline, GLO Bro questions, same-file reimport.
+- [ ] Verify OS-provided permissions/browser errors, user-written notes and OSM titles remain clearly recognized as untranslated source content.
+- [ ] Real-device contrast and screen-reader audit at low brightness; verify install/PWA cache update behavior.
