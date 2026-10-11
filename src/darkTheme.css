@@ -304,3 +304,22 @@ html .shell.low-battery .agent-local-pill{
   html .masthead .status{flex-wrap:wrap;gap:7px;justify-content:flex-end;max-width:65%;line-height:1.4}
   html .masthead .chip{margin-left:0}
 }
+
+
+/* A browser network hint is not a successful connectivity test. */
+html .status-dot.status-dot-unverified{
+  background:#edc788;
+  box-shadow:0 0 0 3px #60492a;
+}
+html .status-dot.status-dot-offline{
+  background:#b0bdba;
+  box-shadow:0 0 0 3px #394b48;
+}
+html .shell.low-battery .status-dot.status-dot-unverified{
+  background:#ffe3a8;
+  box-shadow:0 0 0 3px #62512d;
+}
+html .shell.low-battery .status-dot.status-dot-offline{
+  background:#d0d9d6;
+  box-shadow:0 0 0 3px #3f544a;
+}
