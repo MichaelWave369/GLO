@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { buildLocalExport, exportInventory } from './exportSafety.js'
+import { buildLocalExport, exportInventory, exportApproved } from './exportSafety.js'
 import './backupReview.css'
 
 const COPY={
@@ -38,7 +38,7 @@ export default function BackupReview({reports=[],language='en',onClose,onDownloa
  const [error,setError]=useState('')
  const [busy,setBusy]=useState(false)
  const stats=exportInventory(reports)
- const allowed=mode==='overview'||ack
+ const allowed=exportApproved(mode,ack)
  function setChoice(next){setMode(next);setAck(false);setError('')}
  function download(event){
   event.preventDefault()
