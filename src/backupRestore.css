@@ -1,0 +1,27 @@
+/* Privacy-first recovery: offline, local-only, never overwrite an existing observation. */
+.backup-restore{display:grid;gap:12px;margin:14px 0;border:1px solid #4c8069;background:#142b2a;color:#eaf7ef;border-radius:12px;padding:14px}
+.backup-restore .header-row{align-items:center;display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px}
+.backup-restore .header-row strong{font-size:16px;color:#abf3ca}
+.backup-restore p,.backup-restore label,.backup-restore small{font-size:13px;line-height:1.55}
+.backup-restore p{margin:0;color:#cee4d5}
+.backup-restore label{color:#eaf6ed;font-weight:750}
+.backup-restore input[type=file]{width:100%;min-height:50px;background:#0d2024;color:#eaf6ee;border:1px solid #517b6a;border-radius:9px;padding:9px;font-size:13px}
+.backup-restore input[type=file]::file-selector-button{min-height:42px;border:1px solid #5e9778;border-radius:7px;background:#264b3c;color:#eaf6ed;cursor:pointer;padding:8px 10px;margin-right:10px}
+.backup-restore .restore-caution{background:#362b22;border:1px solid #9a7456;border-radius:9px;padding:11px;color:#f9e3bd}
+.backup-restore .restore-note{color:#bfd7c9}
+.backup-restore .restore-error{color:#ffb9af;font-weight:700}
+.backup-restore form{display:grid;gap:12px}
+.restore-summary{border:1px solid #3e6d57;background:#1c3b32;border-radius:10px;padding:12px;display:grid;gap:8px}
+.restore-summary>strong{color:#a8f4ca;font-size:15px}
+.restore-summary p{color:#d3e5d8}
+.restore-summary dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0}
+.restore-summary dl div{display:grid;gap:5px;border:1px solid #4a7464;background:#162f2b;border-radius:9px;padding:9px}
+.restore-summary dt{font-size:12px;color:#d6e9db}
+.restore-summary dd{font-size:23px;font-weight:800;color:#adf2c8;margin:0;font-variant-numeric:tabular-nums}
+.restore-ack{display:flex;gap:12px;align-items:center;min-height:50px;cursor:pointer}
+.restore-ack input{width:24px;height:24px;flex:0 0 24px;accent-color:#84dfae}
+.restore-actions{display:flex;gap:10px;flex-wrap:wrap}
+.restore-actions button,.backup-restore .header-row button{min-height:48px}
+.backup-restore :focus-visible{outline:3px solid #e7e7a5;outline-offset:3px}
+@media(max-width:560px){.backup-restore{padding:12px}.restore-actions{display:grid;grid-template-columns:1fr}.restore-actions button{width:100%}}
+@media(max-width:380px){.restore-summary dl{grid-template-columns:1fr}}
