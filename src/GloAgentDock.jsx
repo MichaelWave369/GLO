@@ -8,19 +8,6 @@ import { comparePublicScans } from './sourceChange.js'
 import { inspectOnDeviceAI, askOnDeviceAI } from './onDeviceAi.js'
 import MapPinIcon from './MapPinIcon.jsx'
 
-const QUESTIONS = [
-  { label: 'I need drinking water', text: 'Where can I find drinking water?' },
-  { label: 'I need to charge a phone', text: 'Where can I charge my phone battery?' },
-  { label: 'I need shelter from rain', text: 'Is there a covered place where I can sit out of the rain?' },
-  { label: 'I need food', text: 'Where can I get food?' }
-]
-
-function dateText(value) {
-  if (!value) return 'Never'
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? 'Unknown' : date.toLocaleString()
-}
-
 function CrewCard({ agent, scan, audit, language }) {
   const c=crewCopy(language)
   let status = c.ready
@@ -54,6 +41,9 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
   const candidates = sourceRecords
   const audit = useMemo(() => freshnessAudit(localReports, candidates), [localReports, candidates])
   const changedViewport = scan ? distanceKm(center, scan.center) > 0.4 : false
+  const displayedAnswer=conversation?guideReply(conversation.asked,{
+    reports:localReports,sources:candidates,center,online
+  },language):null
   const counts = useMemo(() => Object.fromEntries(Object.keys(CATEGORIES).map((key) => [
     key, candidates.filter((item) => item.category === key).length
   ])), [candidates])
@@ -85,9 +75,7 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
     setQuestion(trimmed)
     setAiText('')
     setAiError('')
-    setConversation({ asked: trimmed, answer: guideReply(trimmed, {
-      reports: localReports, sources: candidates, center, online
-    },language) })
+    setConversation({ asked: trimmed })
   }
 
   async function checkAi() {
@@ -230,10 +218,10 @@ export default function GloAgentDock({ center, localReports, online, onSourcesCh
         </div>
         {conversation && <div className="guide-response" role="status" aria-live="polite">
           <div className="guide-response-ask"><span>{c.youAsked}</span><p>{conversation.asked}</p></div>
-          <strong className="guide-response-title">{conversation.answer.title}</strong>
-          {conversation.answer.lines.map((line, i) => <p key={i}>{line}</p>)}
-          {conversation.answer.matches.length > 0 && <div className="guide-matches">
-            {conversation.answer.matches.map((r, i) => <div key={r.id || i} className="guide-match">
+          <strong className="guide-response-title">{displayedAnswer.title}</strong>
+          {displayedAnswer.lines.map((line, i) => <p key={i}>{line}</p>)}
+          {displayedAnswer.matches.length > 0 && <div className="guide-matches">
+            {displayedAnswer.matches.map((r, i) => <div key={r.id || i} className="guide-match">
               <div><strong>{r.title}</strong><small>{r.origin === 'private-note' ? c.privateObservation : c.osmEntry} · {c.unverified}</small></div>
               <button type="button" onClick={() => onNavigate(r)}>{c.mapAction}</button>
             </div>)}
