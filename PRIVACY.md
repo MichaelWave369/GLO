@@ -127,7 +127,7 @@ Spanish UI translation covers main explorer and map flows, Scout controls, offli
 
 Copied text and pasted research can leave GLO's control via other apps, agents, browsers, clipboards and downloads. **This is not a zero-trace claim.** A user must review the entire request because the question they type can itself disclose sensitive facts. If they later paste findings back into a saved private pin, GLO stores the note in a separate, capped research-only local database table, labeled **NOT VERIFIED**, never as physical evidence. Its optional source URL is opened only by explicit user navigation.
 
-Research annotations are erased with their pin and by panic clear. They are currently **not exported by the v1 private backup** and are not restored by v1 recovery. Never claim full backups preserve these new annotations until versioned research export/restore has been implemented and field-tested.
+Research annotations are erased with their pin and by panic clear. They are **not included in the v1 private pin backup**; P1-L now provides a separate research-only backup format and add-only restore. Field testing on real phones remains necessary.
 
 
 ## P1-L: separate research-note private backup
@@ -137,3 +137,17 @@ GLO can now manually export a separate, research-only, version 1 JSON file conta
 Recovery reads only a user-selected JSON file locally, strictly validates its format and fields, and previews eligible, duplicate, missing-pin and full-history counts. The person must approve and confirm recovery. An atomic IndexedDB transaction re-checks current live pin IDs and existing note IDs; restoration is add-only and skips entries for absent pins, duplicate IDs or full (12-note) histories. It cannot update field observations or recheck histories. Restore the legacy v1 private pin backup first when moving to another device. The original v1 pin backup format remains unchanged and **does not contain research annotations**.
 
 Deleting a pin cascades its research notes, and panic clear removes research notes in the same GLO-owned data-clear transaction. Neither action removes downloaded backup files or copies held outside this browser. Research is still **not independently verified**. There is no automatic background sharing, account, cloud sync, server or agent write privilege.
+
+
+## P1-M: on-device privacy inspector, limited by design
+
+The optional **Inspect my privacy** panel is a passive GLO-owned inventory, not a traffic recorder, network firewall, zero-trace certification or security audit. It opens only after a user taps its button. It calls GLO's IndexedDB helper for a read-only, single-transaction count of rows in the four app-owned stores: reports, researchAnnotations, publicPacks and streetSketches. It does **not** display or export stored notes, exact coordinates, private IDs, or personal research. A normal first-time IndexedDB open may initialize the GLO database schema when storage does not yet exist. Counts can change after the snapshot; an explicit Refresh reads them again, locally.
+
+The panel separately documents **possible** network/outbound behavior, NOT actual past connections or provider access logs:
+- Loading the site and checking its PWA service worker may contact GLO's GitHub Pages origin; foreground update checks can occur automatically under the app's update policy when online.
+- The opt-in OpenStreetMap raster tile layer may request and reveal map regions to the tile host only while mounted.
+- User-triggered Scout searches and neighborhood road downloads use a coarse Overpass query region and can expose IP/time/location context to Overpass.
+- User-pressed location buttons invoke browser/device geolocation; browser/OS providers may be involved.
+- Optional browser-managed AI model downloads are separate from GLO Bro's offline rules; links, clipboard, share, print and local file exports may disclose data after user actions.
+
+Browser-reported online/offline state is a hint, not an active connection test. The panel makes no new outgoing requests and does not attempt a network probe, location permission, clipboard access, download or security scan. It cannot enumerate external hosting/provider logs, OS traces, downloaded backups, cached scripts/tiles, QR/clipboard recipients, other apps, or prove every network request absent. Panic clear removes GLO-owned IndexedDB records, not those outside copies. Real-phone accessibility, airplane mode, screen reader and update-policy behavior require human acceptance beyond CI.
