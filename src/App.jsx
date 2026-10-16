@@ -62,7 +62,6 @@ export default function App() {
   const t = TEXT[language]
   const ui = UI[language]
   const mapCopy = MAP_TILE_COPY[language]
-  const onlineTilesMounted = shouldMountOnlineTiles({consented:tiles,lowBattery})
   const [selectedId, setSelectedId] = useState('')
   const [finderFocus, setFinderFocus] = useState(null)
   const [filter, setFilter] = useState('all')
@@ -73,6 +72,7 @@ export default function App() {
   const [tiles, setTiles] = useState(false)
   const [tileStatus, setTileStatus] = useState('idle')
   const [tileAttempt, setTileAttempt] = useState(0)
+  const onlineTilesMounted = shouldMountOnlineTiles({consented:tiles,lowBattery})
   const [streetSketch, setStreetSketch] = useState(null)
   const [reference, setReference] = useState(PILOT_CENTER)
   const [mapCenter, setMapCenter] = useState(PILOT_CENTER)
