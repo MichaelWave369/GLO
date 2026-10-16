@@ -322,3 +322,16 @@ If tiles do not load (network, provider limits, privacy blocker or browser restr
 **Low-battery mode deliberately hides the interactive map.** A new visible **Show interactive map** control exits low-battery mode, without automatically authorizing raster tiles. The manual map switch resets to OFF after battery mode is enabled. Offline public packs and private notes remain separate from raster tile storage.
 
 Tests cover endpoint policy, consent defaults, recovery controls and viewport-resize wiring. A genuine device/browser rendering check and tile network check are still needed. If an older installed PWA version is running, use its existing **Update now** control and reload only after saving unsaved work.
+
+
+## P1-P: FieldCloudWorker-style public website check receipts, review-only
+
+GLO now has a **Public source check desk**, after Offline Scout packs. This is an isolated, read-only experiment inspired by the *observation ≠ authorization* boundary in [FieldCloudWorker](https://github.com/MichaelWave369/FieldCloudWorker), but contains entirely original GLO code. It never changes an OSM candidate, promotes a self-observation to verified, updates resource hours, or publishes the result.
+
+**First narrow source:** the fixed, public national [United Way 211 referral website](https://www.211.org/), not a person-specific local provider record. The manual GitHub Actions workflow **GLO Public Source Observation (manual / review only)** sends exactly one **HEAD** request to that pre-reviewed HTTPS URL with redirect following disabled and a short timeout. It does not fetch response bodies, resolve geographic areas, gather user position, accept URLs from inputs, use service keys, or run on a schedule. A public website responding with an HTTP code is **not** proof that any local service is operating or that the website's contents are current.
+
+The workflow writes a small versioned \`glo.public-website-check.v1\` JSON receipt, independently validates its allowlisted fields, and makes a short-lived workflow artifact for **human review only**. It has read-only repository permissions, no Git commit, no deployment and no auto-publish stage. On error, only a categorical response outcome is recorded, never stack traces or response bodies. The caller cannot choose a new domain without code review.
+
+To examine a receipt, download the artifact from a manually completed GitHub Actions run and choose its \`public-source-check.json\` in GLO's **Public source check desk**. This does **not** upload the file or call the source site. Imported JSON is strictly size/field/time/host/status validated and displayed only in memory. The acknowledgement checkbox applies to this screen only; it cannot authorize export, verified status, private-note sharing or a trusted directory import. Close the browser or clear the panel to discard the review.
+
+**Scope warning:** this first step establishes a public-only observation and review contract. It does **not** yet implement a live official-program directory adapter, periodic verified provider operations feed, public publication gate, multi-publisher interchange, provenance signatures or independently verified resource status. The GLO cross-repo bridge issue remains open.

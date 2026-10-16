@@ -14,6 +14,7 @@ import NearbyFinder from './NearbyFinder.jsx'
 import MapViewportSync from './MapViewportSync.jsx'
 import {MAP_TILE_COPY,OSM_TILE_URL,OSM_ATTRIBUTION,shouldMountOnlineTiles} from './mapTilePolicy.js'
 import OfflinePacksPanel from './OfflinePacksPanel.jsx'
+import PublicSourceReview from './PublicSourceReview.jsx'
 import StreetSketchPanel from './StreetSketchPanel.jsx'
 import { sourcesFromPack } from './offlinePack.js'
 import { initialDraft, localDateTime } from './pinDraft.js'
@@ -546,6 +547,7 @@ export default function App() {
         <summary>{language === 'es' ? 'Guardar o abrir recursos sin conexión' : 'Save or open offline resource packs'}</summary>
         <OfflinePacksPanel scan={sourceScan} language={language} onUse={useOfflinePack} onRemove={removeOfflinePack} onNotice={setNotice}/>
       </details>
+      <PublicSourceReview language={language}/>
       <div className="principles"><div><b>◇</b><strong>{ui.principlesNo}</strong><p>{ui.principlesNoInfo}</p></div><div><b>⌁</b><strong>{ui.principlesLocal}</strong><p>{ui.principlesLocalInfo}</p></div><div><b>✓</b><strong>{ui.principlesEvidence}</strong><p>{ui.principlesEvidenceInfo}</p></div></div>
     </main>
     <footer>GLO Pin · Good Lookin' Out · <a href="https://github.com/MichaelWave369/GLO">{ui.repo}</a><span>v0.1 · {ui.footer}</span></footer>
