@@ -10,6 +10,7 @@ import BackupRestore from './BackupRestore.jsx'
 import ResearchSpot from './ResearchSpot.jsx'
 import ResearchBackup from './ResearchBackup.jsx'
 import PrivacyInspector from './PrivacyInspector.jsx'
+import NearbyFinder from './NearbyFinder.jsx'
 import OfflinePacksPanel from './OfflinePacksPanel.jsx'
 import StreetSketchPanel from './StreetSketchPanel.jsx'
 import { sourcesFromPack } from './offlinePack.js'
@@ -414,6 +415,9 @@ export default function App() {
                 </div>
               </article>) : <div className="empty"><span className="empty-symbol"><MapPinIcon size={42}/></span><strong>{language === 'es' ? 'No hay puntos que mostrar' : lowBattery ? 'No resources to show' : 'No private pins yet'}</strong><p>{t.noPins}</p><button className="plain-link" onClick={begin}>{ui.addLink}</button></div>}
             </div>
+            <NearbyFinder privateReports={reports} publicSources={publicCandidates}
+              mapCenter={mapCenter} selectedResource={chosenRecord} lowBattery={lowBattery}
+              language={language} onOpenMap={jumpTo}/>
             {activeRecheckReport && <RecheckPanel key={activeRecheckReport.id} report={activeRecheckReport} language={language}
               onSaved={async () => {await refresh();setRecheckTargetId('');setNotice(language==='es'?'Nueva observación privada guardada. Historial conservado.':'Private recheck saved; earlier observations preserved.')}}
               onClose={() => setRecheckTargetId('')}/>}
