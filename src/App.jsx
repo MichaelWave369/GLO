@@ -60,6 +60,7 @@ export default function App() {
   const t = TEXT[language]
   const ui = UI[language]
   const [selectedId, setSelectedId] = useState('')
+  const [finderFocus, setFinderFocus] = useState(null)
   const [filter, setFilter] = useState('all')
   const [query, setQuery] = useState('')
   const [editing, setEditing] = useState(false)
@@ -121,7 +122,7 @@ export default function App() {
     .sort((a,b) => distanceKm(reference,a) - distanceKm(reference,b)), [visible,visiblePublic,lowBattery,reference])
   const displayedReceipt = visibleSaveReceipt(savedFeedback, reports)
   const chosenRecord = reports.find(r=>r.id===selectedId) || publicCandidates.find(r=>r.id===selectedId)
-  const selectedResource = chosenRecord ? { title: chosenRecord.title, from: reports.some(r=>r.id===selectedId)?'private':'osm' } : null
+  const selectedResource = chosenRecord || finderFocus
   // The share panel is tied to a live report, not to a stale copied React object.
   const activeSharingPin = activeShareTarget(sharingPin, reports, publicCandidates)
   const activeRecheckReport = reports.find(r=>r.id===recheckTargetId) || null
@@ -290,6 +291,7 @@ export default function App() {
       setResearchTargetId('')
       setSharedPreview(null)
       setSelectedId('')
+      setFinderFocus(null)
       setDraft(initialDraft())
       setQuestionCleared()
       window.history.replaceState(null, '', window.location.pathname + window.location.search)
@@ -417,7 +419,13 @@ export default function App() {
             </div>
             <NearbyFinder privateReports={reports} publicSources={publicCandidates}
               mapCenter={mapCenter} selectedResource={chosenRecord} lowBattery={lowBattery}
-              language={language} onOpenMap={jumpTo}/>
+              language={language} onOpenMap={row=>{
+                // A saved pack can be searched without replacing the current Scout map data.
+                // Show only this explicitly selected transient marker; do not import/share it.
+                setFinderFocus({id:row.id,title:row.title,category:row.category,
+                  lat:row.lat,lon:row.lon,origin:row.origin})
+                jumpTo(row)
+              }}/>
             {activeRecheckReport && <RecheckPanel key={activeRecheckReport.id} report={activeRecheckReport} language={language}
               onSaved={async () => {await refresh();setRecheckTargetId('');setNotice(language==='es'?'Nueva observación privada guardada. Historial conservado.':'Private recheck saved; earlier observations preserved.')}}
               onClose={() => setRecheckTargetId('')}/>}
@@ -465,6 +473,17 @@ export default function App() {
               {visiblePublic.map((r) => <CircleMarker key={r.id} center={[r.lat, r.lon]} radius={selectedId === r.id ? 12 : 9} pathOptions={{ color: '#95c9e0', fillColor: r.category === 'water' ? '#83d4e4' : r.category === 'power' ? '#eec575' : '#a9cfa1', fillOpacity: 0.85, weight: 2, dashArray: '4 3' }} eventHandlers={{ click: () => setSelectedId(r.id) }}>
                 <Popup><strong>{r.title}</strong><br/>{categoryLabel(r.category,language,CATEGORIES)}<br/>{ui.osmRecord}<br/><a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">{ui.osmView}</a></Popup>
               </CircleMarker>)}
+              {finderFocus && !visible.some(r=>r.id===finderFocus.id) &&
+                !visiblePublic.some(r=>r.id===finderFocus.id) &&
+                <CircleMarker key={'glo-finder-'+finderFocus.id} center={[finderFocus.lat,finderFocus.lon]}
+                  radius={11} pathOptions={{color:'#f2d38c',fillColor:'#8eb89c',weight:3,
+                    fillOpacity:0.85,dashArray:'4 3'}}>
+                  <Popup><strong>{finderFocus.title}</strong><br/>
+                    {categoryLabel(finderFocus.category,language,CATEGORIES)}<br/>
+                    {finderFocus.origin==='private'?ui.selfReported:ui.osmRecord}<br/>
+                    {language==='es'?'Solo resultado temporal · Sin verificar':'Temporary result marker · Unverified'}
+                  </Popup>
+                </CircleMarker>}
               {sharedPreview && (sharedPreview.scope === 'area' ? <Circle center={[sharedPreview.lat, sharedPreview.lon]} radius={900} pathOptions={{color:'#c5a3ff',fillColor:'#a27ce2',fillOpacity:.12,dashArray:'7 7',weight:2}}><Popup><strong>{sharedPreview.title}</strong><br/>{ui.sharedArea}</Popup></Circle> : <CircleMarker center={[sharedPreview.lat, sharedPreview.lon]} radius={12} pathOptions={{color:'#6636ac',fillColor:'#b68be0',fillOpacity:.9}}><Popup><strong>{sharedPreview.title}</strong><br/>{ui.sharedPoint}</Popup></CircleMarker>)}}
               {visible.map((r) => <CircleMarker key={r.id} center={[r.lat, r.lon]} radius={selectedId === r.id ? 11 : 8} pathOptions={{ color: '#8bdeaf', fillColor: r.category === 'water' ? '#4aa9c0' : r.category === 'power' ? '#ecb64e' : '#81b77b', fillOpacity: 0.94, weight: 3 }} eventHandlers={{ click: () => setSelectedId(r.id) }}>
                 <Popup><strong>{r.title}</strong><br/>{categoryLabel(r.category,language,CATEGORIES)}<br/>{ui.selfReported}<br/>{ui.privateDevice}</Popup>
