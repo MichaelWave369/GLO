@@ -128,3 +128,12 @@ Spanish UI translation covers main explorer and map flows, Scout controls, offli
 Copied text and pasted research can leave GLO's control via other apps, agents, browsers, clipboards and downloads. **This is not a zero-trace claim.** A user must review the entire request because the question they type can itself disclose sensitive facts. If they later paste findings back into a saved private pin, GLO stores the note in a separate, capped research-only local database table, labeled **NOT VERIFIED**, never as physical evidence. Its optional source URL is opened only by explicit user navigation.
 
 Research annotations are erased with their pin and by panic clear. They are currently **not exported by the v1 private backup** and are not restored by v1 recovery. Never claim full backups preserve these new annotations until versioned research export/restore has been implemented and field-tested.
+
+
+## P1-L: separate research-note private backup
+
+GLO can now manually export a separate, research-only, version 1 JSON file containing existing-pin-linked research annotations. This file includes **private pin identifiers**, human-reviewed research text, entered HTTPS citations, timestamps and unverified provenance. Research text or sources could expose sensitive locations and personal context; the file is **plaintext, not encrypted**. A deliberate acknowledgement is required before creating the download. It is never uploaded by GLO, but operating systems, download directories, backup apps, clipboard and file-sharing tools may retain copies.
+
+Recovery reads only a user-selected JSON file locally, strictly validates its format and fields, and previews eligible, duplicate, missing-pin and full-history counts. The person must approve and confirm recovery. An atomic IndexedDB transaction re-checks current live pin IDs and existing note IDs; restoration is add-only and skips entries for absent pins, duplicate IDs or full (12-note) histories. It cannot update field observations or recheck histories. Restore the legacy v1 private pin backup first when moving to another device. The original v1 pin backup format remains unchanged and **does not contain research annotations**.
+
+Deleting a pin cascades its research notes, and panic clear removes research notes in the same GLO-owned data-clear transaction. Neither action removes downloaded backup files or copies held outside this browser. Research is still **not independently verified**. There is no automatic background sharing, account, cloud sync, server or agent write privilege.
