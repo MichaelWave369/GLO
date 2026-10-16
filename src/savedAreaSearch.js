@@ -11,7 +11,9 @@ const validSource=r=>r&&typeof r.id==='string'&&
  /^osm:(node|way|relation)\/[1-9]\d*$/.test(r.id)&&
  PACK_CATEGORIES.includes(r.category)&&validCoordinates(r.lat,r.lon)&&
  r.provenance==='mapped-record'&&r.condition==='not-verified'&&
- r.availability==='unknown'
+ r.availability==='unknown'&&
+ typeof r.title==='string'&&r.title.trim().length>0&&
+ typeof r.checkedAt==='string'&&Number.isFinite(Date.parse(r.checkedAt))
 
 // An OSM ID may occur in several overlapping saved areas, or a loaded scan.
 // Preserve ONE item per ID, choosing the newest *query date*, never treating it
@@ -22,10 +24,12 @@ export function mergeSavedAreaSources(loadedSources=[],packs=[]){
  const byId=new Map(), stats={savedAreas:0,skippedAreas:0,incompleteAreas:0,duplicateRecords:0}
  const consider=(record,sourceType,incomplete)=>{
   if(!validSource(record))return
+  // Explicit allowlist avoids accidentally spreading private or unknown fields.
   const item={
-   ...record,
-   nearbySource:sourceType,
-   nearbyIncomplete:Boolean(incomplete)
+   id:record.id,title:record.title,category:record.category,
+   lat:record.lat,lon:record.lon,checkedAt:record.checkedAt,
+   provenance:'mapped-record',condition:'not-verified',availability:'unknown',
+   nearbySource:sourceType,nearbyIncomplete:Boolean(incomplete)
   }
   const prior=byId.get(item.id)
   if(prior){
