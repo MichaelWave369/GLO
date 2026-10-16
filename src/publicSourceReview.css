@@ -17,3 +17,20 @@
 .source-review-result a{color:#a7f2c6;text-decoration:underline;overflow-wrap:anywhere}
 .source-review :focus-visible{outline:3px solid #ecd9a0;outline-offset:3px}
 @media(max-width:450px){.source-review-content{padding:12px}.source-review-result button{width:100%}}
+
+/* P1-R: authority boundary stays visible even after preparing a local draft. */
+.source-review-gate{display:grid;gap:12px;padding:14px;border:1px solid #85a887;
+ border-radius:9px;background:#18352d}
+.source-review-gate>strong{color:#ccf8dd;font-size:14px}
+.source-review-gate .source-review-select{display:grid;gap:8px;font-size:13px;
+ color:#e1f3e5;font-weight:750}
+.source-review-gate select{width:100%;min-width:0;max-width:100%;padding:11px;
+ border:1px solid #7fa28b;border-radius:8px;color:#f1f9f3;
+ background:#18362d;font-size:14px;min-height:46px}
+.source-review-gate button{min-height:46px;max-width:100%;white-space:normal;
+ text-align:center;justify-self:start}
+.source-review-gate small{color:#e4f1e4;overflow-wrap:anywhere}
+.source-review-gate .source-review-blocked{font-weight:900;color:#ffe4b1;
+ border:1px solid #cfad69;background:#392f21;border-radius:7px;
+ padding:11px}
+@media(max-width:500px){.source-review-gate button{width:100%}}

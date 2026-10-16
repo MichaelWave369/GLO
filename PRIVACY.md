@@ -194,3 +194,12 @@ The official referral shelf displays a tiny, hardcoded GLO-reviewed URL register
 An external website opens only after a deliberate tap; it has its own network, logging, location, privacy and access practices. A separate \`tel:211\` tap asks the user's device to place a call when supported; call availability and operator hours cannot be established by GLO. The source list is visible without internet but **external searches are not offline**. GLO does not imply any source-listed service is open, safe, legal or accessible. User approval of an external visit is not an authorization to share GLO stored notes or publish source records.
 
 A source registry code change requires a normal GLO pull request and source review. \`verifiedProviderStatus: unknown\` and \`dataImport: none\` are enforced by a local validator, not claims about actual providers' operations or approval by those publishers.
+
+
+## P1-R: reviewed public-only draft file
+
+When the user independently imports a P1-P public-source observation and checks the acknowledgement, the review desk can generate a local-only, SHA-256-bound review **draft** for one of three non-publishing dispositions. Its fixed schema contains a public source ID, public check date, review creation date, SHA-256 over an allowlisted public observation, non-publishing decision and constants \`serviceStatus:unknown\`, \`authority:none\`, \`publication:blocked\`. No reviewer personal identity, IP, GPS, note, private pin/recheck history, device ID, contact, model prompt, or dynamic remote address is requested or attached. The UI intentionally contains no network request or persistence API. A local download is initiated only on an additional explicit button press, and persists outside GLO until the user removes it.
+
+The digest is a *binding to the presented receipt bytes after deterministic validation*, not digital provenance, publisher signatures or trustworthy human attestation. A malicious party with control of both artifacts can fabricate a matching pair, so **neither artifact is sufficient for provider verification, publication or authorization**. A validating maintainer must retain the independently obtained original observation receipt and assess the source separately.
+
+Site-data panic clear removes app-owned storage, not files the user downloaded. Downloaded JSON may be visible to other software, browser download history, OS backups and anyone with device access. The draft's public-only fields deliberately omit vulnerable persons and private places.
