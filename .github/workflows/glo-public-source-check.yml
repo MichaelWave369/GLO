@@ -1,0 +1,38 @@
+name: GLO Public Source Observation (manual / review only)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: glo-public-211-manual-check
+  cancel-in-progress: false
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run offline validator regression tests
+        run: node --test src/publicSourceReceipt.test.js
+      - name: Observe reviewed public URL with HEAD only
+        run: node ops/publicSourceCheck.mjs
+      - name: Fail closed before artifact handoff
+        run: node ops/verifyPublicSourceCheck.mjs out/public-source-check.json
+      - name: Export review-only receipt (no deployment)
+        uses: actions/upload-artifact@v4
+        with:
+          name: glo-public-website-observation
+          path: out/public-source-check.json
+          if-no-files-found: error
+          retention-days: 3
