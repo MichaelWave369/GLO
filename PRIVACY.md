@@ -151,3 +151,12 @@ The panel separately documents **possible** network/outbound behavior, NOT actua
 - Optional browser-managed AI model downloads are separate from GLO Bro's offline rules; links, clipboard, share, print and local file exports may disclose data after user actions.
 
 Browser-reported online/offline state is a hint, not an active connection test. The panel makes no new outgoing requests and does not attempt a network probe, location permission, clipboard access, download or security scan. It cannot enumerate external hosting/provider logs, OS traces, downloaded backups, cached scripts/tiles, QR/clipboard recipients, other apps, or prove every network request absent. Panic clear removes GLO-owned IndexedDB records, not those outside copies. Real-phone accessibility, airplane mode, screen reader and update-policy behavior require human acceptance beyond CI.
+
+
+## P1-N: no-network nearby lookup
+
+The optional **Find nearby from loaded data** tool filters only the private observations and public Scout candidates already available in this browser's GLO session. The person explicitly enters latitude/longitude or copies the displayed map center or currently selected resource coordinates. The map's default Stroudsburg location is not assumed to be a user's location. The finder itself requests no GPS permission, performs no Overpass/other network request, saves no search history, does not publish results, and cannot write to agent or community stores.
+
+Displayed cards contain the user/private title, category, geometric distance, query/observation time and source provenance. They do not display private note or recheck text, accessibility details, research annotations or identifiers for sharing, although visible private titles and positions can still be sensitive on an unlocked phone or in screenshots. It never grants the external AI a write or read permission.
+
+An OSM candidate might come from an unsaved online Scout search or an old saved pack; loaded does not mean guaranteed offline persistence. The distance is straight-line only, not a navigable or accessible route. Nothing proves current availability, permissions, fees, safety or potability. The ordinary panic cover and share approvals remain in place; exported/shared external copies remain outside GLO control.
