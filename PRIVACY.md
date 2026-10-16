@@ -119,3 +119,12 @@ Opening a selected file in GLO does not delete that file from Downloads or undo 
 The browser's \`navigator.onLine\` API indicates a network-interface hint, **not** verified internet service or access to Overpass. The header never states "Browser online" merely from that hint. It may report **Connection not checked** even when the device cannot reach the public internet. No background fetch is added, preserving offline operation and minimizing privacy exposure.
 
 Spanish UI translation covers main explorer and map flows, Scout controls, offline packs, local rule-guided explanations and recovery feedback. It does not translate imported OpenStreetMap names, unstructured notes, third-party errors, optional locally generated model responses or external provider content; those are source data, not app-authored facts. The original private backup data and recheck histories are unchanged.
+
+
+## P1-K: Manually shared research and annotation boundaries
+
+**Research This Spot** is opt-in, local and per-question. Location fields begin empty without a chosen pin; the app requests location only on a deliberate button press. Sharing defaults to a coarse, 2-decimal map area, never a promised safe campsite or entrance. The copyable packet contains an entered question and approved coordinates, plus an optional resource category. It does **not** contain stored pin titles, IDs, notes or private recheck histories, and cannot grant access to GLO.
+
+Copied text and pasted research can leave GLO's control via other apps, agents, browsers, clipboards and downloads. **This is not a zero-trace claim.** A user must review the entire request because the question they type can itself disclose sensitive facts. If they later paste findings back into a saved private pin, GLO stores the note in a separate, capped research-only local database table, labeled **NOT VERIFIED**, never as physical evidence. Its optional source URL is opened only by explicit user navigation.
+
+Research annotations are erased with their pin and by panic clear. They are currently **not exported by the v1 private backup** and are not restored by v1 recovery. Never claim full backups preserve these new annotations until versioned research export/restore has been implemented and field-tested.
