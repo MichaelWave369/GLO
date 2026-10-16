@@ -331,3 +331,17 @@ A saved public-source record is NOT verified available, legal to enter, suitable
 - [x] Add regression tests covering consent, URL, feedback, and source-level Leaflet viewport wiring.
 - [ ] Real browser acceptance: GitHub Pages production after merge, Chrome/Firefox/Safari, fresh session and older PWA, online tile toggle, blocked tile request, browser-offline hint, switch back to local grid, mobile orientation and low-battery return.
 - [ ] Confirm expected HTTP requests/attribution with browser dev tools; code checks and GitHub CI do not independently prove the deployed map rendered on a particular user's device.
+
+
+## P1-P: FieldCloudWorker-style public-only website check boundary
+
+- [x] Review fixed first public referral website (\`https://www.211.org/\`) as a **website reachability reference only**, never a local service-availability claim.
+- [x] Add manual-only GitHub Actions HEAD observation with bounded timeout, no redirects, zero device/user inputs, zero credentials, fixed source URL and no response-body retention.
+- [x] Independent strict public receipt validator: exact-field schema, pinned source/method, bounded 2KB format, fixed \`serviceStatus: unknown\`, \`publication: not-approved\`, coherent HTTP and request-error outcomes.
+- [x] Export 3-day Actions receipt artifact for human review only; no scheduled runs, auto-commits, GitHub Pages write permissions or automatic provider promotion.
+- [x] GLO local EN/ES desk imports validated JSON to memory only, shows result, age and an acknowledgement, never a verified service label or storage/network update.
+- [x] Unit regression for rogue/PII fields, location fields, forged approval, unknown hosts, invalid date, redirect boundary and fake network failure sanitization.
+- [ ] Maintainer dispatches first real workflow, reviews actual HEAD response semantics, artifact download and GLO reader on real Android/iOS and screen readers.
+- [ ] Independently review official *directory data* sources with license/usage, provenance, publisher updates and consent before adding provider-specific records.
+- [ ] Define a separate explicit human publication gate if public organizational receipts are ever published; no automatic promotion to safe/open/available.
+- [ ] Leave Issue #11 open until the narrow official-source directory workflow and its approval tests are real and verified. Infinite Commons interchange still conditional on multiple independent publishers.
