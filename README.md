@@ -302,3 +302,12 @@ Open **Find nearby from loaded data** in the Resource Explorer. Enter coordinate
 Select a category and a straight-line radius (0.5, 1, 2, 5 or 10 km). It filters local private observations and currently loaded public OSM candidates from a user-run Scout search or opened offline pack, then shows at most 12 nearest with counts, dates and separate source labels. It never includes personal note/recheck text in result cards, publishes results or sends coordinates to a server. It works in low-battery mode with no map navigation buttons.
 
 This is **not** turn-by-turn navigation, a complete offline basemap, or verification that a resource is operational, safe, free, accessible, legal to enter or available today. An empty result means no matching records were loaded within that radius. Unit tests check source separation, invalid coordinates, evidence labels and query boundaries; real device acceptance is outstanding.
+
+
+## P1-O: nearby search across every saved offline Scout area
+
+P1-N can search resources already loaded in one map view. P1-O adds an optional checkbox: **Also search every saved offline Scout area (this device only)**. After you enter or deliberately choose a point, category and radius, press **Find**. GLO reads up to ten existing GLO-owned public OSM snapshots from local IndexedDB, without contacting the internet or requesting GPS.
+
+Overlapping OSM object IDs are deduplicated across regions and the loaded results. The latest available **query timestamp** wins, not a claim of current opening hours or confirmed service. Results distinguish the previously loaded source from a saved offline pack and flag records from source queries marked incomplete. A saved-pack result outside the currently opened map area can be shown by an **explicitly selected, temporary map marker**, without making that pack active, publishing it or adding it to GLO Bro's source list. The marker stays in this session only and panic clear removes it.
+
+The pack read occurs only after the user presses Find with the new option enabled. Search results are an in-memory snapshot; press Find again after importing or deleting packs. Public resource records can be out of date, partial or wrong. Distances are straight-line, NOT safe routes or travel times. An empty result means that these saved/loaded records do not include a match, not that no service exists. Private notes, histories and research annotations do not enter public pack searches. The existing default loaded-only behavior is preserved, as are the original P1-N GPS/consent boundaries.
