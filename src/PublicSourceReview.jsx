@@ -145,14 +145,18 @@ export default function PublicSourceReview({language='en'}){
       <p><strong>{t.status}:</strong> {t[receipt.result]}</p>
       {receiptIsStale(receipt)&&<p className="source-review-warning">{t.old}</p>}
       <label className="source-review-ack"><input type="checkbox" checked={ack}
-        onChange={e=>{setAck(e.target.checked);setReviewDraft(null)}}/>{t.ack}</label>
+        onChange={e=>{
+          epoch.current++
+          setAck(e.target.checked);setReviewDraft(null);setPreparing(false)
+        }}/>{t.ack}</label>
       {ack&&<p role="status">{t.acknowledged}</p>}
       <div className="source-review-gate">
         <strong>{t.reviewTitle}</strong>
         <p>{t.reviewIntro}</p>
         <label className="source-review-select">{t.reviewChoice}
           <select value={decision} onChange={e=>{
-           setDecision(e.target.value);setReviewDraft(null)
+           epoch.current++
+           setDecision(e.target.value);setReviewDraft(null);setPreparing(false)
           }}>
             {REVIEW_DECISIONS.map(choice=><option key={choice} value={choice}>{t.choices[choice]}</option>)}
           </select>
