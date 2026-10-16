@@ -319,3 +319,15 @@ Distances are geographic straight lines, NOT accessible paths, safe routes or tr
 - [ ] Confirm re-query after deleting a pack, outdated/capped packs, service-worker updated frontend, and VoiceOver/TalkBack interaction.
 
 A saved public-source record is NOT verified available, legal to enter, suitable for navigation or complete local coverage. No private device observations are uploaded.
+
+
+## Map usability regression: Leaflet canvas and OSM street tiles
+
+- [x] Replace outdated OpenStreetMap \`{s}\` raster URL with the current single-domain OSMF-recommended tile URL, and preserve map attribution.
+- [x] Leave tiles OFF by default; no silent browser reachability probe, automatic third-party tile fallback or offline tile bulk download.
+- [x] Expose tile loading failure with explicit Retry and Switch back to local grid choices.
+- [x] Recalculate Leaflet map size on mount, resize and online tile toggle so a previously hidden or resized map does not remain blank from stale dimensions.
+- [x] Show an explicit restore-map button in low-battery mode. Returning to normal mode does not consent to tile fetches.
+- [x] Add regression tests covering consent, URL, feedback, and source-level Leaflet viewport wiring.
+- [ ] Real browser acceptance: GitHub Pages production after merge, Chrome/Firefox/Safari, fresh session and older PWA, online tile toggle, blocked tile request, browser-offline hint, switch back to local grid, mobile orientation and low-battery return.
+- [ ] Confirm expected HTTP requests/attribution with browser dev tools; code checks and GitHub CI do not independently prove the deployed map rendered on a particular user's device.
