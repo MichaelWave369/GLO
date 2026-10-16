@@ -8,6 +8,7 @@ import PocketPlan from './PocketPlan.jsx'
 import BackupReview from './BackupReview.jsx'
 import BackupRestore from './BackupRestore.jsx'
 import ResearchSpot from './ResearchSpot.jsx'
+import ResearchBackup from './ResearchBackup.jsx'
 import OfflinePacksPanel from './OfflinePacksPanel.jsx'
 import StreetSketchPanel from './StreetSketchPanel.jsx'
 import { sourcesFromPack } from './offlinePack.js'
@@ -47,6 +48,7 @@ export default function App() {
   const [recheckTargetId, setRecheckTargetId] = useState('')
   const [backupReviewOpen, setBackupReviewOpen] = useState(false)
   const [restoreOpen, setRestoreOpen] = useState(false)
+  const [researchBackupOpen, setResearchBackupOpen] = useState(false)
   const [researchOpen, setResearchOpen] = useState(false)
   const [researchTargetId, setResearchTargetId] = useState('')
   const [sharedPreview, setSharedPreview] = useState(() => parseSharedPin(window.location.hash))
@@ -279,6 +281,7 @@ export default function App() {
       setRecheckTargetId('')
       setBackupReviewOpen(false)
       setRestoreOpen(false)
+      setResearchBackupOpen(false)
       setResearchOpen(false)
       setResearchTargetId('')
       setSharedPreview(null)
@@ -418,9 +421,11 @@ export default function App() {
               <div className="backup-actions-row">
                 <button type="button" className="secondary compact" onClick={() => startResearch()}>{language==='es'?'Investigar ubicación sin crear punto':'Research a location without a pin'}</button>
                 <button type="button" className="secondary compact" disabled={!reports.length}
-                  onClick={()=>{setRestoreOpen(false);setBackupReviewOpen(open=>!open)}}>{language==='es'?'Revisar opciones de exportación':'Review export options'}</button>
+                  onClick={()=>{setRestoreOpen(false);setResearchBackupOpen(false);setBackupReviewOpen(open=>!open)}}>{language==='es'?'Revisar opciones de exportación':'Review export options'}</button>
                 <button type="button" className="secondary compact"
-                  onClick={()=>{setBackupReviewOpen(false);setRestoreOpen(open=>!open)}}>{language==='es'?'Recuperar copia privada':'Recover private backup'}</button>
+                  onClick={()=>{setBackupReviewOpen(false);setResearchBackupOpen(false);setRestoreOpen(open=>!open)}}>{language==='es'?'Recuperar copia privada':'Recover private backup'}</button>
+                <button type="button" className="secondary compact"
+                  onClick={()=>{setBackupReviewOpen(false);setRestoreOpen(false);setResearchBackupOpen(open=>!open)}}>{language==='es'?'Copia de notas de investigación':'Research notes backup'}</button>
               </div>
               {backupReviewOpen && reports.length>0 &&
                 <BackupReview reports={reports} language={language}
@@ -429,6 +434,8 @@ export default function App() {
               {restoreOpen && <BackupRestore existing={reports} language={language}
                 onClose={()=>setRestoreOpen(false)}
                 onRestored={async message=>{await refresh();setSavedFeedback(null);setNotice(message)}}/>}
+              {researchBackupOpen && <ResearchBackup language={language}
+                onClose={()=>setResearchBackupOpen(false)} onNotice={message=>setNotice(message)}/>}
             </div>
           </>}
           {researchOpen && <ResearchSpot key={researchTargetId||'manual'} target={researchTarget} localPinId={researchLocalPinId} language={language} onClose={() => {setResearchOpen(false);setResearchTargetId('')}} />}

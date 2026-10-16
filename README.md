@@ -1,5 +1,7 @@
 # GLO Pin
 
+**Original GLO concept: Dustin.** This software is a collaborative implementation of his Good Lookin' Out idea.
+
 **Good Lookin' Out.**  
 **Find what you need. Share what you know.**
 
@@ -272,3 +274,13 @@ No changes to backup schema, private storage, QR shares, offline cache, location
 A field-inspired way to select a resource or enter coordinates without creating a pin, write a research question, and copy a **single, scoped packet** to a chosen AI. Two-decimal approximate-area coordinates are the default; six-decimal exact coordinates require explicit selection. No account, backend, token, ongoing location feed or automatic upload. Imported/pasted findings become **separate, manually reviewed UNVERIFIED research annotations** only on an existing private pin, not new field observations. See [Research This Spot design and safety boundaries](docs/RESEARCH_THIS_SPOT.md).
 
 **Important limitation:** research annotations are NOT in the existing v1 private backup; users must separately retain important findings until research export/restore is released. They are deleted with their private pin or panic clear. No recorded private sleeping locations or unredacted field transcripts are published.
+
+## P1-L: research notes have their own private backup
+
+Open **Keep your own data → Research notes backup** for a separate, manual, research-only JSON download or recovery. The ordinary v1 private pin backup **still covers pins and rechecks only**. It has not been silently changed. To move everything to a new phone, recover the v1 private pins first and then recover the separate research-note file.
+
+Research files contain manually entered titles, details, URLs, timestamps and matching **private pin IDs**. They are sensitive, plaintext, not encrypted, and may include sensitive locations in the text. A checkbox is required before downloading, and recovery shows counts with a separate acknowledgement and confirmation. No network access or account is needed.
+
+The research-only format is versioned and strictly validated. Restore is **add-only** in one local transaction: existing note IDs are never overwritten; notes for missing private pins are skipped; each pin remains limited to 12 research notes. No public source records, observations or Field Recheck Ledgers are modified. Panic clear removes GLO-owned copies, **not downloaded backups**.
+
+See [Research This Spot](docs/RESEARCH_THIS_SPOT.md) for its scope. Unit tests and CI are not a real-phone recovery acceptance test.

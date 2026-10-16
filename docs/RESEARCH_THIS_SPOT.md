@@ -19,11 +19,10 @@ This milestone was informed by field usability feedback: a person should be able
 - No parcel ownership/permit verification in the client, and no implied permission to enter property or claim a safe camping route.
 - No guarantee of "zero remote trace": the **GLO button** performs no network request, but the clipboard recipient and the device/browser/OS/network may keep records beyond GLO's control.
 - No guarantee that the source URL or research output is true or current. A citation link is not physical verification.
-- **Crucially: research annotations are NOT included in the existing v1 private backup/restore format.** Do not conflate GLO's well-tested private-pin backup with research-note recovery. This needs a separate versioned export/restore protocol with explicit consent and full testing before we can promise round-trip recovery.
+- **Research annotations are NOT included in the existing v1 private pin backup/restore format.** P1-L provides a separately versioned research-only backup with deliberate download consent and add-only recovery. Recover pins first, then research notes. Real-phone testing is still needed.
 
 ## Next proposals, not yet claims
 
-- P1-L: explicit, reversible research-annotation export/restore with privacy review, round-trip tests, duplicate protection and compatibility with v1 backup.
 - P1-M: local privacy inspector that documents which app-owned stores and known network interfaces are touched, with limited, truthful claims; no magical "proof no data was ever recorded".
 - Then optional offline parcel/data directories and a resource-query template: nearest category within distance, with **separate** observation, directory and inferred result labels. Ownership is not access permission; last-edit timestamps are not live availability.
 - Any capability-based live agent portal, encrypted relay, background alerts or safety check-ins must have independent threat modeling, informed consent, revocation and a real opt-in product need before implementation.
@@ -34,3 +33,12 @@ This milestone was informed by field usability feedback: a person should be able
 The underlying concept and field observations came from a human collaborator's original GLO proposal and subsequent traveler feedback, alongside the builder and AI collaborators. Record contributions accurately with consent. This public document intentionally omits sensitive field coordinates and names so the source transcript cannot accidentally become a location disclosure.
 
 **Ledger Above Ego. Good Lookin' Out.**
+
+
+## P1-L: reviewed research-only export and recovery (implementation)
+
+From **Keep your own data → Research notes backup**, GLO now offers a separate glo-research-private-backup schema v1 file. It contains only manually saved research annotations attached to live private pins, NOT pin coordinates/rechecks, public OSM packs, or agent credentials. The human-authored notes or URLs may themselves expose private context; the JSON is not encrypted.
+
+The user explicitly acknowledges the sensitive download. Recovery accepts only a file chosen by the user, previews missing-pin/duplicate/capacity counts, and requires a fresh approval and confirmation. An atomic IndexedDB transaction rechecks pin IDs and research IDs at write time, adds missing notes only, skips orphaned notes (no silent pin creation), and preserves the 12-notes-per-pin cap. The original v1 pin backup and restore flow is untouched.
+
+A valid copy does not establish that the source is correct or the resource is operational. First recover pins with the legacy flow, then recover the research file. **Not yet certified on actual Android/iOS devices**: offline file picker, stale-file reimport, tab races, battery mode and browser download behavior need field acceptance.

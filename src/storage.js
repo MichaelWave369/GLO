@@ -4,6 +4,7 @@ import { validateStreetSketch } from './streetSketch.js'
 import { MAX_RECHECKS, validatedRechecks } from './recheck.js'
 import { parsePrivateRestore } from './restoreSafety.js'
 import { validateResearchAnnotation, MAX_RESEARCH_NOTES } from './agentHandoff.js'
+import { parseResearchBackup } from './researchBackup.js'
 
 const NAME = 'glo-pin-local-v1'
 const TABLE = 'reports'
@@ -219,6 +220,54 @@ export async function restorePrivateReports(incoming) {
   }finally{db.close()}
 }
 
+
+// Read only GLO-owned research notes. The caller decides whether to include
+// only notes attached to living pins in a reviewed offline backup.
+export async function listAllResearchAnnotations(){
+  const rows=await transact('readonly',store=>store.getAll(),RESEARCH)
+  return rows.map(n=>{try{return validateResearchAnnotation(n)}catch{return null}})
+    .filter(Boolean).sort((a,b)=>b.recordedAt.localeCompare(a.recordedAt))
+}
+
+// ADD ONLY, atomic across pin lookups and research notes. Existing IDs never
+// change. Missing pins, duplicates and full histories are counted, not imported.
+export async function restoreResearchAnnotations(incoming){
+  const started=privacyEpoch
+  const {annotations}=parseResearchBackup(JSON.stringify({
+    format:'glo-research-private-backup',schemaVersion:1,
+    exportedAt:new Date().toISOString(),annotations:incoming
+  }))
+  const db=await openDatabase()
+  try{return await new Promise((resolve,reject)=>{
+    const tx=db.transaction([TABLE,RESEARCH],'readwrite')
+    const store=tx.objectStore(RESEARCH)
+    const pinsRequest=tx.objectStore(TABLE).getAllKeys()
+    const notesRequest=store.getAll()
+    let pinIds=null,existing=null,outcome=null
+    function writeOnce(){
+      if(pinIds===null||existing===null)return
+      if(privacyEpoch!==started){tx.abort();return}
+      const pins=new Set(pinIds), ids=new Set(existing.map(n=>n.id))
+      const counts=new Map()
+      for(const n of existing)counts.set(n.pinId,(counts.get(n.pinId)||0)+1)
+      outcome={imported:0,alreadyHere:0,missingPin:0,full:0}
+      for(const n of annotations){
+        if(!pins.has(n.pinId)){outcome.missingPin++;continue}
+        if(ids.has(n.id)){outcome.alreadyHere++;continue}
+        if((counts.get(n.pinId)||0)>=MAX_RESEARCH_NOTES){outcome.full++;continue}
+        ids.add(n.id)
+        counts.set(n.pinId,(counts.get(n.pinId)||0)+1)
+        store.add(n)
+        outcome.imported++
+      }
+    }
+    pinsRequest.onsuccess=()=>{pinIds=pinsRequest.result;writeOnce()}
+    notesRequest.onsuccess=()=>{existing=notesRequest.result;writeOnce()}
+    tx.oncomplete=()=>resolve(outcome)
+    tx.onerror=()=>reject(tx.error||new Error('Research restore failed. No notes were overwritten.'))
+    tx.onabort=()=>reject(new Error('Research restore cancelled; no notes were imported. Check storage and privacy state.'))
+  })}finally{db.close()}
+}
 
 // Research notes remain a completely separate, private, unverified ledger.
 // No outside assistant writes directly. Explicit user review is required in the UI.
