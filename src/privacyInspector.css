@@ -1,0 +1,22 @@
+/* P1-M: passive, consent-respecting view of local GLO counts and known interfaces. */
+.privacy-inspector{display:grid;gap:12px;min-width:0;margin:14px 0;padding:14px;border:1px solid #5b8d71;border-radius:12px;background:#142c2a;color:#eaf7ef}
+.privacy-inspector-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.privacy-inspector-head strong{font-size:16px;color:#b4f4cf}
+.privacy-inspector p{margin:0;font-size:13px;line-height:1.58;color:#d1e8d9}
+.privacy-inspector h4{margin:7px 0 0;color:#c5f5d9;font-size:15px}
+.privacy-inspector .privacy-inspector-warning{padding:11px;background:#3d3024;border:1px solid #a57f5c;color:#f8e5c1;border-radius:9px}
+.privacy-inspector-counts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0}
+.privacy-inspector-counts div{display:grid;gap:5px;min-width:0;padding:12px;border:1px solid #4f8069;border-radius:9px;background:#1e3a32}
+.privacy-inspector-counts dt{font-size:13px;font-weight:750;color:#e7fbec}
+.privacy-inspector-counts dd{margin:0;font-size:24px;font-weight:800;color:#aff0c8;font-variant-numeric:tabular-nums}
+.privacy-inspector-counts small{font-size:12px;line-height:1.5;color:#c8dfd1}
+.privacy-inspector>button{min-height:48px;justify-self:start}
+.privacy-inspector-surfaces{display:grid;gap:8px;min-width:0}
+.privacy-inspector-surface{padding:11px;border:1px solid #3e6b5b;border-radius:9px;background:#17322d;display:grid;gap:5px}
+.privacy-inspector-surface strong{font-size:14px;color:#effcf0}
+.privacy-inspector-surface small{font-size:12px;font-weight:700;color:#c0edc9}
+.privacy-inspector .privacy-inspector-error{color:#ffbcb0;font-weight:700}
+.privacy-inspector .privacy-inspector-message{color:#b6efcb}
+.privacy-inspector :focus-visible{outline:3px solid #ece4a8;outline-offset:3px}
+@media(max-width:560px){.privacy-inspector{padding:12px}.privacy-inspector>button{width:100%}}
+@media(max-width:380px){.privacy-inspector-counts{grid-template-columns:1fr}}

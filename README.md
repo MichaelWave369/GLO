@@ -284,3 +284,12 @@ Research files contain manually entered titles, details, URLs, timestamps and ma
 The research-only format is versioned and strictly validated. Restore is **add-only** in one local transaction: existing note IDs are never overwritten; notes for missing private pins are skipped; each pin remains limited to 12 research notes. No public source records, observations or Field Recheck Ledgers are modified. Panic clear removes GLO-owned copies, **not downloaded backups**.
 
 See [Research This Spot](docs/RESEARCH_THIS_SPOT.md) for its scope. Unit tests and CI are not a real-phone recovery acceptance test.
+
+
+## P1-M: inspect what GLO keeps here and how it connects
+
+Open **Keep your own data → Inspect my privacy**. This English/Spanish inspector displays **counts only** from GLO's four named local IndexedDB stores: private pins, research annotations, public Scout packs and downloaded road/path sketches. Reading these counts uses one local read-only transaction. Private pin text, exact locations, history, identifiers and research-note contents are not shown in the panel or exported. Rechecks are held inside each private pin record, not a separate store.
+
+A separate list explains the app's known outbound surfaces, including the site host and automatic-possible PWA update checks, user-enabled online OSM tiles, user-triggered Overpass searches/downloads, device location buttons, optional on-device AI model downloads, external links, and user-approved shares/exports. The list **describes possible connections and current app state**; it does not intercept network requests or prove they did or did not occur.
+
+The inspector works in offline and low-battery views. It performs no internet test, geolocation prompt, file operation or store deletion. GLO cannot inspect outside-provider records, downloaded backups, OS/browser histories or every possible network request. For the limitations and phone testing checklist see [PRIVACY.md](PRIVACY.md) and [the roadmap](docs/ROADMAP.md).

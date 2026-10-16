@@ -51,6 +51,30 @@ async function transact(mode, operation, storeName = TABLE) {
   } finally { db.close() }
 }
 
+// P1-M privacy inspector: one read-only, atomic view of GLO's four app-owned stores.
+// Count ONLY. Never read note text, identifiers, coordinates or exported files here.
+// openDatabase() may initialize the normal GLO schema on a fresh browser.
+export async function readLocalPrivacyCounts(){
+  const db=await openDatabase()
+  try{return await new Promise((resolve,reject)=>{
+    const stores=[TABLE,PACKS,STREETS,RESEARCH]
+    const tx=db.transaction(stores,'readonly')
+    const values={}
+    for(const name of stores){
+      const request=tx.objectStore(name).count()
+      request.onsuccess=()=>{values[name]=request.result}
+    }
+    tx.oncomplete=()=>resolve({
+      privatePins:values[TABLE],
+      publicScoutPacks:values[PACKS],
+      savedStreetSketches:values[STREETS],
+      privateResearchNotes:values[RESEARCH]
+    })
+    tx.onerror=()=>reject(tx.error||new Error('Local privacy counts unavailable.'))
+    tx.onabort=()=>reject(tx.error||new Error('Could not inspect local GLO data.'))
+  })}finally{db.close()}
+}
+
 export async function listReports() {
   return (await transact('readonly', table => table.getAll()))
     .sort((a, b) => String(b.observedAt).localeCompare(String(a.observedAt)))

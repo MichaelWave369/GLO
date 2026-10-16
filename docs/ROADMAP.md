@@ -277,3 +277,18 @@ The visual change is intentionally CSS-first. Data sources, local storage, locat
 - [ ] Manually test concurrent-tab panic clear and interrupted/download-blocked behavior on supported mobile browsers.
 
 Follow-up P1-M remains an accurately scoped privacy inspector. Do not claim the absence of outside OS/provider records or real-world service verification.
+
+
+## P1-M: honest local privacy inspector
+
+- [x] Add a deliberate **Inspect my privacy** entry under Keep your own data, available offline, including in low-battery mode.
+- [x] Show counts-only snapshot of four GLO-owned IndexedDB stores in one readonly transaction (pin rechecks are inside pin rows).
+- [x] Document current tile-layer mount state, automatic-possible service-worker update checks, user-triggered Overpass/OSM actions, GPS, optional AI, links and outbound sharing.
+- [x] Present English/Spanish accessibility-friendly charcoal/mint controls, no external fetch, location prompt, file export or mutation on inspection.
+- [x] Explicitly disclose limits: no forensic audit, traffic recording, absence-of-logs proof or outside-provider/device history access.
+- [x] Add regression tests for count-only inventory, unchanged local records, fetch-free reads and UI-condition-derived tile state.
+- [ ] Android/iOS: fresh browser and existing-data counts; airplane mode and low-battery mode; restored research and recheck histories; after panic clear verify zero local counts.
+- [ ] VoiceOver/TalkBack/keyboard audit for headings, count announcements and offline refresh.
+- [ ] Review real PWA update requests and online map tile behavior using device network tooling; the inspector alone is not proof of network activity.
+
+Potential future work: official-source directory adapters with evidence grades, kept separate from self-reported field observations. Do not introduce surveillance or automatic uploads merely to create a more impressive dashboard.
