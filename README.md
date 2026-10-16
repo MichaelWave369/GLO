@@ -265,3 +265,10 @@ P1-J closes the follow-up mobile UX issues:
 - The post-export **Download requested** notice is localized at render time, so toggling language no longer leaves that particular persisted notice in the wrong language.
 
 No changes to backup schema, private storage, QR shares, offline cache, location consent, public status provenance or panic clear behavior.
+
+
+## P1-K: Research This Spot (local, consent-reviewed)
+
+A field-inspired way to select a resource or enter coordinates without creating a pin, write a research question, and copy a **single, scoped packet** to a chosen AI. Two-decimal approximate-area coordinates are the default; six-decimal exact coordinates require explicit selection. No account, backend, token, ongoing location feed or automatic upload. Imported/pasted findings become **separate, manually reviewed UNVERIFIED research annotations** only on an existing private pin, not new field observations. See [Research This Spot design and safety boundaries](docs/RESEARCH_THIS_SPOT.md).
+
+**Important limitation:** research annotations are NOT in the existing v1 private backup; users must separately retain important findings until research export/restore is released. They are deleted with their private pin or panic clear. No recorded private sleeping locations or unredacted field transcripts are published.

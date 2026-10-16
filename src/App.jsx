@@ -7,6 +7,7 @@ import UpdateNotice from './UpdateNotice.jsx'
 import PocketPlan from './PocketPlan.jsx'
 import BackupReview from './BackupReview.jsx'
 import BackupRestore from './BackupRestore.jsx'
+import ResearchSpot from './ResearchSpot.jsx'
 import OfflinePacksPanel from './OfflinePacksPanel.jsx'
 import StreetSketchPanel from './StreetSketchPanel.jsx'
 import { sourcesFromPack } from './offlinePack.js'
@@ -46,6 +47,8 @@ export default function App() {
   const [recheckTargetId, setRecheckTargetId] = useState('')
   const [backupReviewOpen, setBackupReviewOpen] = useState(false)
   const [restoreOpen, setRestoreOpen] = useState(false)
+  const [researchOpen, setResearchOpen] = useState(false)
+  const [researchTargetId, setResearchTargetId] = useState('')
   const [sharedPreview, setSharedPreview] = useState(() => parseSharedPin(window.location.hash))
   const [panicCovered, setPanicCovered] = useState(false)
   const [panicCleared, setPanicCleared] = useState(false)
@@ -117,6 +120,8 @@ export default function App() {
   // The share panel is tied to a live report, not to a stale copied React object.
   const activeSharingPin = activeShareTarget(sharingPin, reports, publicCandidates)
   const activeRecheckReport = reports.find(r=>r.id===recheckTargetId) || null
+  const researchTarget = reports.find(r=>r.id===researchTargetId) || publicCandidates.find(r=>r.id===researchTargetId) || null
+  const researchLocalPinId = reports.some(r=>r.id===researchTarget?.id) ? researchTarget.id : null
 
   function onScoutRecords(records, metadata = null) {
     setPublicCandidates(records)
@@ -145,6 +150,12 @@ export default function App() {
     setPackRevision(v => v + 1)
   }
 
+  function startResearch(r=null) {
+    setSharingPin(null)
+    setRecheckTargetId('')
+    setResearchTargetId(r?.id||'')
+    setResearchOpen(true)
+  }
   function jumpTo(r) {
     setSelectedId(r.id)
     setTarget({ lat: r.lat, lon: r.lon, zoom: r.scope === 'area' ? 12 : 16 })
@@ -268,6 +279,8 @@ export default function App() {
       setRecheckTargetId('')
       setBackupReviewOpen(false)
       setRestoreOpen(false)
+      setResearchOpen(false)
+      setResearchTargetId('')
       setSharedPreview(null)
       setSelectedId('')
       setDraft(initialDraft())
@@ -389,6 +402,7 @@ export default function App() {
                 {r.from !== 'osm' && <RecheckHistory report={r} language={language}/>}
                 <div className="pin-actions">
                   {r.from !== 'osm' && <button type="button" onClick={() => {setSharingPin(null);setRecheckTargetId(r.id)}}>{language === 'es' ? 'Volver a comprobar' : 'Recheck'}</button>}
+                  <button type="button" onClick={() => startResearch(r)}>{language==='es'?'Investigar aquí':'Research this spot'}</button>
                   <button onClick={() => {setRecheckTargetId('');setSharingPin(r)}}>{t.share}</button>
                   {r.from === 'osm' ? <a href={r.sourceUrl} rel="noopener noreferrer" target="_blank">OSM ↗</a> : <button className="delete" onClick={() => erase(r)} aria-label={ui.deleted + r.title}>{language === 'es' ? 'Borrar punto' : 'Delete local pin'}</button>}
                 </div>
@@ -402,6 +416,7 @@ export default function App() {
               <strong>{language==='es'?'Tus datos, bajo tu control':'Keep your own data'}</strong>
               <p>{language==='es'?'Revisa los datos antes de crear un archivo. Las copias completas contienen ubicaciones y revisiones privadas.':'Review what leaves this device before downloading. Full backups include exact locations, private notes and rechecks.'}</p>
               <div className="backup-actions-row">
+                <button type="button" className="secondary compact" onClick={() => startResearch()}>{language==='es'?'Investigar ubicación sin crear punto':'Research a location without a pin'}</button>
                 <button type="button" className="secondary compact" disabled={!reports.length}
                   onClick={()=>{setRestoreOpen(false);setBackupReviewOpen(open=>!open)}}>{language==='es'?'Revisar opciones de exportación':'Review export options'}</button>
                 <button type="button" className="secondary compact"
@@ -416,6 +431,7 @@ export default function App() {
                 onRestored={async message=>{await refresh();setSavedFeedback(null);setNotice(message)}}/>}
             </div>
           </>}
+          {researchOpen && <ResearchSpot key={researchTargetId||'manual'} target={researchTarget} localPinId={researchLocalPinId} language={language} onClose={() => {setResearchOpen(false);setResearchTargetId('')}} />}
         </aside>
         {!lowBattery && <div className="map-column">
           <div className="map-top"><div><strong>{ui.map}</strong><small>{ui.start}</small></div>

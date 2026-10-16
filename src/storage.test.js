@@ -1,11 +1,12 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import 'fake-indexeddb/auto'
-import { listReports, saveReport, removeReport, appendRecheck, restorePrivateReports, savePublicPack, listPublicPacks, listStreetSketches, saveStreetSketch, clearAllLocalData } from './storage.js'
+import { listReports, saveReport, removeReport, appendRecheck, restorePrivateReports, savePublicPack, listPublicPacks, listStreetSketches, saveStreetSketch, clearAllLocalData, listResearchAnnotations, saveResearchAnnotation, removeResearchAnnotation } from './storage.js'
 import { createPublicPack } from './offlinePack.js'
 import { createStreetSketch } from './streetSketch.js'
 import { createRecheck } from './recheck.js'
 import { privateBackup } from './domain.js'
+import { createResearchAnnotation } from './agentHandoff.js'
 
 // Mimics an existing P0.3 device with v1 IndexedDB notes before the new store exists.
 const oldDb = () => new Promise((resolve, reject) => {
@@ -141,4 +142,45 @@ test('panic clear wins over an import started in the same tab',async()=>{
  await clearAllLocalData()
  await pending
  assert.deepEqual(await listReports(),[])
+})
+
+
+test('reviewed agent research stays separate from physical evidence and local backup',async()=>{
+ const pin={id:'research_1',category:'water',title:'Tap',lat:40,lon:-75,
+   observedAt:new Date(Date.now()-3600000).toISOString(),note:'Private initial note'}
+ await saveReport(pin)
+ const note=createResearchAnnotation({pinId:'research_1',title:'Hours may differ',
+   details:'A web page lists seasonal hours',sourceUrl:'https://example.org/source'},new Date(),()=> 'agent_note_1')
+ await saveResearchAnnotation(note)
+ const stored=await listResearchAnnotations(pin.id)
+ assert.equal(stored.length,1)
+ assert.equal(stored[0].condition,'not-verified')
+ assert.equal(stored[0].visibility,'device-only')
+ const original=(await listReports()).find(r=>r.id===pin.id)
+ assert.equal(original.note,'Private initial note')
+ assert.ok(!JSON.stringify(privateBackup([original])).includes('Hours may differ'))
+ await assert.rejects(saveResearchAnnotation({...note,condition:'verified',id:'fake'}),/untrusted/)
+ await assert.rejects(saveResearchAnnotation({...note,id:'agent_note_2',pinId:'missing-pin'}),/Pin missing/)
+ await assert.rejects(saveResearchAnnotation(note))
+ await removeResearchAnnotation(pin.id,note.id)
+ assert.deepEqual(await listResearchAnnotations(pin.id),[])
+ await clearAllLocalData()
+})
+
+test('research notes are capped, cascade with pin deletion, and erased by panic clear',async()=>{
+ await saveReport({id:'research_2',title:'Tap'})
+ for(let i=0;i<12;i++)await saveResearchAnnotation(
+   createResearchAnnotation({pinId:'research_2',title:'Source '+i,details:'Unverified result '+i},new Date(),()=> 'note_'+i))
+ assert.equal((await listResearchAnnotations('research_2')).length,12)
+ await assert.rejects(saveResearchAnnotation(createResearchAnnotation({
+   pinId:'research_2',title:'Too many',details:'Overflow'},new Date(),()=> 'overflow')),/12-note limit/)
+ await removeReport('research_2')
+ assert.deepEqual(await listResearchAnnotations('research_2'),[])
+ await saveReport({id:'research_3',title:'New tap'})
+ await saveResearchAnnotation(createResearchAnnotation({
+   pinId:'research_3',title:'Keep private',details:'Not verified'},new Date(),()=> 'note_last'))
+ await clearAllLocalData()
+ assert.deepEqual(await listResearchAnnotations('research_3'),[])
+ await assert.rejects(saveResearchAnnotation(createResearchAnnotation({
+   pinId:'research_3',title:'Must stay cleared',details:'No pin'},new Date(),()=> 'late_note')),/Pin missing/)
 })
