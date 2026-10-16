@@ -304,3 +304,18 @@ Potential future work: official-source directory adapters with evidence grades, 
 - [ ] Android/iOS acceptance with saved offline pack, airplane mode, map-center versus selected-pin origin, VoiceOver/TalkBack, 320px and Spanish.
 
 Distances are geographic straight lines, NOT accessible paths, safe routes or travel-time estimates. An empty result means no matches in loaded records, not no nearby resource. OSM records and personal observations do not prove opening hours, food/water safety or entry permission.
+
+
+## P1-O: search all saved offline public Scout areas
+
+- [x] Preserve P1-N loaded-only defaults and explicit manual/map/selected-resource origin; no implicit device location.
+- [x] Opt-in, one-click, read-only local search across up to ten already saved and validated public OSM packs; no Overpass call, account, background scan or network test.
+- [x] Deduplicate overlapping OSM object IDs by newest *query date*, with loaded-result tie preference; do not misrepresent edit or scan age as operating status.
+- [x] Public-only allowlist, verified-unverified boundary, separate source-scope badges and incomplete-pack warning, nearest-result cap unchanged.
+- [x] A selected saved-pack result receives a transient map marker without changing the current Scout pack, map-data publish state or offline stored notes.
+- [x] English and Spanish text, low-battery behavior, narrow-phone controls; restore private Pocket Plan's name-only selection boundary.
+- [x] Regression tests for overlapping snapshots, malicious/imported pack fields, source date precedence, no fetch, SQLite-free IndexedDB, panic clear and private data exclusion.
+- [ ] Field testing: prepare two saved regions, airplane mode, find across both, source badge, on-map temporary marker, Spanish and low-battery at 320–430px.
+- [ ] Confirm re-query after deleting a pack, outdated/capped packs, service-worker updated frontend, and VoiceOver/TalkBack interaction.
+
+A saved public-source record is NOT verified available, legal to enter, suitable for navigation or complete local coverage. No private device observations are uploaded.
