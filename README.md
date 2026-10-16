@@ -335,3 +335,16 @@ The workflow writes a small versioned \`glo.public-website-check.v1\` JSON recei
 To examine a receipt, download the artifact from a manually completed GitHub Actions run and choose its \`public-source-check.json\` in GLO's **Public source check desk**. This does **not** upload the file or call the source site. Imported JSON is strictly size/field/time/host/status validated and displayed only in memory. The acknowledgement checkbox applies to this screen only; it cannot authorize export, verified status, private-note sharing or a trusted directory import. Close the browser or clear the panel to discard the review.
 
 **Scope warning:** this first step establishes a public-only observation and review contract. It does **not** yet implement a live official-program directory adapter, periodic verified provider operations feed, public publication gate, multi-publisher interchange, provenance signatures or independently verified resource status. The GLO cross-repo bridge issue remains open.
+
+
+## P1-Q: official referral shelf (links, not a service database)
+
+**Official referral shelf** provides two manually reviewed, fixed public starting points with a simple English/Spanish topic filter: [United Way 211](https://www.211.org/) for community referral help, and [HUD Find Shelter](https://www.hud.gov/FindShelter) for a U.S. government shelter/food/clinic resource search. A user may deliberately open these external sites or choose the 211 phone link (subject to telephone coverage). The source register is static and prebundled, so its names and explanatory text remain visible offline. **The external websites themselves are not offline**, and the phone link requires telephone service.
+
+This is a **reference shelf, not a resource-feed adapter**. It does not send the viewer's GPS, selected map center, private notes, search query, ZIP code, device ID or saved pins to either website. No auto-fetching, scraped content, embedded third-party iframe, dynamic redirect or hidden API access is added. By opening an external site, the user leaves GLO's privacy boundary and may be asked to enter location or other information there.
+
+The register pins exact external URLs, required public-only fields, kind \`external-referral-only\`, \`dataImport: none\`, and \`verifiedProviderStatus: unknown\`. It includes regression tests that reject extra private fields, substituted links and false service claims. HUD's own search warns it is not responsible for individual providers; GLO makes no stronger assurance. Link selection is reviewed in source code and deliberately shipped through a PR. The selected links were checked on October 16, 2026 and may change later.
+
+United Way 211 National Data Platform API access is protected by authorization keys provisioned with permission from 211 organizations; GLO has **not** accessed that API or copied its data. This is an ethical handoff to independent public directories, not an unauthorized shortcut around their terms. The P1-P manual 211 HEAD receipt workflow remains separate and does **not** verify any listed provider.
+
+Source evidence: https://www.211.org/about-us ; https://www.hud.gov/FindShelter ; https://register.211.org/Home/LogIntoApiPortal .

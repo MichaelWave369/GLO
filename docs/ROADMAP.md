@@ -345,3 +345,16 @@ A saved public-source record is NOT verified available, legal to enter, suitable
 - [ ] Independently review official *directory data* sources with license/usage, provenance, publisher updates and consent before adding provider-specific records.
 - [ ] Define a separate explicit human publication gate if public organizational receipts are ever published; no automatic promotion to safe/open/available.
 - [ ] Leave Issue #11 open until the narrow official-source directory workflow and its approval tests are real and verified. Infinite Commons interchange still conditional on multiple independent publishers.
+
+
+## P1-Q: ethical official referral handoff (source-data gate still closed)
+
+- [x] Add two manually confirmed public starting points: United Way 211 and the U.S. HUD Find Shelter service, with pinned exact URLs and category scopes.
+- [x] Display links and descriptions without automatic network, third-party iframes, geolocation, coordinates in query strings, API keys or scraped provider records.
+- [x] Keep the shelf readable offline/low battery and make online navigation / \`tel:211\` strictly user initiated.
+- [x] EN/ES text with explicit privacy and unverified service-status warnings.
+- [x] Strict metadata tests reject unknown domains, modified service authority, private fields, duplicate publishers and unauthorized feed imports.
+- [ ] Real-phone field QA: external link, offline hint, tel-link behavior, contrast, accessibility, bilingual screen reader.
+- [ ] Manual P1-P workflow dispatch and receipt review remain outstanding; do not claim a production run exists.
+- [ ] **Future official directory adapter:** secure legal and technical access to provider record data, assess publisher authorization/licensing and update cadence, define consent and record-specific provenance, then separately design a human-reviewed publication gate.
+- [ ] Keep Issue #11 open; this shelf alone does not complete FieldCloudWorker public-provider refresh or conditional Infinite Commons interchange.
