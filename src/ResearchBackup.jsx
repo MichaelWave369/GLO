@@ -55,13 +55,11 @@ export default function ResearchBackup({language='en',onClose,onNotice}){
  const [busy,setBusy]=useState(false)
  const [error,setError]=useState('')
  const [status,setStatus]=useState('')
- const [livePinIds,setLivePinIds]=useState([])
  useEffect(()=>{
   let active=true
   Promise.all([listAllResearchAnnotations(),listReports()]).then(([all,pins])=>{
    if(!active)return
    const ids=new Set(pins.map(p=>p.id))
-   setLivePinIds([...ids])
    setNotes(all.filter(n=>ids.has(n.pinId)))
   }).catch(e=>{if(active)setError(e.message||t.err)})
   return()=>{active=false}
@@ -97,7 +95,6 @@ export default function ResearchBackup({language='en',onClose,onNotice}){
    const [all,pins]=await Promise.all([listAllResearchAnnotations(),listReports()])
    setLoaded(parsed)
    setPreview(previewResearchRestore(parsed.annotations,all,pins.map(p=>p.id)))
-   setLivePinIds(pins.map(p=>p.id))
   }catch(e){setError(e.message||t.err)}
   finally{setBusy(false);if(input.current)input.current.value=''}
  }
