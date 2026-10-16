@@ -9,6 +9,7 @@ import BackupReview from './BackupReview.jsx'
 import BackupRestore from './BackupRestore.jsx'
 import ResearchSpot from './ResearchSpot.jsx'
 import ResearchBackup from './ResearchBackup.jsx'
+import PrivacyInspector from './PrivacyInspector.jsx'
 import OfflinePacksPanel from './OfflinePacksPanel.jsx'
 import StreetSketchPanel from './StreetSketchPanel.jsx'
 import { sourcesFromPack } from './offlinePack.js'
@@ -49,6 +50,7 @@ export default function App() {
   const [backupReviewOpen, setBackupReviewOpen] = useState(false)
   const [restoreOpen, setRestoreOpen] = useState(false)
   const [researchBackupOpen, setResearchBackupOpen] = useState(false)
+  const [privacyInspectorOpen, setPrivacyInspectorOpen] = useState(false)
   const [researchOpen, setResearchOpen] = useState(false)
   const [researchTargetId, setResearchTargetId] = useState('')
   const [sharedPreview, setSharedPreview] = useState(() => parseSharedPin(window.location.hash))
@@ -282,6 +284,7 @@ export default function App() {
       setBackupReviewOpen(false)
       setRestoreOpen(false)
       setResearchBackupOpen(false)
+      setPrivacyInspectorOpen(false)
       setResearchOpen(false)
       setResearchTargetId('')
       setSharedPreview(null)
@@ -421,11 +424,13 @@ export default function App() {
               <div className="backup-actions-row">
                 <button type="button" className="secondary compact" onClick={() => startResearch()}>{language==='es'?'Investigar ubicación sin crear punto':'Research a location without a pin'}</button>
                 <button type="button" className="secondary compact" disabled={!reports.length}
-                  onClick={()=>{setRestoreOpen(false);setResearchBackupOpen(false);setBackupReviewOpen(open=>!open)}}>{language==='es'?'Revisar opciones de exportación':'Review export options'}</button>
+                  onClick={()=>{setRestoreOpen(false);setResearchBackupOpen(false);setPrivacyInspectorOpen(false);setBackupReviewOpen(open=>!open)}}>{language==='es'?'Revisar opciones de exportación':'Review export options'}</button>
                 <button type="button" className="secondary compact"
-                  onClick={()=>{setBackupReviewOpen(false);setResearchBackupOpen(false);setRestoreOpen(open=>!open)}}>{language==='es'?'Recuperar copia privada':'Recover private backup'}</button>
+                  onClick={()=>{setBackupReviewOpen(false);setResearchBackupOpen(false);setPrivacyInspectorOpen(false);setRestoreOpen(open=>!open)}}>{language==='es'?'Recuperar copia privada':'Recover private backup'}</button>
                 <button type="button" className="secondary compact"
-                  onClick={()=>{setBackupReviewOpen(false);setRestoreOpen(false);setResearchBackupOpen(open=>!open)}}>{language==='es'?'Copia de notas de investigación':'Research notes backup'}</button>
+                  onClick={()=>{setBackupReviewOpen(false);setRestoreOpen(false);setPrivacyInspectorOpen(false);setResearchBackupOpen(open=>!open)}}>{language==='es'?'Copia de notas de investigación':'Research notes backup'}</button>
+                <button type="button" className="secondary compact"
+                  onClick={()=>{setBackupReviewOpen(false);setRestoreOpen(false);setResearchBackupOpen(false);setPrivacyInspectorOpen(open=>!open)}}>{language==='es'?'Inspeccionar mi privacidad':'Inspect my privacy'}</button>
               </div>
               {backupReviewOpen && reports.length>0 &&
                 <BackupReview reports={reports} language={language}
@@ -436,6 +441,8 @@ export default function App() {
                 onRestored={async message=>{await refresh();setSavedFeedback(null);setNotice(message)}}/>}
               {researchBackupOpen && <ResearchBackup language={language}
                 onClose={()=>setResearchBackupOpen(false)} onNotice={message=>setNotice(message)}/>}
+              {privacyInspectorOpen && <PrivacyInspector language={language} onlineHint={online}
+                tilesEnabled={tiles} lowBattery={lowBattery} onClose={()=>setPrivacyInspectorOpen(false)}/>}
             </div>
           </>}
           {researchOpen && <ResearchSpot key={researchTargetId||'manual'} target={researchTarget} localPinId={researchLocalPinId} language={language} onClose={() => {setResearchOpen(false);setResearchTargetId('')}} />}
