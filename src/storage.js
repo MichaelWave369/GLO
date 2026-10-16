@@ -3,11 +3,13 @@ import { validatePublicPack } from './offlinePack.js'
 import { validateStreetSketch } from './streetSketch.js'
 import { MAX_RECHECKS, validatedRechecks } from './recheck.js'
 import { parsePrivateRestore } from './restoreSafety.js'
+import { validateResearchAnnotation, MAX_RESEARCH_NOTES } from './agentHandoff.js'
 
 const NAME = 'glo-pin-local-v1'
 const TABLE = 'reports'
 const PACKS = 'publicPacks'
 const STREETS = 'streetSketches'
+const RESEARCH = 'researchAnnotations'
 const MAX_SAVED_PACKS = 10
 // In this tab, an in-flight recovery must never repopulate data after panic clear.
 let privacyEpoch = 0
@@ -15,12 +17,16 @@ let privacyEpoch = 0
 function openDatabase() {
   if (!globalThis.indexedDB) return Promise.reject(new Error('This browser does not support local IndexedDB storage.'))
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(NAME, 3)
+    const request = indexedDB.open(NAME, 4)
     request.onupgradeneeded = () => {
       const db = request.result
       if (!db.objectStoreNames.contains(TABLE)) db.createObjectStore(TABLE, { keyPath: 'id' })
       if (!db.objectStoreNames.contains(PACKS)) db.createObjectStore(PACKS, { keyPath: 'id' })
       if (!db.objectStoreNames.contains(STREETS)) db.createObjectStore(STREETS, { keyPath: 'id' })
+      if (!db.objectStoreNames.contains(RESEARCH)) {
+        const notes=db.createObjectStore(RESEARCH,{keyPath:'id'})
+        notes.createIndex('pinId','pinId',{unique:false})
+      }
     }
     request.onsuccess = () => resolve(request.result)
     request.onerror = () => reject(request.error || new Error('Local storage unavailable.'))
@@ -49,7 +55,26 @@ export async function listReports() {
     .sort((a, b) => String(b.observedAt).localeCompare(String(a.observedAt)))
 }
 export function saveReport(report) { return transact('readwrite', table => table.put(report)) }
-export function removeReport(id) { return transact('readwrite', table => table.delete(id)) }
+// Deleting a private pin also removes its research notes atomically.
+export async function removeReport(id) {
+  const db=await openDatabase()
+  try {
+    return await new Promise((resolve,reject)=>{
+      const tx=db.transaction([TABLE,RESEARCH],'readwrite')
+      const notes=tx.objectStore(RESEARCH)
+      const cursor=notes.index('pinId').openKeyCursor(IDBKeyRange.only(id))
+      cursor.onsuccess=()=>{
+        if(!cursor.result)return
+        notes.delete(cursor.result.primaryKey)
+        cursor.result.continue()
+      }
+      tx.objectStore(TABLE).delete(id)
+      tx.oncomplete=()=>resolve()
+      tx.onerror=()=>reject(tx.error||new Error('Could not delete private pin and research.'))
+      tx.onabort=()=>reject(tx.error||new Error('Could not delete private pin and research.'))
+    })
+  } finally {db.close()}
+}
 
 // The pin and its rechecks live in the SAME IndexedDB row, so deletion, private backup
 // and panic clear include the full history without an upgrade or a separate orphan store.
@@ -119,10 +144,11 @@ export async function clearAllLocalData() {
   const db = await openDatabase()
   try {
     return await new Promise((resolve, reject) => {
-      const tx = db.transaction([TABLE, PACKS, STREETS], 'readwrite')
+      const tx = db.transaction([TABLE, PACKS, STREETS, RESEARCH], 'readwrite')
       tx.objectStore(TABLE).clear()
       tx.objectStore(PACKS).clear()
       tx.objectStore(STREETS).clear()
+      tx.objectStore(RESEARCH).clear()
       tx.oncomplete = () => resolve()
       tx.onerror = () => reject(tx.error || new Error('Could not clear GLO local data.'))
       tx.onabort = () => reject(tx.error || new Error('GLO clear operation was aborted.'))
@@ -191,4 +217,63 @@ export async function restorePrivateReports(incoming) {
       tx.onerror=()=>reject(tx.error||new Error('Restore failed. No existing pins were overwritten.'))
     })
   }finally{db.close()}
+}
+
+
+// Research notes remain a completely separate, private, unverified ledger.
+// No outside assistant writes directly. Explicit user review is required in the UI.
+// Research notes are NOT included in the legacy v1 backup; the UI warns accordingly.
+export async function listResearchAnnotations(pinId) {
+  if(typeof pinId!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/.test(pinId))return []
+  const db=await openDatabase()
+  try {
+    return await new Promise((resolve,reject)=>{
+      const tx=db.transaction(RESEARCH,'readonly')
+      const request=tx.objectStore(RESEARCH).index('pinId').getAll(IDBKeyRange.only(pinId))
+      request.onsuccess=()=>resolve(request.result.map(x=>{
+        try{return validateResearchAnnotation(x)}catch{return null}
+      }).filter(Boolean).sort((a,b)=>b.recordedAt.localeCompare(a.recordedAt)))
+      request.onerror=()=>reject(request.error||new Error('Could not read local research notes.'))
+    })
+  } finally {db.close()}
+}
+export async function saveResearchAnnotation(value) {
+  const note=validateResearchAnnotation(value)
+  const started=privacyEpoch
+  const db=await openDatabase()
+  try {
+    return await new Promise((resolve,reject)=>{
+      const tx=db.transaction([TABLE,RESEARCH],'readwrite')
+      const notes=tx.objectStore(RESEARCH)
+      const check=tx.objectStore(TABLE).get(note.pinId)
+      check.onsuccess=()=>{
+        if(privacyEpoch!==started || !check.result) {tx.abort();return}
+        const count=notes.index('pinId').count(IDBKeyRange.only(note.pinId))
+        count.onsuccess=()=>{
+          if(privacyEpoch!==started||count.result>=MAX_RESEARCH_NOTES){tx.abort();return}
+          notes.add(note)
+        }
+      }
+      tx.oncomplete=()=>resolve(note)
+      tx.onerror=()=>reject(tx.error||new Error('Could not save research note.'))
+      tx.onabort=()=>reject(new Error('Research not saved. Pin missing, privacy clear requested, or 12-note limit reached.'))
+    })
+  } finally {db.close()}
+}
+export async function removeResearchAnnotation(pinId,noteId) {
+  const db=await openDatabase()
+  try {
+    return await new Promise((resolve,reject)=>{
+      const tx=db.transaction(RESEARCH,'readwrite')
+      const store=tx.objectStore(RESEARCH)
+      const request=store.get(noteId)
+      request.onsuccess=()=>{
+        if(!request.result||request.result.pinId!==pinId){tx.abort();return}
+        store.delete(noteId)
+      }
+      tx.oncomplete=()=>resolve()
+      tx.onerror=()=>reject(tx.error||new Error('Could not remove research note.'))
+      tx.onabort=()=>reject(new Error('Research note missing or belongs to another pin.'))
+    })
+  } finally {db.close()}
 }
