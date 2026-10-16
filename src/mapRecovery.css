@@ -1,0 +1,24 @@
+/* Visible map feedback, no network diagnostics or private coordinates logged. */
+.map-tile-feedback{
+ display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 16px;
+ color:#d8f0e1;background:#16282a;border-top:1px solid #3a6155;
+ font-size:13px;line-height:1.5;min-height:44px
+}
+.map-network-hint{color:#ffe0a4}
+.map-recovery-actions{display:flex;gap:8px;flex-wrap:wrap;width:100%}
+.map-recovery-actions button{min-height:44px}
+.map-paused{
+ display:grid;gap:11px;justify-items:start;align-content:center;
+ padding:18px 20px;border:1px solid #537563;border-radius:14px;
+ background:#14251f;color:#e8f9ed;min-height:150px
+}
+.map-paused p{margin:0;font-size:14px;line-height:1.5}
+.map-paused button{min-height:48px}
+@media(max-width:570px){
+ .map-tile-feedback{padding:12px}
+ .map-recovery-actions{display:grid;grid-template-columns:1fr}
+ .map-recovery-actions button{width:100%}
+ .map-paused{margin-top:10px}
+}
+/* Allow checkbox and explicit consent text to wrap on narrow phones. */
+.map-actions .switch{max-width:100%;white-space:normal;line-height:1.35}
