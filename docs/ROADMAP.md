@@ -245,3 +245,20 @@ The visual change is intentionally CSS-first. Data sources, local storage, locat
 - [ ] Scout mobile re-test: toggle English/Spanish across full page, 320–430px layout, low battery, offline, GLO Bro questions, same-file reimport.
 - [ ] Verify OS-provided permissions/browser errors, user-written notes and OSM titles remain clearly recognized as untranslated source content.
 - [ ] Real-device contrast and screen-reader audit at low brightness; verify install/PWA cache update behavior.
+
+
+## P1-K: Research This Spot / manually-reviewed agent notes
+
+- [x] Optional pin-based or pin-free local research question, permission-on-tap coordinates only
+- [x] Preview of exact exported fields, approximate 2-decimal area default and explicit exact-point approval
+- [x] Single clipboard handoff, zero agent credentials, no tracking or backend
+- [x] Manual write-back: separate local research annotation with permanently UNVERIFIED provenance
+- [x] Research notes capped at 12 per pin; pin deletion and panic clear erase them
+- [x] Bilingual EN/ES controls, works offline and in low-battery list
+- [x] Tests of packet disclosure, annotation schema, storage isolation, deletion and panic clear
+- [ ] Scout/Ori real-phone acceptance: pin-free GPS workflow, English/Spanish, 8% battery, clipboard denial fallback, private-pin annotation deletion
+- [ ] P1-L: versioned private research export/restore. Existing v1 backup does NOT include annotations; never promise otherwise
+- [ ] Independent privacy inspection / carefully bounded evidence, no claimed zero-network/zero-device trace
+- [ ] Cached resource queries and optional trustworthy directories with separate confidence labels
+- [ ] Optional targeted research API/agent relay only with separate consent, real authentication and revocation design. No unattended sharing
+- [ ] Explicitly park voice pinning and long-duration absence check-in as future research, not automatic notifications
