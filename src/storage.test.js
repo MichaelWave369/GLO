@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import 'fake-indexeddb/auto'
-import { listReports, saveReport, removeReport, appendRecheck, restorePrivateReports, savePublicPack, listPublicPacks, listStreetSketches, saveStreetSketch, clearAllLocalData, listResearchAnnotations, saveResearchAnnotation, removeResearchAnnotation } from './storage.js'
+import { listReports, saveReport, removeReport, appendRecheck, restorePrivateReports, savePublicPack, listPublicPacks, listStreetSketches, saveStreetSketch, clearAllLocalData, listResearchAnnotations, saveResearchAnnotation, removeResearchAnnotation, listAllResearchAnnotations, restoreResearchAnnotations } from './storage.js'
 import { createPublicPack } from './offlinePack.js'
 import { createStreetSketch } from './streetSketch.js'
 import { createRecheck } from './recheck.js'
@@ -183,4 +183,38 @@ test('research notes are capped, cascade with pin deletion, and erased by panic 
  assert.deepEqual(await listResearchAnnotations('research_3'),[])
  await assert.rejects(saveResearchAnnotation(createResearchAnnotation({
    pinId:'research_3',title:'Must stay cleared',details:'No pin'},new Date(),()=> 'late_note')),/Pin missing/)
+})
+
+
+test('P1-L offline research recovery is add-only; missing pins stay skipped and v1 pins remain unchanged',async()=>{
+ const originalTime=new Date(Date.now()-60000).toISOString()
+ const pin={id:'research_restore_pin',title:'Original tap',category:'water',note:'Field note not AI',lat:40,lon:-75,observedAt:originalTime}
+ await saveReport(pin)
+ const current=createResearchAnnotation({pinId:pin.id,title:'Current review',details:'Keep this newer note'},new Date(),()=> 'existing-note')
+ const missing=createResearchAnnotation({pinId:pin.id,title:'Earlier research',details:'A source suggests a different schedule'},new Date(),()=> 'imported-note')
+ const orphan=createResearchAnnotation({pinId:'lost_pin',title:'Orphan record',details:'Must not create a pin'},new Date(),()=> 'orphan-note')
+ await saveResearchAnnotation(current)
+ const first=await restoreResearchAnnotations([{...current,details:'Old copy must not overwrite'},missing,orphan])
+ assert.deepEqual(first,{imported:1,alreadyHere:1,missingPin:1,full:0})
+ assert.equal((await listResearchAnnotations(pin.id)).length,2)
+ assert.equal((await listResearchAnnotations(pin.id)).find(n=>n.id===current.id).details,'Keep this newer note')
+ assert.deepEqual(await listResearchAnnotations('lost_pin'),[])
+ assert.equal((await listReports()).find(n=>n.id===pin.id).note,'Field note not AI')
+ assert.deepEqual(await restoreResearchAnnotations([missing]),{imported:0,alreadyHere:1,missingPin:0,full:0})
+ assert.equal((await listAllResearchAnnotations()).length,2)
+ await clearAllLocalData()
+ assert.deepEqual(await listAllResearchAnnotations(),[])
+})
+test('P1-L restore respects twelve per pin and rejects bad batch atomically',async()=>{
+ await saveReport({id:'research_backup_full',title:'Keep'})
+ for(let i=0;i<11;i++)await saveResearchAnnotation(
+  createResearchAnnotation({pinId:'research_backup_full',title:'Saved '+i,details:'Local research'},new Date(),()=> 'saved_'+i))
+ const next=createResearchAnnotation({pinId:'research_backup_full',title:'New',details:'One free slot'},new Date(),()=> 'new_1')
+ const overflow=createResearchAnnotation({pinId:'research_backup_full',title:'Overflow',details:'Skip'},new Date(),()=> 'new_2')
+ assert.deepEqual(await restoreResearchAnnotations([next,overflow]),{imported:1,alreadyHere:0,missingPin:0,full:1})
+ assert.equal((await listResearchAnnotations('research_backup_full')).length,12)
+ await assert.rejects(restoreResearchAnnotations([next,{...overflow,provenance:'officially-verified'}]),/untrusted research/)
+ assert.equal((await listResearchAnnotations('research_backup_full')).length,12)
+ await removeReport('research_backup_full')
+ assert.deepEqual(await listAllResearchAnnotations(),[])
 })
