@@ -24,7 +24,7 @@ const COPY={
   noteAck:'Save my reviewed note locally',noteSaved:'Unverified research note saved only on this device.',
   noteError:'Could not save research note.',noteEmpty:'No research notes attached yet.',
   noPin:'To save findings, open Research from a private pin. You can still copy a question without creating a pin.',
-  researchWarning:'Important: Research annotations are stored separately and are NOT included in GLO’s existing v1 private backup. Copy anything important separately until research backup support is added.',
+  researchWarning:'Important: Research notes are NOT included in the v1 private pin backup. Use the separate Research notes backup under Keep your own data to preserve them. Both files are sensitive and unencrypted.',
   human:'Manually saved research · UNVERIFIED · NOT a field recheck',delete:'Remove note',deleteConfirm:'Delete this research annotation from this device?',
   notVerified:'An AI answer or public property listing does not prove a service is working, a route is safe, or access is permitted.',
   busy:'Saving…',link:'Open source ↗'
@@ -47,7 +47,7 @@ const COPY={
   noteAck:'Guardar nota revisada aquí',noteSaved:'Nota de investigación sin verificar guardada en este dispositivo.',
   noteError:'No se pudo guardar la nota.',noteEmpty:'Todavía no hay notas de investigación.',
   noPin:'Para guardar hallazgos, abre Investigar desde un punto privado. Puedes copiar una pregunta sin crear un punto.',
-  researchWarning:'Importante: las notas de investigación se guardan aparte y NO están incluidas en la copia privada v1 de GLO. Guarda una copia de lo importante hasta que exista un respaldo de investigación.',
+  researchWarning:'Importante: las notas NO están incluidas en la copia de puntos v1. Usa la opción separada Copia de notas de investigación en Tus datos, bajo tu control. Ambos archivos son sensibles y no están cifrados.',
   human:'Investigación guardada manualmente · SIN VERIFICAR · NO es revisión de campo',delete:'Borrar nota',deleteConfirm:'¿Borrar esta nota de investigación del dispositivo?',
   notVerified:'Una respuesta de IA o lista de propietarios no demuestra que un servicio funcione, una ruta sea segura ni que haya permiso para entrar.',
   busy:'Guardando…',link:'Abrir fuente ↗'
