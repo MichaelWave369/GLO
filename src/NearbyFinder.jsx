@@ -1,7 +1,9 @@
-import {useState} from 'react'
+import {useEffect,useRef,useState} from 'react'
 import {CATEGORIES} from './domain.js'
 import {categoryLabel} from './locale.js'
 import {findNearbyLoaded,parseNearbyPoint,NEARBY_RADII,NEARBY_LIMIT} from './nearbyFinder.js'
+import {listPublicPacks} from './storage.js'
+import {mergeSavedAreaSources} from './savedAreaSearch.js'
 import './nearbyFinder.css'
 
 const COPY={
@@ -26,7 +28,17 @@ const COPY={
   warnings:'Distances are as the crow flies, NOT walking/driving distances or accessible routes. A map label or past observation is NOT evidence a resource is open, safe, free, potable or available. Check before depending on it.',
   sourceCaution:'Public results are only from the current Scout scan or opened offline pack. Older records and unsaved scans may be incomplete; absent results never mean a service does not exist.',
   privacy:'Private notes and recheck text are never included in these result cards. Results are visible on this device only.',
-  cleared:'Change the search point, type or radius, then search again.'
+  cleared:'Change the search point, type or radius, then search again.',
+  savedOption:'Also search every saved offline Scout area (this device only)',
+  savedInfo:'Reads up to ten saved public OSM packs locally only when you press Find. Nothing is uploaded or refreshed from the internet.',
+  savedStats:(n,d,i)=>n+' saved areas searched · '+d+' overlapping records combined · '+i+' incomplete areas',
+  savedZero:'No saved offline public areas were found. Save a Scout search first while connected, or search loaded entries only.',
+  savedScope:'Saved public Scout pack (not live)',
+  loadedScope:'Current loaded map source',
+  incomplete:'Source query may be incomplete',
+  readError:'Could not read saved offline areas. No offline search result was published.',
+  searching:'Reading local packs…',
+  snapshot:'Saved-area results reflect local files at search time. After importing/deleting a pack, press Find again.'
  },
  es:{
   label:'Buscar recursos cercanos en datos cargados',
@@ -49,7 +61,17 @@ const COPY={
   warnings:'Las distancias son en línea recta, NO rutas a pie, en coche ni accesibles. Un mapa o una observación anterior NO demuestran que un recurso esté abierto, sea seguro, gratis, potable o disponible. Comprueba antes de depender de él.',
   sourceCaution:'Los resultados públicos solo proceden de la búsqueda actual de Scout o de un paquete local abierto. Los registros pueden ser antiguos o incompletos; la ausencia no demuestra que no exista un servicio.',
   privacy:'Las notas privadas y el texto de revisiones nunca aparecen en estas tarjetas. Solo se muestran en este dispositivo.',
-  cleared:'Modifica el punto, tipo o radio y vuelve a buscar.'
+  cleared:'Modifica el punto, tipo o radio y vuelve a buscar.',
+  savedOption:'Incluir todas las zonas de Scout guardadas sin conexión (solo aquí)',
+  savedInfo:'Lee hasta diez paquetes públicos de OSM en este dispositivo únicamente al pulsar Buscar. No envía ni actualiza nada por internet.',
+  savedStats:(n,d,i)=>n+' zonas guardadas · '+d+' registros superpuestos unificados · '+i+' zonas incompletas',
+  savedZero:'No hay zonas públicas guardadas. Guarda una búsqueda de Scout cuando tengas conexión, o busca solo entre registros cargados.',
+  savedScope:'Paquete público de Scout guardado (no en vivo)',
+  loadedScope:'Fuente cartográfica cargada',
+  incomplete:'La búsqueda original puede ser incompleta',
+  readError:'No se pudieron leer las zonas sin conexión. No se publicó ningún resultado.',
+  searching:'Leyendo paquetes locales…',
+  snapshot:'Los resultados reflejan archivos locales en el momento de buscar. Tras importar o borrar un paquete, vuelve a pulsar Buscar.'
  }
 }
 
@@ -64,24 +86,54 @@ export default function NearbyFinder({
  const [radius,setRadius]=useState(2)
  const [submitted,setSubmitted]=useState(null)
  const [error,setError]=useState('')
- function changePoint(a,b){setLat(a);setLon(b);setSubmitted(null);setError('')}
- function changeCategory(next){setCategory(next);setSubmitted(null);setError('')}
- function changeRadius(next){setRadius(next);setSubmitted(null);setError('')}
- function search(event){
-  event.preventDefault()
-  setError('')
-  try{
-   const point=parseNearbyPoint(lat,lon)
-   // This commits a local-only query; changes to the draft require another tap.
-   setSubmitted({point,category,radiusKm:radius})
-  }catch(e){setSubmitted(null);setError(e.message||t.locationError)}
+ const [includeSaved,setIncludeSaved]=useState(false)
+ const [localSnapshot,setLocalSnapshot]=useState(null)
+ const [savedStats,setSavedStats]=useState(null)
+ const [pending,setPending]=useState(false)
+ const requestEpoch=useRef(0)
+ // An IndexedDB response may finish after user changes scope or panic covers/unmounts GLO.
+ useEffect(()=>()=>{requestEpoch.current++},[])
+ function invalidate(){
+  requestEpoch.current++
+  setSubmitted(null);setLocalSnapshot(null);setSavedStats(null)
+  setPending(false);setError('')
  }
- // Existing records can change without a network request from this component.
- // A submitted query always filters current in-memory data, never a stale copied result.
+ function changePoint(a,b){setLat(a);setLon(b);invalidate()}
+ function changeCategory(next){setCategory(next);invalidate()}
+ function changeRadius(next){setRadius(next);invalidate()}
+ function changeSaved(next){setIncludeSaved(next);invalidate()}
+ async function search(event){
+  event.preventDefault()
+  const epoch=++requestEpoch.current
+  setError('');setSubmitted(null);setLocalSnapshot(null);setSavedStats(null)
+  let point
+  try{point=parseNearbyPoint(lat,lon)}
+  catch(e){setError(e.message||t.locationError);return}
+  if(!includeSaved){
+   setSubmitted({point,category,radiusKm:radius})
+   return
+  }
+  setPending(true)
+  try{
+   // This is a read of GLO's own validated IndexedDB public pack store only.
+   // It never invokes Scout, geolocation, the clipboard or a remote API.
+   const packs=await listPublicPacks()
+   if(epoch!==requestEpoch.current)return
+   const combined=mergeSavedAreaSources(publicSources,packs)
+   setLocalSnapshot(combined.sources)
+   setSavedStats(combined.stats)
+   setSubmitted({point,category,radiusKm:radius})
+  }catch(e){
+   if(epoch!==requestEpoch.current)return
+   setError(t.readError+' '+(e?.message||''))
+  }finally{if(epoch===requestEpoch.current)setPending(false)}
+ }
+ // A saved-area result is explicitly a snapshot of the user's chosen local search.
+ // Loaded-only results remain derived from the current in-memory records.
  let result=null
  let resultError=''
  if(submitted){
-  try{result=findNearbyLoaded({...submitted,privateReports,publicSources})}
+  try{result=findNearbyLoaded({...submitted,privateReports,publicSources:localSnapshot??publicSources})}
   catch(e){result=null;resultError=e.message||t.locationError}
  }
  return <details className="nearby-finder">
@@ -111,9 +163,12 @@ export default function NearbyFinder({
       {NEARBY_RADII.map(value=><option key={value} value={value}>{value} km</option>)}
      </select>
     </label>
-    <button type="submit" className="primary">{t.find}</button>
+    <label className="nearby-saved-option"><input type="checkbox" checked={includeSaved} onChange={e=>changeSaved(e.target.checked)}/><span>{t.savedOption}</span></label>
+    <p>{t.savedInfo}</p>
+    <button type="submit" className="primary" disabled={pending}>{pending?t.searching:t.find}</button>
    </form>
    {(error||resultError)&&<p role="alert" className="nearby-finder-error">{error||resultError}</p>}
+   {savedStats&&<p className="nearby-pack-summary" role="status">{t.savedStats(savedStats.savedAreas,savedStats.duplicateRecords,savedStats.incompleteAreas)}{savedStats.savedAreas===0?' · '+t.savedZero:''}</p>}
    {result&&<section className="nearby-found" aria-live="polite" aria-label={t.results}>
     <strong>{t.results}</strong>
     <p>{t.found(result.total)} · {t.sourceCount(result.privateCount,result.publicCount)}</p>
@@ -122,12 +177,14 @@ export default function NearbyFinder({
        <strong>{row.title}</strong>
        <small>{categoryLabel(row.category,language,CATEGORIES)} · {row.distanceKm.toFixed(2)} {t.distance}</small>
        <small>{row.origin==='private'?t.provenancePrivate:t.provenanceOSM} · {t.unverified}</small>
+       {row.origin==='osm'&&<small>{row.sourceScope==='saved-pack'?t.savedScope:t.loadedScope}{row.incompleteSnapshot?' · '+t.incomplete:''}</small>}
        <small>{row.origin==='private'?t.datePrivate:t.dateOSM}: {row.evidenceAt?new Date(row.evidenceAt).toLocaleDateString(language==='es'?'es-US':'en-US'):t.unknown}</small>
        {!lowBattery&&<button type="button" className="secondary compact" onClick={()=>onOpenMap?.(row)}>{t.mapAction}</button>}
       </li>)}</ol>
      {result.total>NEARBY_LIMIT&&<p>{t.limited(NEARBY_LIMIT)}</p>}
     </>:<p>{t.empty}</p>}
    </section>}
+   {savedStats&&<p>{t.snapshot}</p>}
    {lowBattery&&<p>{t.lowBattery}</p>}
    <p className="nearby-finder-warning">{t.warnings}</p>
    <p>{t.sourceCaution}</p>
