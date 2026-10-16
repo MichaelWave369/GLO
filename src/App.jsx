@@ -11,6 +11,8 @@ import ResearchSpot from './ResearchSpot.jsx'
 import ResearchBackup from './ResearchBackup.jsx'
 import PrivacyInspector from './PrivacyInspector.jsx'
 import NearbyFinder from './NearbyFinder.jsx'
+import MapViewportSync from './MapViewportSync.jsx'
+import {MAP_TILE_COPY,OSM_TILE_URL,OSM_ATTRIBUTION,shouldMountOnlineTiles} from './mapTilePolicy.js'
 import OfflinePacksPanel from './OfflinePacksPanel.jsx'
 import StreetSketchPanel from './StreetSketchPanel.jsx'
 import { sourcesFromPack } from './offlinePack.js'
@@ -59,6 +61,8 @@ export default function App() {
   const [panicCleared, setPanicCleared] = useState(false)
   const t = TEXT[language]
   const ui = UI[language]
+  const mapCopy = MAP_TILE_COPY[language]
+  const onlineTilesMounted = shouldMountOnlineTiles({consented:tiles,lowBattery})
   const [selectedId, setSelectedId] = useState('')
   const [finderFocus, setFinderFocus] = useState(null)
   const [filter, setFilter] = useState('all')
@@ -67,6 +71,8 @@ export default function App() {
   const [draft, setDraft] = useState(initialDraft)
   const [online, setOnline] = useState(navigator.onLine)
   const [tiles, setTiles] = useState(false)
+  const [tileStatus, setTileStatus] = useState('idle')
+  const [tileAttempt, setTileAttempt] = useState(0)
   const [streetSketch, setStreetSketch] = useState(null)
   const [reference, setReference] = useState(PILOT_CENTER)
   const [mapCenter, setMapCenter] = useState(PILOT_CENTER)
@@ -307,10 +313,20 @@ export default function App() {
       }
     }, 45)
   }
-  function setQuestionCleared() { setEditing(false); setTiles(false) }
+  function setQuestionCleared() { setEditing(false); setTiles(false); setTileStatus('idle') }
   function changeLowBattery() {
-    if (!lowBattery) setTiles(false)
+    if (!lowBattery) { setTiles(false); setTileStatus('idle') }
     setLowBattery(v => !v)
+  }
+  function switchOnlineTiles(enabled) {
+    setTiles(enabled)
+    setTileStatus(enabled ? 'loading' : 'idle')
+    if (enabled) setTileAttempt(i => i + 1)
+  }
+  function retryOnlineTiles() {
+    if (!tiles) return
+    setTileStatus('loading')
+    setTileAttempt(i => i + 1)
   }
   function closeShared() {
     setSharedPreview(null)
@@ -464,15 +480,24 @@ export default function App() {
           </>}
           {researchOpen && <ResearchSpot key={researchTargetId||'manual'} target={researchTarget} localPinId={researchLocalPinId} language={language} onClose={() => {setResearchOpen(false);setResearchTargetId('')}} />}
         </aside>
+        {lowBattery && <div className="map-paused" role="status">
+          <p>{mapCopy.lowPower}</p>
+          <button type="button" className="secondary" onClick={changeLowBattery}>{mapCopy.showMap}</button>
+        </div>}
         {!lowBattery && <div className="map-column">
           <div className="map-top"><div><strong>{ui.map}</strong><small>{ui.start}</small></div>
-            <div className="map-actions"><button className="secondary compact" onClick={locate}>◎ {ui.center}</button><label className="switch"><input type="checkbox" checked={online && tiles} disabled={!online} onChange={(e) => setTiles(e.target.checked)} />{ui.tiles}</label></div>
+            <div className="map-actions"><button type="button" className="secondary compact" onClick={locate}>◎ {ui.center}</button><label className="switch"><input type="checkbox" checked={tiles} onChange={(e) => switchOnlineTiles(e.target.checked)} />{mapCopy.toggle}</label></div>
           </div>
           <div className="map-frame" ref={mapFrameRef}>
             <MapContainer className="leaflet-map" center={[PILOT_CENTER.lat, PILOT_CENTER.lon]} zoom={13} scrollWheelZoom={false}>
-              {online && tiles && <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'/>}
+              {onlineTilesMounted && <TileLayer key={tileAttempt} url={OSM_TILE_URL} attribution={OSM_ATTRIBUTION}
+                eventHandlers={{
+                  tileerror: () => setTileStatus('error'),
+                  load: () => setTileStatus(current => current === 'error' ? 'error' : 'ready')
+                }}/>}
+              <MapViewportSync tilesEnabled={onlineTilesMounted}/>
               <MapNavigator target={target}/>
-              {streetSketch && !(online && tiles) && streetSketch.records.map(way => <Polyline key={way.id} positions={way.coordinates} pathOptions={{color:way.kind==='water'?'#7fc9ed':way.tag==='footway'||way.tag==='path'||way.tag==='steps'?'#efca81':'#91d5b1',weight:way.kind==='water'?3:way.tag==='footway'?2:4,opacity:.85,dashArray:way.tag==='footway'||way.tag==='path'?'5 6':undefined}}><Popup><strong>{way.name||ui.mappedWay}</strong><p>OpenStreetMap {way.kind==='water'?ui.waterway:ui.path} ({way.tag}). {ui.wayCaution}</p></Popup></Polyline>)}
+              {streetSketch && !onlineTilesMounted && streetSketch.records.map(way => <Polyline key={way.id} positions={way.coordinates} pathOptions={{color:way.kind==='water'?'#7fc9ed':way.tag==='footway'||way.tag==='path'||way.tag==='steps'?'#efca81':'#91d5b1',weight:way.kind==='water'?3:way.tag==='footway'?2:4,opacity:.85,dashArray:way.tag==='footway'||way.tag==='path'?'5 6':undefined}}><Popup><strong>{way.name||ui.mappedWay}</strong><p>OpenStreetMap {way.kind==='water'?ui.waterway:ui.path} ({way.tag}). {ui.wayCaution}</p></Popup></Polyline>)}
               <MapCenterTracker onMove={setMapCenter}/>
               <MapPicker enabled={editing} onPick={pickCoordinates}/>
               {visiblePublic.map((r) => <CircleMarker key={r.id} center={[r.lat, r.lon]} radius={selectedId === r.id ? 12 : 9} pathOptions={{ color: '#95c9e0', fillColor: r.category === 'water' ? '#83d4e4' : r.category === 'power' ? '#eec575' : '#a9cfa1', fillOpacity: 0.85, weight: 2, dashArray: '4 3' }} eventHandlers={{ click: () => setSelectedId(r.id) }}>
@@ -495,8 +520,19 @@ export default function App() {
                 <Popup><strong>{r.title}</strong><br/>{categoryLabel(r.category,language,CATEGORIES)}<br/>{ui.selfReported}<br/>{ui.privateDevice}</Popup>
               </CircleMarker>)}
             </MapContainer>
-            {!(online && tiles) && <div className="map-label">{ui.mapNoBase}</div>}
+            {!onlineTilesMounted && <div className="map-label">{ui.mapNoBase}</div>}
             {editing && <div className="map-tip">{ui.mapTap}</div>}
+          </div>
+          <div className="map-tile-feedback" role={tileStatus==='error'?'alert':'status'} aria-live="polite">
+            <span>{!onlineTilesMounted ? mapCopy.offline
+              : tileStatus==='error' ? mapCopy.failed
+                : tileStatus==='ready' ? mapCopy.ready : mapCopy.loading}</span>
+            {!online && tiles && <span className="map-network-hint">{mapCopy.networkHint}</span>}
+            {onlineTilesMounted && tileStatus==='error' &&
+              <div className="map-recovery-actions">
+                <button type="button" className="secondary compact" onClick={retryOnlineTiles}>{mapCopy.retry}</button>
+                <button type="button" className="secondary compact" onClick={()=>switchOnlineTiles(false)}>{mapCopy.grid}</button>
+              </div>}
           </div>
           <div className="map-footnote"><strong>{ui.mapPrivacy}</strong> {ui.mapPrivacyText}</div>
           <StreetSketchPanel center={mapCenter} online={online} selected={streetSketch} language={language}
