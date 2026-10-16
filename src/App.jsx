@@ -124,7 +124,10 @@ export default function App() {
   const chosenRecord = reports.find(r=>r.id===selectedId) || publicCandidates.find(r=>r.id===selectedId)
   // Pocket Plan remains intentionally scoped to name + provenance only.
   const selectedResource = chosenRecord ? { title: chosenRecord.title, from: reports.some(r=>r.id===selectedId)?'private':'osm' } : null
-  const finderSelectedPoint = chosenRecord || finderFocus
+  // A private pin deleted in this session cannot leave an orphan map focus.
+  const activeFinderFocus = finderFocus?.origin==='private' &&
+    !reports.some(r=>r.id===finderFocus.id) ? null : finderFocus
+  const finderSelectedPoint = chosenRecord || activeFinderFocus
   // The share panel is tied to a live report, not to a stale copied React object.
   const activeSharingPin = activeShareTarget(sharingPin, reports, publicCandidates)
   const activeRecheckReport = reports.find(r=>r.id===recheckTargetId) || null
@@ -475,14 +478,15 @@ export default function App() {
               {visiblePublic.map((r) => <CircleMarker key={r.id} center={[r.lat, r.lon]} radius={selectedId === r.id ? 12 : 9} pathOptions={{ color: '#95c9e0', fillColor: r.category === 'water' ? '#83d4e4' : r.category === 'power' ? '#eec575' : '#a9cfa1', fillOpacity: 0.85, weight: 2, dashArray: '4 3' }} eventHandlers={{ click: () => setSelectedId(r.id) }}>
                 <Popup><strong>{r.title}</strong><br/>{categoryLabel(r.category,language,CATEGORIES)}<br/>{ui.osmRecord}<br/><a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">{ui.osmView}</a></Popup>
               </CircleMarker>)}
-              {finderFocus && !visible.some(r=>r.id===finderFocus.id) &&
-                !visiblePublic.some(r=>r.id===finderFocus.id) &&
-                <CircleMarker key={'glo-finder-'+finderFocus.id} center={[finderFocus.lat,finderFocus.lon]}
+              {activeFinderFocus && !visible.some(r=>r.id===activeFinderFocus.id) &&
+                !visiblePublic.some(r=>r.id===activeFinderFocus.id &&
+                  r.lat===activeFinderFocus.lat && r.lon===activeFinderFocus.lon) &&
+                <CircleMarker key={'glo-finder-'+activeFinderFocus.id} center={[activeFinderFocus.lat,activeFinderFocus.lon]}
                   radius={11} pathOptions={{color:'#f2d38c',fillColor:'#8eb89c',weight:3,
                     fillOpacity:0.85,dashArray:'4 3'}}>
-                  <Popup><strong>{finderFocus.title}</strong><br/>
-                    {categoryLabel(finderFocus.category,language,CATEGORIES)}<br/>
-                    {finderFocus.origin==='private'?ui.selfReported:ui.osmRecord}<br/>
+                  <Popup><strong>{activeFinderFocus.title}</strong><br/>
+                    {categoryLabel(activeFinderFocus.category,language,CATEGORIES)}<br/>
+                    {activeFinderFocus.origin==='private'?ui.selfReported:ui.osmRecord}<br/>
                     {language==='es'?'Solo resultado temporal · Sin verificar':'Temporary result marker · Unverified'}
                   </Popup>
                 </CircleMarker>}
