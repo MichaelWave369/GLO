@@ -348,3 +348,20 @@ The register pins exact external URLs, required public-only fields, kind \`exter
 United Way 211 National Data Platform API access is protected by authorization keys provisioned with permission from 211 organizations; GLO has **not** accessed that API or copied its data. This is an ethical handoff to independent public directories, not an unauthorized shortcut around their terms. The P1-P manual 211 HEAD receipt workflow remains separate and does **not** verify any listed provider.
 
 Source evidence: https://www.211.org/about-us ; https://www.hud.gov/FindShelter ; https://register.211.org/Home/LogIntoApiPortal .
+
+
+## P1-R: a cryptographically bound, publication-blocked review *draft*
+
+GLO's P1-P local **Public source check desk** now has a separate, explicit human-action review stage. After importing a genuine P1-P \`public-source-check.json\`, a person must acknowledge its limitations, choose **Retain observation only**, **Request another manual check**, or **Discard**, then press **Prepare local review draft**. No option can approve publication, certify a service or update an OSM/public pack or private pin.
+
+A successful action creates only an in-memory \`glo.public-observation-review-draft.v1\` document. It carries an SHA-256 digest of the **validated, canonically ordered, public-only source receipt** and exactly scoped metadata: \`serviceStatus:'unknown'\`, \`authority:'none'\`, \`publication:'blocked'\`. The person may deliberately download this JSON, but **it is a draft, not a digitally signed or authenticated review**, and it carries no reviewer identity, account ID, notes, coordinates, service openings or trusted publisher authorization. SHA-256 detects a mismatch between the two given files; it does **not** prove who generated either one.
+
+The source receipt and downloaded review draft are *separate* files. An independent offline verifier can check both:
+
+\`\`\`sh
+node ops/verifyPublicReviewDraft.mjs public-source-check.json GLO-public-review-DRAFT-YYYY-MM-DD.json
+\`\`\`
+
+The verifier rejects unsupported/missing/extra fields, altered source-receipt contents, invalid timestamps, forged publication authority and unauthorized status. This remains a **read-only local workflow** with no new remote requests, IndexedDB writes, service-worker changes, automatic worker dispatch, auto-approval or hosted artifact publication. The existing manual 211 HEAD workflow has **not** been executed or attested by this change. Previously exported JSON files may remain on the device after GLO panic clear, so store/discard copies deliberately.
+
+A true publication authority would require independently authorized organizational data sources, legal/licensing review, an authenticated multi-party approval process and its own tested publishing channel. **This draft stage does not grant those powers.** Issue #11 remains open.
