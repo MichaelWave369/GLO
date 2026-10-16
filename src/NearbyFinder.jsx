@@ -79,9 +79,10 @@ export default function NearbyFinder({
  // Existing records can change without a network request from this component.
  // A submitted query always filters current in-memory data, never a stale copied result.
  let result=null
+ let resultError=''
  if(submitted){
   try{result=findNearbyLoaded({...submitted,privateReports,publicSources})}
-  catch(e){result=null;error=e.message||t.locationError}
+  catch(e){result=null;resultError=e.message||t.locationError}
  }
  return <details className="nearby-finder">
   <summary>{t.label}</summary>
@@ -112,7 +113,7 @@ export default function NearbyFinder({
     </label>
     <button type="submit" className="primary">{t.find}</button>
    </form>
-   {error&&<p role="alert" className="nearby-finder-error">{error}</p>}
+   {(error||resultError)&&<p role="alert" className="nearby-finder-error">{error||resultError}</p>}
    {result&&<section className="nearby-found" aria-live="polite" aria-label={t.results}>
     <strong>{t.results}</strong>
     <p>{t.found(result.total)} · {t.sourceCount(result.privateCount,result.publicCount)}</p>
