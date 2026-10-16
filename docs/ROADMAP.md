@@ -358,3 +358,17 @@ A saved public-source record is NOT verified available, legal to enter, suitable
 - [ ] Manual P1-P workflow dispatch and receipt review remain outstanding; do not claim a production run exists.
 - [ ] **Future official directory adapter:** secure legal and technical access to provider record data, assess publisher authorization/licensing and update cadence, define consent and record-specific provenance, then separately design a human-reviewed publication gate.
 - [ ] Keep Issue #11 open; this shelf alone does not complete FieldCloudWorker public-provider refresh or conditional Infinite Commons interchange.
+
+
+## P1-R: non-authoritative human review draft gate
+
+- [x] Separate a local human disposition from the P1-P public website observation: retain unverified, request another check, or discard. No approve/publish option.
+- [x] Explicit acknowledgement before draft preparation and separate click for local download; no implicit receipt publication, network, account or storage writes.
+- [x] Canonical SHA-256 digest binds a draft to the *validated* public observation; untrusted data never becomes publisher authentication or a digital signature.
+- [x] Strict, size-capped independent verifier for \`glo.public-observation-review-draft.v1\`; hard \`serviceStatus: unknown\`, \`authority: none\`, \`publication: blocked\`.
+- [x] Tests for forged approval, changed source, sensitive/private fields, missing acknowledgment, unsupported dispositions and offline execution.
+- [x] EN/ES readable draft control with explicit warnings and no auto-executing actions.
+- [ ] Device QA: import the manually run P1-P artifact, prepare all three drafts, download one, verify paired files with the local CLI, reject a modified receipt, try offline and screen readers.
+- [ ] Operational/publication gate: separately authenticate authorized source publishers and human reviewers, obtain source licensing/data-use permission, prevent unauthorized service-status claims, and require auditable independent approval before any public feed is possible.
+- [ ] P1-P's first real GitHub Actions manual run is still pending and cannot be claimed from unit tests alone.
+- [ ] Keep Issue #11 OPEN. This adds a *draft review contract*, not authorization, signed provider evidence, or actual publication infrastructure.
