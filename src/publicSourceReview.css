@@ -1,0 +1,19 @@
+/* GLO's public source review is read-only, ephemeral and independent from pins. */
+.source-review{border:1px solid #4e7c6a;border-radius:12px;background:#112727;color:#ebf9ed;margin:20px 0;overflow:hidden}
+.source-review>summary{cursor:pointer;font-size:15px;font-weight:800;padding:17px 18px;min-height:56px;color:#a8efc6}
+.source-review[open]>summary{border-bottom:1px solid #4e7c6a}
+.source-review-content{padding:17px;display:grid;gap:13px;min-width:0}
+.source-review-content p{font-size:13px;line-height:1.6;margin:0;color:#d6edda}
+.source-review-input{display:grid;gap:10px;font-size:13px;font-weight:800}
+.source-review-input input{width:100%;min-width:0;padding:10px;border:1px solid #658b75;border-radius:8px;color:#eaf9ef;background:#1b3330}
+.source-review-result{display:grid;gap:10px;padding:15px;border:1px solid #598a74;border-radius:9px;background:#17342c}
+.source-review-result small{font-size:13px;color:#e0efe4}
+.source-review-result strong{font-size:14px;color:#c5f3d5}
+.source-review-ack{display:flex;gap:11px;align-items:flex-start;font-size:13px;line-height:1.6;padding:12px;border:1px solid #6a907c;border-radius:9px;background:#193e33;cursor:pointer}
+.source-review-ack input{width:24px;height:24px;flex:0 0 24px;accent-color:#95efb5}
+.source-review-warning{color:#f8dfba!important;border-left:3px solid #e0b86e;padding:9px;background:#332b22}
+.source-review-error{color:#ffc8b9!important}
+.source-review-result button{justify-self:start;min-height:44px}
+.source-review-result a{color:#a7f2c6;text-decoration:underline;overflow-wrap:anywhere}
+.source-review :focus-visible{outline:3px solid #ecd9a0;outline-offset:3px}
+@media(max-width:450px){.source-review-content{padding:12px}.source-review-result button{width:100%}}
