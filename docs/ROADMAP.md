@@ -262,3 +262,18 @@ The visual change is intentionally CSS-first. Data sources, local storage, locat
 - [ ] Cached resource queries and optional trustworthy directories with separate confidence labels
 - [ ] Optional targeted research API/agent relay only with separate consent, real authentication and revocation design. No unattended sharing
 - [ ] Explicitly park voice pinning and long-duration absence check-in as future research, not automatic notifications
+
+
+## P1-L: separate local research backup and recovery
+
+- [x] Keep the legacy v1 private-pin/recheck backup schema unchanged.
+- [x] Explicitly reviewed export of a separate versioned glo-research-private-backup JSON artifact.
+- [x] Strict size, provenance, timestamp, URL, field and duplicate-ID validation on import.
+- [x] Preview counts for addable, duplicate, missing-pin and full-capacity notes before acknowledgement.
+- [x] Atomic, add-only local restore with actual live pin ID/capacity rechecks, panic-clear epoch protection, no cloud or agent writes.
+- [x] Preserve unverified research vs self-observed Field Recheck Ledger distinction.
+- [x] Unit regression coverage for format boundaries, overwrite resistance, missing pins and caps.
+- [ ] Real-phone export → fresh-device v1 pin restore → research restore → reimport acceptance, including airplane mode and Spanish UI.
+- [ ] Manually test concurrent-tab panic clear and interrupted/download-blocked behavior on supported mobile browsers.
+
+Follow-up P1-M remains an accurately scoped privacy inspector. Do not claim the absence of outside OS/provider records or real-world service verification.
