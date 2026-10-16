@@ -10,6 +10,7 @@ test('map renders independently of raster tiles with a visible local grid',()=>{
  assert.match(app,/<MapViewportSync\b/)
  assert.match(app,/!onlineTilesMounted && <div className="map-label"/)
  assert.match(app,/checked=\{tiles\}/)
+ assert.ok(app.indexOf('const [tiles, setTiles] = useState(false)') < app.indexOf('const onlineTilesMounted = shouldMountOnlineTiles('), 'consent state must be initialized before used')
  assert.doesNotMatch(app,/https:\/\/\{s\}\.tile\.openstreetmap\.org/)
  assert.doesNotMatch(app,/checked=\{online && tiles\}/)
 })
