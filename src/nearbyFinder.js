@@ -51,7 +51,9 @@ export function findNearbyLoaded({
     id:r.id,origin,title:r.title,category:r.category,
     lat:r.lat,lon:r.lon,distanceKm:km,
     evidenceAt:cleanTime(timestamp,now),
-    condition:'not-verified'
+    condition:'not-verified',
+    ...(origin==='osm'?{sourceScope:r.nearbySource==='saved-pack'?'saved-pack':'loaded',
+      incompleteSnapshot:r.nearbyIncomplete===true}:{})
    })
   }
  }
