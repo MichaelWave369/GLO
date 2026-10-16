@@ -293,3 +293,12 @@ Open **Keep your own data → Inspect my privacy**. This English/Spanish inspect
 A separate list explains the app's known outbound surfaces, including the site host and automatic-possible PWA update checks, user-enabled online OSM tiles, user-triggered Overpass searches/downloads, device location buttons, optional on-device AI model downloads, external links, and user-approved shares/exports. The list **describes possible connections and current app state**; it does not intercept network requests or prove they did or did not occur.
 
 The inspector works in offline and low-battery views. It performs no internet test, geolocation prompt, file operation or store deletion. GLO cannot inspect outside-provider records, downloaded backups, OS/browser histories or every possible network request. For the limitations and phone testing checklist see [PRIVACY.md](PRIVACY.md) and [the roadmap](docs/ROADMAP.md).
+
+
+## P1-N: nearby resources from loaded records, offline
+
+Open **Find nearby from loaded data** in the Resource Explorer. Enter coordinates manually or choose the displayed map center or selected resource. The map may still be showing the Stroudsburg pilot location, which is **not** your detected position. The finder does **not** request GPS or send any network query.
+
+Select a category and a straight-line radius (0.5, 1, 2, 5 or 10 km). It filters local private observations and currently loaded public OSM candidates from a user-run Scout search or opened offline pack, then shows at most 12 nearest with counts, dates and separate source labels. It never includes personal note/recheck text in result cards, publishes results or sends coordinates to a server. It works in low-battery mode with no map navigation buttons.
+
+This is **not** turn-by-turn navigation, a complete offline basemap, or verification that a resource is operational, safe, free, accessible, legal to enter or available today. An empty result means no matching records were loaded within that radius. Unit tests check source separation, invalid coordinates, evidence labels and query boundaries; real device acceptance is outstanding.
