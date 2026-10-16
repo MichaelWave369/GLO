@@ -2,6 +2,7 @@ import {useEffect,useRef,useState} from 'react'
 import {
  parsePublicCheckReceipt,PUBLIC_CHECK_SOURCE,PUBLIC_CHECK_MAX_BYTES,receiptIsStale
 } from './publicSourceReceipt.js'
+import {makeReviewDraft,REVIEW_DECISIONS} from './publicReviewGate.js'
 import './publicSourceReview.css'
 
 const WORDS={
@@ -22,7 +23,22 @@ const WORDS={
  limits:'No locations, private notes, IDs of people, service opening claims, directory imports, automatic updates, scheduled workers or trusted verification are permitted in this receipt.',
  sourceLink:'Visit the public 211 website (external)',
  failure:'Rejected unsafe or invalid receipt',
- notSaved:'Closing the page or clearing this panel discards the review.'
+ notSaved:'Closing the page or clearing this panel discards the review.',
+  reviewTitle:'Human review draft (not an approval)',
+  reviewIntro:'After examining the receipt and source context, you can prepare an offline review decision. It is bound to this exact observation by SHA-256, not signed or independently authenticated.',
+  reviewChoice:'Choose review disposition',
+  choices:{
+   'retain-observation-only':'Retain this website observation as unverified evidence',
+   'request-new-check':'Request another manual source check',
+   'discard-observation':'Discard this observation from consideration'
+  },
+  prepare:'Prepare local review draft',
+  preparing:'Preparing local draft…',
+  download:'Download blocked review draft JSON',
+  drafted:'Draft ready. Keep it with the original source JSON to verify its SHA-256 binding. Downloading does not publish anything.',
+  blocked:'PUBLICATION BLOCKED · SERVICE STATUS UNKNOWN',
+  noAuthority:'The acknowledgement and the downloaded draft do not identify a reviewer, authenticate a source or authorize a public listing.',
+  draftError:'Could not prepare review draft'
  },
  es:{
  heading:'Mesa de revisión de fuentes públicas',intro:'Revisa un pequeño recibo de consulta a un sitio público. El archivo se lee solo en este navegador. No se envía ni se agrega a tus puntos, resultados de Scout o directorios.',
@@ -41,7 +57,22 @@ const WORDS={
  limits:'Los recibos no permiten ubicaciones, notas privadas, identificadores personales, horarios verificados, importaciones de directorio ni actualizaciones automáticas.',
  sourceLink:'Visitar el sitio público de 211 (externo)',
  failure:'Recibo rechazado por ser inválido o inseguro',
- notSaved:'Al cerrar o borrar el panel se descarta la revisión.'
+ notSaved:'Al cerrar o borrar el panel se descarta la revisión.',
+  reviewTitle:'Borrador de revisión humana (no es una aprobación)',
+  reviewIntro:'Tras examinar el recibo y su contexto, puedes preparar una decisión local. El SHA-256 vincula el borrador a esta observación, pero no es firma ni autenticación independiente.',
+  reviewChoice:'Elegir el resultado de la revisión',
+  choices:{
+   'retain-observation-only':'Conservar esta observación web como dato no verificado',
+   'request-new-check':'Solicitar otra consulta manual a la fuente',
+   'discard-observation':'Descartar esta observación'
+  },
+  prepare:'Preparar borrador local',
+  preparing:'Preparando borrador…',
+  download:'Descargar borrador JSON de revisión bloqueada',
+  drafted:'Borrador preparado. Guárdalo con el JSON de origen para verificar SHA-256. Descargarlo NO publica nada.',
+  blocked:'PUBLICACIÓN BLOQUEADA · SERVICIO SIN VERIFICAR',
+  noAuthority:'Ni la casilla ni el borrador identifican a quien revisó, autentican la fuente o autorizan una ficha pública.',
+  draftError:'No se pudo preparar el borrador'
  }
 }
 export default function PublicSourceReview({language='en'}){
@@ -49,11 +80,15 @@ export default function PublicSourceReview({language='en'}){
  const [receipt,setReceipt]=useState(null)
  const [error,setError]=useState('')
  const [ack,setAck]=useState(false)
+ const [decision,setDecision]=useState('retain-observation-only')
+ const [reviewDraft,setReviewDraft]=useState(null)
+ const [preparing,setPreparing]=useState(false)
  const epoch=useRef(0)
  useEffect(()=>()=>{epoch.current++},[])
  function clear(){
   epoch.current++
-  setReceipt(null);setAck(false);setError('')
+  setReceipt(null);setAck(false);setDecision('retain-observation-only')
+  setReviewDraft(null);setPreparing(false);setError('')
  }
  async function readFile(event){
   const file=event.target.files?.[0]
@@ -73,6 +108,28 @@ export default function PublicSourceReview({language='en'}){
    if(epoch.current===id)setError(t.failure+': '+(e?.message||'Unknown format'))
   }
  }
+ async function prepareReview(){
+  if(!receipt||!ack||preparing)return
+  const id=++epoch.current
+  setReviewDraft(null);setError('');setPreparing(true)
+  try{
+   const draft=await makeReviewDraft(receipt,{decision,acknowledged:ack})
+   if(epoch.current!==id)return
+   setReviewDraft(draft)
+  }catch(e){
+   if(epoch.current===id)setError(t.draftError+': '+(e?.message||''))
+  }finally{if(epoch.current===id)setPreparing(false)}
+ }
+ function saveReviewDraft(){
+  if(!reviewDraft)return
+  const blob=new Blob([JSON.stringify(reviewDraft,null,2)+'\n'],{type:'application/json'})
+  const url=URL.createObjectURL(blob)
+  const anchor=document.createElement('a')
+  anchor.href=url
+  anchor.download='GLO-public-review-DRAFT-'+reviewDraft.reviewedAt.slice(0,10)+'.json'
+  anchor.click()
+  window.setTimeout(()=>URL.revokeObjectURL(url),1500)
+ }
  return <details className="source-review">
    <summary>{t.heading}</summary>
    <div className="source-review-content">
@@ -88,8 +145,30 @@ export default function PublicSourceReview({language='en'}){
       <p><strong>{t.status}:</strong> {t[receipt.result]}</p>
       {receiptIsStale(receipt)&&<p className="source-review-warning">{t.old}</p>}
       <label className="source-review-ack"><input type="checkbox" checked={ack}
-        onChange={e=>setAck(e.target.checked)}/>{t.ack}</label>
+        onChange={e=>{setAck(e.target.checked);setReviewDraft(null)}}/>{t.ack}</label>
       {ack&&<p role="status">{t.acknowledged}</p>}
+      <div className="source-review-gate">
+        <strong>{t.reviewTitle}</strong>
+        <p>{t.reviewIntro}</p>
+        <label className="source-review-select">{t.reviewChoice}
+          <select value={decision} onChange={e=>{
+           setDecision(e.target.value);setReviewDraft(null)
+          }}>
+            {REVIEW_DECISIONS.map(choice=><option key={choice} value={choice}>{t.choices[choice]}</option>)}
+          </select>
+        </label>
+        <button className="primary" type="button"
+          disabled={!ack||preparing} onClick={prepareReview}>
+          {preparing?t.preparing:t.prepare}
+        </button>
+        {reviewDraft&&<>
+          <p role="status">{t.drafted}</p>
+          <p className="source-review-blocked">{t.blocked}</p>
+          <small>SHA-256: {reviewDraft.checkSha256.slice(0,16)}…</small>
+          <button className="secondary" type="button" onClick={saveReviewDraft}>{t.download}</button>
+        </>}
+        <p>{t.noAuthority}</p>
+      </div>
       <a href={PUBLIC_CHECK_SOURCE.url} target="_blank" rel="noreferrer noopener">{t.sourceLink}</a>
       <button className="secondary compact" type="button" onClick={clear}>{t.remove}</button>
     </section>:!error&&<p>{t.noFile}</p>}
