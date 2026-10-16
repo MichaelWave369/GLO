@@ -292,3 +292,15 @@ Follow-up P1-M remains an accurately scoped privacy inspector. Do not claim the 
 - [ ] Review real PWA update requests and online map tile behavior using device network tooling; the inspector alone is not proof of network activity.
 
 Potential future work: official-source directory adapters with evidence grades, kept separate from self-reported field observations. Do not introduce surveillance or automatic uploads merely to create a more impressive dashboard.
+
+
+## P1-N: offline nearby finder (candidate)
+
+- [x] Search origin entered deliberately or copied from map center/selected resource. No automatic Stroudsburg-as-GPS, geolocation prompt or network call.
+- [x] Filter private device pins and currently loaded OSM Scout results (from current scan or opened offline pack) by category and straight-line radius: 0.5, 1, 2, 5 or 10 km.
+- [x] Show 12 nearest entries with full match count, self-reported vs mapped provenance, and recorded/query dates. Never show private note or recheck text in finder cards.
+- [x] English/Spanish, offline and low-battery friendly. No publishing, uploads, export, storage writes or agent credentials.
+- [x] Tests for coordinate/radius validity, limits, duplicates, stale provenance, unverified status and no fetch.
+- [ ] Android/iOS acceptance with saved offline pack, airplane mode, map-center versus selected-pin origin, VoiceOver/TalkBack, 320px and Spanish.
+
+Distances are geographic straight lines, NOT accessible paths, safe routes or travel-time estimates. An empty result means no matches in loaded records, not no nearby resource. OSM records and personal observations do not prove opening hours, food/water safety or entry permission.
