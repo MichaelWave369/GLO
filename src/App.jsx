@@ -122,7 +122,9 @@ export default function App() {
     .sort((a,b) => distanceKm(reference,a) - distanceKm(reference,b)), [visible,visiblePublic,lowBattery,reference])
   const displayedReceipt = visibleSaveReceipt(savedFeedback, reports)
   const chosenRecord = reports.find(r=>r.id===selectedId) || publicCandidates.find(r=>r.id===selectedId)
-  const selectedResource = chosenRecord || finderFocus
+  // Pocket Plan remains intentionally scoped to name + provenance only.
+  const selectedResource = chosenRecord ? { title: chosenRecord.title, from: reports.some(r=>r.id===selectedId)?'private':'osm' } : null
+  const finderSelectedPoint = chosenRecord || finderFocus
   // The share panel is tied to a live report, not to a stale copied React object.
   const activeSharingPin = activeShareTarget(sharingPin, reports, publicCandidates)
   const activeRecheckReport = reports.find(r=>r.id===recheckTargetId) || null
@@ -418,7 +420,7 @@ export default function App() {
               </article>) : <div className="empty"><span className="empty-symbol"><MapPinIcon size={42}/></span><strong>{language === 'es' ? 'No hay puntos que mostrar' : lowBattery ? 'No resources to show' : 'No private pins yet'}</strong><p>{t.noPins}</p><button className="plain-link" onClick={begin}>{ui.addLink}</button></div>}
             </div>
             <NearbyFinder privateReports={reports} publicSources={publicCandidates}
-              mapCenter={mapCenter} selectedResource={chosenRecord} lowBattery={lowBattery}
+              mapCenter={mapCenter} selectedResource={finderSelectedPoint} lowBattery={lowBattery}
               language={language} onOpenMap={row=>{
                 // A saved pack can be searched without replacing the current Scout map data.
                 // Show only this explicitly selected transient marker; do not import/share it.
