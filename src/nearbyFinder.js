@@ -2,6 +2,7 @@
 // No network call, GPS prompt, storage write, routing, opening-hour or safety claim.
 import {CATEGORIES,distanceKm,validCoordinates} from './domain.js'
 import {latestObservedAt} from './recheck.js'
+import {PACK_CATEGORIES} from './offlinePack.js'
 
 export const NEARBY_RADII=Object.freeze([0.5,1,2,5,10])
 export const NEARBY_LIMIT=12
@@ -37,7 +38,7 @@ export function findNearbyLoaded({
       typeof r.title!=='string'||!r.title.trim()||
       !Object.hasOwn(CATEGORIES,r.category)||!validCoordinates(r.lat,r.lon)||
       (category!=='all'&&r.category!==category))continue
-   if(origin==='osm' && (r.provenance!=='mapped-record'||
+   if(origin==='osm' && (!PACK_CATEGORIES.includes(r.category)||r.provenance!=='mapped-record'||
       r.condition!=='not-verified'||r.availability!=='unknown'||!/^osm:(node|way|relation)\/[1-9]\d*$/.test(r.id)))
       continue
    const key=origin+':'+r.id
