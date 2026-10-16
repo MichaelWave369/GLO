@@ -5,6 +5,7 @@ import './styles.css'
 import './agentDock.css'
 import './fieldKit.css'
 import './streetSketch.css'
+import './mapRecovery.css'
 import './pocketPlan.css'
 import App from './App.jsx'
 // Keep the approved charcoal/mint palette last so it covers every feature module.
