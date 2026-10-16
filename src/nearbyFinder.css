@@ -22,3 +22,12 @@
 .nearby-list button{min-height:44px;justify-self:start}
 .nearby-finder :focus-visible{outline:3px solid #e7dda1;outline-offset:3px}
 @media(max-width:440px){.nearby-coordinate-grid{grid-template-columns:1fr}.nearby-choice-row{display:grid;grid-template-columns:1fr}.nearby-choice-row button,.nearby-finder form>button{width:100%}}
+
+/* P1-O: optional local multi-area read, with no network or location permission. */
+.nearby-finder .nearby-saved-option{display:flex!important;align-items:center;gap:12px;min-height:50px;
+  border:1px solid #5b866d;border-radius:9px;background:#1a3a31;padding:10px;
+  font-size:13px;line-height:1.5;cursor:pointer;margin:0!important}
+.nearby-finder .nearby-saved-option input{display:inline-block;width:24px;height:24px;
+  min-height:24px;max-width:24px;flex:0 0 24px;accent-color:#91e3b1}
+.nearby-finder .nearby-pack-summary{font-weight:750;color:#b6f0ce;background:#1a3b32;
+  padding:10px;border:1px solid #55836c;border-radius:8px}
