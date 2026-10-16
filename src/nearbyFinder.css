@@ -1,0 +1,24 @@
+/* P1-N: phone-first, no-network local proximity worksheet. */
+.nearby-finder{margin:14px 0;border:1px solid #4c7a64;border-radius:12px;background:#152b29;color:#e9f6ee;min-width:0}
+.nearby-finder>summary{padding:14px;cursor:pointer;font-size:14px;font-weight:800;color:#b7f1cf;min-height:48px}
+.nearby-finder[open]>summary{border-bottom:1px solid #4d7762}
+.nearby-finder-body{display:grid;gap:12px;min-width:0;padding:13px}
+.nearby-finder-body p{font-size:12px;line-height:1.55;color:#cbe4d3;margin:0}
+.nearby-finder-body .nearby-finder-warning{padding:10px;background:#3b3024;border:1px solid #967658;border-radius:9px;color:#f8e2c2}
+.nearby-finder form{display:grid;gap:12px;min-width:0}
+.nearby-finder form>strong{font-size:13px;color:#d7f8e2}
+.nearby-coordinate-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;min-width:0}
+.nearby-finder label{font-size:12px;color:#f1f8ee;font-weight:750;display:grid!important;gap:6px;min-width:0;margin:0!important}
+.nearby-finder input,.nearby-finder select{width:100%;min-width:0;max-width:100%;min-height:48px;background:#102224;color:#f0f8f2;border:1px solid #658b75;border-radius:9px;padding:9px}
+.nearby-choice-row{display:flex;flex-wrap:wrap;gap:8px}
+.nearby-choice-row button,.nearby-finder form>button{min-height:48px}
+.nearby-finder-error{color:#ffbcb0!important;font-weight:700}
+.nearby-found{padding:11px;border:1px solid #548667;border-radius:10px;background:#1b392e;display:grid;gap:10px;min-width:0}
+.nearby-found>strong{font-size:14px;color:#bbf5d1}
+.nearby-list{list-style:none;padding:0;margin:0;display:grid;gap:9px;min-width:0}
+.nearby-list li{display:grid;gap:5px;min-width:0;border:1px solid #487862;border-radius:10px;background:#142e28;padding:10px}
+.nearby-list strong{font-size:13px;color:#f4fbf4;overflow-wrap:anywhere}
+.nearby-list small{font-size:12px;color:#d6e8db;overflow-wrap:anywhere}
+.nearby-list button{min-height:44px;justify-self:start}
+.nearby-finder :focus-visible{outline:3px solid #e7dda1;outline-offset:3px}
+@media(max-width:440px){.nearby-coordinate-grid{grid-template-columns:1fr}.nearby-choice-row{display:grid;grid-template-columns:1fr}.nearby-choice-row button,.nearby-finder form>button{width:100%}}
