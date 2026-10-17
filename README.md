@@ -365,3 +365,17 @@ node ops/verifyPublicReviewDraft.mjs public-source-check.json GLO-public-review-
 The verifier rejects unsupported/missing/extra fields, altered source-receipt contents, invalid timestamps, forged publication authority and unauthorized status. This remains a **read-only local workflow** with no new remote requests, IndexedDB writes, service-worker changes, automatic worker dispatch, auto-approval or hosted artifact publication. The existing manual 211 HEAD workflow has **not** been executed or attested by this change. Previously exported JSON files may remain on the device after GLO panic clear, so store/discard copies deliberately.
 
 A true publication authority would require independently authorized organizational data sources, legal/licensing review, an authenticated multi-party approval process and its own tested publishing channel. **This draft stage does not grant those powers.** Issue #11 remains open.
+
+
+## P1-S: verify a saved public review draft on a phone, offline
+
+The **Public source check desk** can now check a *previously downloaded* review draft against the source observation currently loaded in the browser. This fills the P1-R gap where verifying the pair otherwise required a local Node.js command, which is inconvenient or unavailable on a phone.
+
+1. Open GLO's **Public source check desk**, select the original small \`public-source-check.json\` file from a **separately reviewed** GitHub Actions receipt.
+2. Under **Check a previously downloaded review draft**, select its \`GLO-public-review-DRAFT-YYYY-MM-DD.json\`.
+3. GLO enforces existing exact-field/size/date policies for both documents and computes SHA-256 against the canonically validated source. Only if the draft matches does it show **LOCAL CONTENT MATCH ONLY** alongside the disposition, review date and a short digest.
+4. Reject missing, mismatched, altered, oversized, invalid-source, approval-forged or malformed pairs. Clear or switch the source to discard the transient comparison.
+
+No file leaves the browser, no storage write occurs, and this does not run a new website check. Neither document authenticates the website, reviewer, source publisher, live provider status, or permission to publish; a forger can create a *matching pair of fabricated documents*. This UI is a **consistency checker**, not source verification or a signer. Every paired result remains \`serviceStatus: unknown\` and \`publication: blocked\`. For maintainers with a terminal, the original independent CLI \`node ops/verifyPublicReviewDraft.mjs source.json draft.json\` remains available.
+
+Tests include a **synthetic** HEAD observation with an injected mock response, all three draft outcomes, local revalidation, and tampering/false-authority cases. This synthetic test **does not** prove the manual 211 workflow has actually run or that the production site worked on a physical phone.
