@@ -53,7 +53,9 @@ const WORDS={
   pairLimits:'A matching pair does NOT prove a real website request, publisher identity, reviewer identity, open service, legal access or permission to publish. Two fabricated files can also match.',
   pairFailed:'No match or rejected review draft',
   pairTooLarge:'Review draft is too large (limit 1.5 KB).',
-  pairReset:'Clear comparison'
+  pairReset:'Clear comparison',
+  sourceLoaded:'✓ Source receipt loaded for this session. The file chooser resets after import so you can select the same file again; no data was saved.',
+  pairLoaded:'✓ Review draft loaded and compared locally. The file chooser resets after the check; the result remains visible until cleared.'
  },
  es:{
  heading:'Mesa de revisión de fuentes públicas',intro:'Revisa un pequeño recibo de consulta a un sitio público. El archivo se lee solo en este navegador. No se envía ni se agrega a tus puntos, resultados de Scout o directorios.',
@@ -101,7 +103,9 @@ const WORDS={
   pairLimits:'Una coincidencia NO demuestra una consulta auténtica, identidad de la fuente o del revisor, servicios abiertos, permiso de entrada ni autorización para publicar. Dos archivos falsos también pueden coincidir.',
   pairFailed:'Borrador rechazado o que no coincide',
   pairTooLarge:'El borrador supera 1.5 KB.',
-  pairReset:'Borrar comparación'
+  pairReset:'Borrar comparación',
+  sourceLoaded:'✓ Recibo de origen cargado en esta sesión. El selector se reinicia para que puedas elegir el mismo archivo otra vez; no se guardaron datos.',
+  pairLoaded:'✓ Borrador cargado y comparado localmente. El selector se reinicia después; el resultado sigue visible hasta que lo borres.'
  }
 }
 export default function PublicSourceReview({language='en'}){
@@ -200,6 +204,7 @@ export default function PublicSourceReview({language='en'}){
     <p>{t.workflowHint}</p>
     <label className="source-review-input">{t.select}<input type="file" accept=".json,application/json"
       aria-label={t.select} onChange={readFile}/></label>
+     {receipt&&<p className="source-review-file-state" role="status">{t.sourceLoaded}</p>}
     {error&&<p className="source-review-error" role="alert">{error}</p>}
     {receipt?<section className="source-review-result" aria-live="polite">
       <strong>{t.source}: {PUBLIC_CHECK_SOURCE.label}</strong>
@@ -244,6 +249,7 @@ export default function PublicSourceReview({language='en'}){
             disabled={pairPending} onChange={compareSavedReview}
             aria-label={t.pairChoose}/>
         </label>
+        {pairResult&&<p className="source-review-file-state" role="status">{t.pairLoaded}</p>}
         {pairPending&&<p role="status">{t.pairPending}</p>}
         {pairError&&<p role="alert" className="source-review-error">{pairError}</p>}
         {pairResult&&<section className="source-review-pair-matched" role="status">
