@@ -372,3 +372,15 @@ A saved public-source record is NOT verified available, legal to enter, suitable
 - [ ] Operational/publication gate: separately authenticate authorized source publishers and human reviewers, obtain source licensing/data-use permission, prevent unauthorized service-status claims, and require auditable independent approval before any public feed is possible.
 - [ ] P1-P's first real GitHub Actions manual run is still pending and cannot be claimed from unit tests alone.
 - [ ] Keep Issue #11 OPEN. This adds a *draft review contract*, not authorization, signed provider evidence, or actual publication infrastructure.
+
+
+## P1-S: local paired-artifact verification
+
+- [x] Add manual, local file input for a saved review draft alongside the separately loaded P1-P website observation.
+- [x] Enforce source/draft exact schema and byte caps, SHA-256 integrity match, same source/date and blocked-publication invariant; no implicit network or credential.
+- [x] EN/ES comparison explanations, safe import replacement and async cancellation, clear control, phone-sized responsive layout.
+- [x] Show **LOCAL CONTENT MATCH ONLY**, never \`verified source\`, \`authenticated reviewer\`, \`service open\`, or \`approved for publication\`.
+- [x] Mocked end-to-end test for observed HEAD result → draft creation → independent pair match; reject forgeries, changed receipt and added private fields.
+- [ ] Physical-device acceptance: Android/iPhone JSON picker, dark mode, offline use, VoiceOver/TalkBack, imported genuine observation and saved draft, mismatch error.
+- [ ] First actual manual P1-P Actions website observation and review are still outstanding. Synthetic test data do not count as a field receipt.
+- [ ] Issue #11 remains OPEN: no source publisher auth, approval policy, licensed directory feed, authenticated reviewer or provider availability verification.
