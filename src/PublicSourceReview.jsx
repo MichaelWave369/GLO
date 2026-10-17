@@ -21,6 +21,8 @@ const WORDS={
  ack:'I understand: this is only a website check, NOT a verified provider or open service.',
  acknowledged:'Scope acknowledged on this screen only. Nothing was approved, published or saved.',
  manual:'Review only. This is not a live web check; importing does not call the publisher or FieldCloudWorker.',
+ workflowLink:'Open manual observation workflow on GitHub (external)',
+ workflowHint:'The first recorded real test returned HTTP 301, an unfollowed redirect. Every run needs its own receipt; older results cannot certify current services.',
  limits:'No locations, private notes, IDs of people, service opening claims, directory imports, automatic updates, scheduled workers or trusted verification are permitted in this receipt.',
  sourceLink:'Visit the public 211 website (external)',
  failure:'Rejected unsafe or invalid receipt',
@@ -67,6 +69,8 @@ const WORDS={
  ack:'Entiendo: es una consulta al sitio, NO una verificación de servicios.',
  acknowledged:'Aceptaste el alcance en esta pantalla. No se aprobó, publicó ni guardó nada.',
  manual:'Solo revisión. Importar NO consulta internet ni ejecuta FieldCloudWorker.',
+ workflowLink:'Abrir consulta manual en GitHub (sitio externo)',
+ workflowHint:'La primera prueba real devolvió HTTP 301, una redirección no seguida. Cada consulta necesita su propio recibo; no verifica servicios actuales.',
  limits:'Los recibos no permiten ubicaciones, notas privadas, identificadores personales, horarios verificados, importaciones de directorio ni actualizaciones automáticas.',
  sourceLink:'Visitar el sitio público de 211 (externo)',
  failure:'Recibo rechazado por ser inválido o inseguro',
@@ -191,6 +195,9 @@ export default function PublicSourceReview({language='en'}){
    <div className="source-review-content">
     <p>{t.intro}</p>
     <p>{t.manual}</p>
+    <a className="source-review-workflow" href="https://github.com/MichaelWave369/GLO/actions/workflows/glo-public-source-check.yml"
+      target="_blank" rel="noopener noreferrer">{t.workflowLink}</a>
+    <p>{t.workflowHint}</p>
     <label className="source-review-input">{t.select}<input type="file" accept=".json,application/json"
       aria-label={t.select} onChange={readFile}/></label>
     {error&&<p className="source-review-error" role="alert">{error}</p>}

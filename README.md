@@ -379,3 +379,12 @@ The **Public source check desk** can now check a *previously downloaded* review 
 No file leaves the browser, no storage write occurs, and this does not run a new website check. Neither document authenticates the website, reviewer, source publisher, live provider status, or permission to publish; a forger can create a *matching pair of fabricated documents*. This UI is a **consistency checker**, not source verification or a signer. Every paired result remains \`serviceStatus: unknown\` and \`publication: blocked\`. For maintainers with a terminal, the original independent CLI \`node ops/verifyPublicReviewDraft.mjs source.json draft.json\` remains available.
 
 Tests include a **synthetic** HEAD observation with an injected mock response, all three draft outcomes, local revalidation, and tampering/false-authority cases. This synthetic test **does not** prove the manual 211 workflow has actually run or that the production site worked on a physical phone.
+
+
+## P1-T: first real public-site observation, verified regression replay
+
+The first manually dispatched GLO Public Source Observation GitHub Actions run **#38985444980** completed successfully on 2026-10-16 Pacific time, generated a validated review-only JSON artifact and observed a **301 redirect (not followed)** from United Way 211's public website via a HEAD request. Crucially, this does **not** establish a working redirected page, a trusted directory, any service availability or publisher authorization.
+
+A public-only copy of the real observation is kept under tests/fixtures/manual-211-observation-2026-10-16.json, and a deterministic regression test runs it through the actual strict parser, local non-publishing human-draft decisions, and independent SHA-256 pair verifier. This is replay of genuine observed JSON, **not** another network check, proof of source identity, a field-tested phone UI or human-reviewed approval. No private notes or coordinates were present. The original artifact has three-day GitHub retention; review the [source run](https://github.com/MichaelWave369/GLO/actions/runs/38985444980) rather than treating a fixture as a signature.
+
+The in-app Public source check desk now links to the [manual Actions workflow](https://github.com/MichaelWave369/GLO/actions/workflows/glo-public-source-check.yml) so maintainers can deliberately run fresh observations; the link is not an automatic invocation, credential transfer or a verified provider status. See [full evidence and acceptance checklist](docs/FIRST_MANUAL_OBSERVATION.md). Issue #11 remains open.

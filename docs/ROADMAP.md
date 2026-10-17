@@ -384,3 +384,15 @@ A saved public-source record is NOT verified available, legal to enter, suitable
 - [ ] Physical-device acceptance: Android/iPhone JSON picker, dark mode, offline use, VoiceOver/TalkBack, imported genuine observation and saved draft, mismatch error.
 - [ ] First actual manual P1-P Actions website observation and review are still outstanding. Synthetic test data do not count as a field receipt.
 - [ ] Issue #11 remains OPEN: no source publisher auth, approval policy, licensed directory feed, authenticated reviewer or provider availability verification.
+
+
+## P1-T: actual 211 HEAD observation acceptance and replay
+
+- [x] First genuine manual Actions run #38985444980 on main completed green; HEAD source request, receipt validator, and non-publishing artifact upload succeeded.
+- [x] Inspected actual artifact: HTTP 301, redirect not followed; serviceStatus unknown, publication not-approved. Do not describe this as source content success or local service verification.
+- [x] Store public-only fixture under tests/fixtures; cite original Actions run and explicitly distinguish provenance limitations.
+- [x] Regression tests replay that *real observed JSON* through P1-P parser → P1-R three draft dispositions → P1-S SHA-256 matching and tamper defenses.
+- [x] Add EN/ES explicit external navigation link from source check desk to manual workflow; no automatic dispatch, user location, cookies, data transfer or extra provider fetch.
+- [ ] Real phone UX acceptance and accessibility; GitHub Actions success alone does not prove a phone's file picker works.
+- [ ] 211/HUD publisher authorization and data-use assessment, real directory adapter, authenticated publication authority and independent live service-status evidence still needed before any approved directory publishing.
+- [ ] Leave Issue #11 OPEN and document residual gates in docs/FIRST_MANUAL_OBSERVATION.md.

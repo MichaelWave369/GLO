@@ -1,0 +1,13 @@
+{
+  "schema": "glo.public-website-check.v1",
+  "kind": "public-website-reachability-only",
+  "sourceId": "united-way-211",
+  "sourceUrl": "https://www.211.org/",
+  "method": "HEAD",
+  "checkedAt": "2026-10-17T00:14:42.832Z",
+  "result": "redirect_unfollowed",
+  "httpStatus": 301,
+  "serviceStatus": "unknown",
+  "authority": "observation-not-authorization",
+  "publication": "not-approved"
+}
