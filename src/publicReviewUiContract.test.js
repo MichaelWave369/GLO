@@ -19,3 +19,15 @@ test('blocked publication is invariant across local review UI and verifier',()=>
  assert.match(gate,/serviceStatus:'unknown'/)
  assert.match(app,/PUBLICATION BLOCKED/)
 })
+
+
+test('independent browser pairing is explicit, bounded, ephemeral and does not confer authority',()=>{
+ assert.match(app,/inspectReviewDraftAgainstReceipt\(receipt,text\)/)
+ assert.match(app,/file\.size>REVIEW_MAX_BYTES/)
+ assert.match(app,/pairEpoch\.current\+\+/)
+ assert.match(app,/disabled=\{pairPending\}/)
+ assert.match(app,/onClick=\{resetPair\}/)
+ assert.match(app,/LOCAL CONTENT MATCH ONLY/)
+ assert.match(app,/PUBLICATION BLOCKED/)
+ assert.doesNotMatch(app,/navigator\.geolocation|indexedDB|localStorage|fetch\(/)
+})

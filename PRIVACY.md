@@ -203,3 +203,12 @@ When the user independently imports a P1-P public-source observation and checks 
 The digest is a *binding to the presented receipt bytes after deterministic validation*, not digital provenance, publisher signatures or trustworthy human attestation. A malicious party with control of both artifacts can fabricate a matching pair, so **neither artifact is sufficient for provider verification, publication or authorization**. A validating maintainer must retain the independently obtained original observation receipt and assess the source separately.
 
 Site-data panic clear removes app-owned storage, not files the user downloaded. Downloaded JSON may be visible to other software, browser download history, OS backups and anyone with device access. The draft's public-only fields deliberately omit vulnerable persons and private places.
+
+
+## P1-S: on-device artifact consistency checking
+
+The optional review-pair comparison accepts a manually selected review draft of at most 1.5KB while an existing, validated public observation is open in the source desk. Both JSON objects are validated in memory; SHA-256 is computed using the browser's local Web Crypto implementation. The comparison has no external requests or permission to write private pins, public Scout packs, browser storage, service worker records, peer shares, agent memory, or published artifacts. The comparison state resets when the source observation is removed or replaced. No document content is transmitted by GLO.
+
+A matching source/decision digest is not evidence of authenticated source provenance or independent human approval. Two fabricated files can agree. The displayed result therefore explicitly states source authenticity and reviewer identity are not established and repeats \`serviceStatus: unknown\`, \`publication: blocked\`. The comparison includes no user identity, raw private notes or coordinates in its output.
+
+Selected downloads and their copies reside outside GLO's stores and are not deleted by panic clear. An outside browser extension, OS-level file provider or backup can still retain access to a file the user elects to open.

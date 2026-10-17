@@ -2,7 +2,8 @@ import {useEffect,useRef,useState} from 'react'
 import {
  parsePublicCheckReceipt,PUBLIC_CHECK_SOURCE,PUBLIC_CHECK_MAX_BYTES,receiptIsStale
 } from './publicSourceReceipt.js'
-import {makeReviewDraft,REVIEW_DECISIONS} from './publicReviewGate.js'
+import {makeReviewDraft,REVIEW_DECISIONS,REVIEW_MAX_BYTES} from './publicReviewGate.js'
+import {inspectReviewDraftAgainstReceipt} from './publicReviewPair.js'
 import './publicSourceReview.css'
 
 const WORDS={
@@ -38,7 +39,19 @@ const WORDS={
   drafted:'Draft ready. Keep it with the original source JSON to verify its SHA-256 binding. Downloading does not publish anything.',
   blocked:'PUBLICATION BLOCKED · SERVICE STATUS UNKNOWN',
   noAuthority:'The acknowledgement and the downloaded draft do not identify a reviewer, authenticate a source or authorize a public listing.',
-  draftError:'Could not prepare review draft'
+  draftError:'Could not prepare review draft',
+  pairTitle:'Check a previously downloaded review draft',
+  pairIntro:'Select a review draft JSON while the matching source receipt is loaded above. The comparison happens here only, without uploading either file.',
+  pairChoose:'Choose review draft to compare (.json)',
+  pairPending:'Comparing both files on this device…',
+  pairMatched:'LOCAL CONTENT MATCH ONLY',
+  pairDecision:'Draft disposition',
+  pairDates:'Review creation time',
+  pairSha:'Source fingerprint (SHA-256)',
+  pairLimits:'A matching pair does NOT prove a real website request, publisher identity, reviewer identity, open service, legal access or permission to publish. Two fabricated files can also match.',
+  pairFailed:'No match or rejected review draft',
+  pairTooLarge:'Review draft is too large (limit 1.5 KB).',
+  pairReset:'Clear comparison'
  },
  es:{
  heading:'Mesa de revisión de fuentes públicas',intro:'Revisa un pequeño recibo de consulta a un sitio público. El archivo se lee solo en este navegador. No se envía ni se agrega a tus puntos, resultados de Scout o directorios.',
@@ -72,7 +85,19 @@ const WORDS={
   drafted:'Borrador preparado. Guárdalo con el JSON de origen para verificar SHA-256. Descargarlo NO publica nada.',
   blocked:'PUBLICACIÓN BLOQUEADA · SERVICIO SIN VERIFICAR',
   noAuthority:'Ni la casilla ni el borrador identifican a quien revisó, autentican la fuente o autorizan una ficha pública.',
-  draftError:'No se pudo preparar el borrador'
+  draftError:'No se pudo preparar el borrador',
+  pairTitle:'Comparar un borrador guardado previamente',
+  pairIntro:'Selecciona el JSON del borrador con el recibo de origen cargado arriba. La comparación ocurre en este dispositivo; no se envían archivos.',
+  pairChoose:'Seleccionar borrador para comparar (.json)',
+  pairPending:'Comparando los dos archivos en este dispositivo…',
+  pairMatched:'COINCIDENCIA LOCAL DE CONTENIDO ÚNICAMENTE',
+  pairDecision:'Decisión del borrador',
+  pairDates:'Fecha de preparación',
+  pairSha:'Huella de la fuente (SHA-256)',
+  pairLimits:'Una coincidencia NO demuestra una consulta auténtica, identidad de la fuente o del revisor, servicios abiertos, permiso de entrada ni autorización para publicar. Dos archivos falsos también pueden coincidir.',
+  pairFailed:'Borrador rechazado o que no coincide',
+  pairTooLarge:'El borrador supera 1.5 KB.',
+  pairReset:'Borrar comparación'
  }
 }
 export default function PublicSourceReview({language='en'}){
@@ -83,10 +108,19 @@ export default function PublicSourceReview({language='en'}){
  const [decision,setDecision]=useState('retain-observation-only')
  const [reviewDraft,setReviewDraft]=useState(null)
  const [preparing,setPreparing]=useState(false)
+ const [pairResult,setPairResult]=useState(null)
+ const [pairError,setPairError]=useState('')
+ const [pairPending,setPairPending]=useState(false)
  const epoch=useRef(0)
- useEffect(()=>()=>{epoch.current++},[])
+ const pairEpoch=useRef(0)
+ useEffect(()=>()=>{
+  epoch.current++
+  pairEpoch.current++
+ },[])
  function clear(){
   epoch.current++
+  pairEpoch.current++
+  setPairResult(null);setPairError('');setPairPending(false)
   setReceipt(null);setAck(false);setDecision('retain-observation-only')
   setReviewDraft(null);setPreparing(false);setError('')
  }
@@ -119,6 +153,28 @@ export default function PublicSourceReview({language='en'}){
   }catch(e){
    if(epoch.current===id)setError(t.draftError+': '+(e?.message||''))
   }finally{if(epoch.current===id)setPreparing(false)}
+ }
+ async function compareSavedReview(event){
+  const file=event.target.files?.[0]
+  event.target.value=''
+  const id=++pairEpoch.current
+  setPairResult(null);setPairError('');setPairPending(false)
+  if(!file||!receipt)return
+  if(file.size>REVIEW_MAX_BYTES){setPairError(t.pairTooLarge);return}
+  setPairPending(true)
+  try{
+   const text=await file.text()
+   if(pairEpoch.current!==id)return
+   const checked=await inspectReviewDraftAgainstReceipt(receipt,text)
+   if(pairEpoch.current!==id)return
+   setPairResult(checked)
+  }catch(e){
+   if(pairEpoch.current===id)setPairError(t.pairFailed+': '+(e?.message||'Invalid data'))
+  }finally{if(pairEpoch.current===id)setPairPending(false)}
+ }
+ function resetPair(){
+  pairEpoch.current++
+  setPairResult(null);setPairError('');setPairPending(false)
  }
  function saveReviewDraft(){
   if(!reviewDraft)return
@@ -172,6 +228,27 @@ export default function PublicSourceReview({language='en'}){
           <button className="secondary" type="button" onClick={saveReviewDraft}>{t.download}</button>
         </>}
         <p>{t.noAuthority}</p>
+      </div>
+      <div className="source-review-pair">
+        <strong>{t.pairTitle}</strong>
+        <p>{t.pairIntro}</p>
+        <label className="source-review-input">{t.pairChoose}
+          <input type="file" accept=".json,application/json"
+            disabled={pairPending} onChange={compareSavedReview}
+            aria-label={t.pairChoose}/>
+        </label>
+        {pairPending&&<p role="status">{t.pairPending}</p>}
+        {pairError&&<p role="alert" className="source-review-error">{pairError}</p>}
+        {pairResult&&<section className="source-review-pair-matched" role="status">
+          <strong>{t.pairMatched}</strong>
+          <small>{t.pairDecision}: {t.choices[pairResult.decision]}</small>
+          <small>{t.pairDates}: {new Date(pairResult.reviewedAt).toLocaleString(language==='es'?'es-US':'en-US')}</small>
+          <small>{t.pairSha}: {pairResult.receiptSha256.slice(0,16)}…</small>
+          <p className="source-review-blocked">{t.blocked}</p>
+        </section>}
+        {(pairResult||pairError)&&<button type="button" className="secondary compact"
+          onClick={resetPair}>{t.pairReset}</button>}
+        <p className="source-review-warning">{t.pairLimits}</p>
       </div>
       <a href={PUBLIC_CHECK_SOURCE.url} target="_blank" rel="noreferrer noopener">{t.sourceLink}</a>
       <button className="secondary compact" type="button" onClick={clear}>{t.remove}</button>
