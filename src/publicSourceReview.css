@@ -50,3 +50,11 @@
 .source-review-pair>button{justify-self:start}
 @media(max-width:500px){.source-review-pair{padding:11px}
  .source-review-pair>button{width:100%}}
+
+/* P1-T: manually chosen Actions workflow, never a hidden call. */
+.source-review-workflow{display:inline-flex;align-items:center;justify-content:center;
+ min-height:48px;max-width:100%;padding:11px 13px;color:#d1ffe0!important;
+ border:1px solid #6dba8b;border-radius:9px;text-decoration:underline;
+ font-weight:800;font-size:13px;line-height:1.4;overflow-wrap:anywhere;
+ justify-self:start}
+@media(max-width:500px){.source-review-workflow{width:100%}}
