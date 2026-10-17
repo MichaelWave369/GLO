@@ -212,3 +212,10 @@ The optional review-pair comparison accepts a manually selected review draft of 
 A matching source/decision digest is not evidence of authenticated source provenance or independent human approval. Two fabricated files can agree. The displayed result therefore explicitly states source authenticity and reviewer identity are not established and repeats \`serviceStatus: unknown\`, \`publication: blocked\`. The comparison includes no user identity, raw private notes or coordinates in its output.
 
 Selected downloads and their copies reside outside GLO's stores and are not deleted by panic clear. An outside browser extension, OS-level file provider or backup can still retain access to a file the user elects to open.
+
+
+## P1-T: pinned first real HEAD result, with no private inputs
+
+The first real 211 public website HEAD observation was performed from the GitHub Actions runner, not a GLO user's phone. The bounded artifact contained the fixed public source URL, a timestamp, HTTP status 301, and explicit unknown/not-approved fields. It contained no GPS, personal names, private notes, selected pin coordinates or device identifiers. A static copy is committed under tests/fixtures to exercise deterministic regression validation; it remains untrusted public-only evidence, not a signed source assertion or a live directory.
+
+The GLO review interface adds a **user-selected external GitHub Actions workflow link**. Merely opening the review panel does not contact that workflow or send private data. Deliberately opening GitHub has GitHub's own network/privacy boundary. The existing manual HEAD job does not follow redirects, fetch response bodies, import directory entries, write to public GitHub Pages data, or elevate status labels.
