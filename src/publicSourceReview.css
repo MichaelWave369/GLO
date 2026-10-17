@@ -58,3 +58,19 @@
  font-weight:800;font-size:13px;line-height:1.4;overflow-wrap:anywhere;
  justify-self:start}
 @media(max-width:500px){.source-review-workflow{width:100%}}
+
+
+/* P1-U: persistent state after native file inputs intentionally reset to
+   support choosing the same local JSON again. Keep it as text, not a green
+   "verified source" badge: the files are still untrusted public-only data. */
+.source-review .source-review-file-state{
+ padding:12px 14px;
+ color:#e8f7ed;
+ background:#1b4336;
+ border:1px solid #7da58d;
+ border-radius:8px;
+ font-size:13px;
+ font-weight:750;
+ line-height:1.5;
+ margin:0;
+}
