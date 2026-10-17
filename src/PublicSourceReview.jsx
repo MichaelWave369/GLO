@@ -22,7 +22,7 @@ const WORDS={
  acknowledged:'Scope acknowledged on this screen only. Nothing was approved, published or saved.',
  manual:'Review only. This is not a live web check; importing does not call the publisher or FieldCloudWorker.',
  workflowLink:'Open manual observation workflow on GitHub (external)',
- workflowHint:'The last recorded real test returned HTTP 301, an unfollowed redirect. Every run needs its own receipt; older results cannot certify current services.',
+ workflowHint:'The first recorded real test returned HTTP 301, an unfollowed redirect. Every run needs its own receipt; older results cannot certify current services.',
  limits:'No locations, private notes, IDs of people, service opening claims, directory imports, automatic updates, scheduled workers or trusted verification are permitted in this receipt.',
  sourceLink:'Visit the public 211 website (external)',
  failure:'Rejected unsafe or invalid receipt',
