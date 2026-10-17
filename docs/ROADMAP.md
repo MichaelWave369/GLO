@@ -396,3 +396,13 @@ A saved public-source record is NOT verified available, legal to enter, suitable
 - [ ] Real phone UX acceptance and accessibility; GitHub Actions success alone does not prove a phone's file picker works.
 - [ ] 211/HUD publisher authorization and data-use assessment, real directory adapter, authenticated publication authority and independent live service-status evidence still needed before any approved directory publishing.
 - [ ] Leave Issue #11 OPEN and document residual gates in docs/FIRST_MANUAL_OBSERVATION.md.
+
+
+## P1-U: desktop review acceptance and file-picker clarity
+
+- [x] User screenshots show a real desktop-browser flow with the original 211 HTTP 301 source receipt, human disposition, blocked draft, and **LOCAL CONTENT MATCH ONLY** after selecting a review file.
+- [x] Record screenshot-observed states and limits without uploading identifying browser screenshots to the public repository. See docs/DESKTOP_REVIEW_ACCEPTANCE.md.
+- [x] Clarify the browser-native “No file chosen” label after deliberate reset with state-derived, bilingual, accessible **Source receipt loaded** and **Review draft loaded and compared** indicators.
+- [x] Clear those indicators only when the underlying locally validated receipt/pair is cleared or replaced; no filenames, new storage, extra API calls, source promotion or authority changes.
+- [ ] Real Android/iOS device acceptance, error/mismatch file-picker recovery, keyboard/VoiceOver/TalkBack and offline tests are **not** satisfied by desktop screenshots.
+- [ ] Issue #11 remains OPEN for authorized publisher feeds, authenticated human approval and independent evidence before any service availability claim.
